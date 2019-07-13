@@ -35,22 +35,9 @@ fn handle_connection(mut stream: TcpStream){
         routes::handle_post_request(stream)
 
     } else if buffer.starts_with(patch){
-        let status_line = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
-        let contents = fs::read_to_string("404.html").unwrap();
-
-        let response = format!("{}{}", status_line, contents);
-
-        stream.write(response.as_bytes()).unwrap();
-        stream.flush().unwrap();
+        routes::handle_patch_request(stream)
     } else {
-
-        let status_line = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
-        let contents = fs::read_to_string("test.json").unwrap();
-
-        let response = format!("{}{}", status_line, contents);
-
-        stream.write(response.as_bytes()).unwrap();
-        stream.flush().unwrap();
+        routes::handle_delete_request(stream)
     }
     
 }
