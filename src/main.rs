@@ -2,9 +2,14 @@
 
 #[macro_use] extern crate rocket;
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+use rocket::response::content;
+use std::collections::HashMap;
+
+mod topic;
+
+#[get("/topics")]
+fn index() -> content::Json<&'static str> {
+    content::Json("{hi:world }")
 }
 
 fn main() {
