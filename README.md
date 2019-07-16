@@ -4,11 +4,18 @@ Backend for tigum - built with Rust
 
 ## V1 Routes
 
-### Headers
+### Headers?
 
-{
-userId: string
-}
+
+### POST /sign-in
+
+Request:
+`
+ {
+  user_name:string
+  password:jwt_token
+ }
+`
 
 ### GET /topics
 
