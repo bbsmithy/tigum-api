@@ -10,12 +10,12 @@ Backend for tigum - built with Rust
 ### POST /sign-in
 
 Request:
-```json
+`
  {
   user_name:string
   password:jwt_token
  }
-```
+`
 
 ### GET /topics
 
