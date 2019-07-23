@@ -15,13 +15,13 @@ fn note(note_id: u64) -> Json<Note> {
     let first_note_title = "Test title".to_string();
     let first_note_body = "Test body".to_string();
 
-    let note_detail = Note::new(first_note_title, first_note_body, note_id);
+    let mut note_detail = Note::new(first_note_title, first_note_body, note_id);
 
-    // let test_note_text = NoteItem::NoteText {
-    //     body: String::from("Hello")
-    // };
+    let test_note_text = NoteItem::new(String::from("text"), 1234, String::from("some content"));
 
-    // note_detail.add_note_item(test_note_text);
+    note_detail.add_note_item(test_note_text);
+
+    println!("{}", note_detail.note_content[0].content);
 
     Json(note_detail)
 }
