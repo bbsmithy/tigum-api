@@ -6,6 +6,7 @@ extern crate rocket;
 use rocket_contrib::json::Json;
 
 mod models;
+mod cors;
 
 use models::topic::note::{Note, NoteItem};
 use models::topic::Topic;
@@ -14,6 +15,7 @@ use models::topic::Topic;
 fn note(note_id: u64) -> Json<Note> {
     let first_note_title = "Test title".to_string();
     let first_note_body = "Test body".to_string();
+
 
     let mut note_detail = Note::new(first_note_title, first_note_body, note_id);
 
@@ -34,7 +36,10 @@ fn topics() -> Json<Topic> {
     let second_note_body = "Test body 2".to_string();
 
     let first_note = Note::new(first_note_title, first_note_body, 12);
-    let second_note = Note::new(second_note_title, second_note_body, 13);
+    let mut second_note = Note::new(second_note_title, second_note_body, 13);
+
+    let test_note_text = NoteItem::new(String::from("text"), 1234, String::from("some content"));
+    second_note.add_note_item(test_note_text);
 
     let notes: Vec<Note> = vec![first_note, second_note];
 
@@ -49,5 +54,5 @@ fn topics() -> Json<Topic> {
 }
 
 fn main() {
-    rocket::ignite().mount("/", routes![topics, note]).launch();
+    rocket::ignite().mount("/", routes![topics, note]).attach(cors::CorsFairing).launch();
 }
