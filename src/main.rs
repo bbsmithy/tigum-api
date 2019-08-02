@@ -5,8 +5,8 @@ extern crate rocket;
 
 use rocket_contrib::json::Json;
 
-mod models;
 mod cors;
+mod models;
 
 use models::topic::note::{Note, NoteItem};
 use models::topic::Topic;
@@ -15,7 +15,6 @@ use models::topic::Topic;
 fn note(note_id: u64) -> Json<Note> {
     let first_note_title = "Test title".to_string();
     let first_note_body = "Test body".to_string();
-
 
     let mut note_detail = Note::new(first_note_title, first_note_body, note_id);
 
@@ -53,6 +52,14 @@ fn topics() -> Json<Topic> {
     return Json(topic);
 }
 
+#[get("/")]
+fn home() -> String {
+    String::from("Welcome to Tigum!")
+}
+
 fn main() {
-    rocket::ignite().mount("/", routes![topics, note]).attach(cors::CorsFairing).launch();
+    rocket::ignite()
+        .mount("/", routes![topics, note])
+        .attach(cors::CorsFairing)
+        .launch();
 }
