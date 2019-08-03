@@ -2,14 +2,17 @@
 
 #[macro_use]
 extern crate rocket;
+extern crate serde;
 
 use rocket_contrib::json::Json;
+
 
 mod cors;
 mod models;
 
 use models::topic::note::{Note, NoteItem};
 use models::topic::Topic;
+use models::user::User;
 
 #[get("/note/<note_id>")]
 fn note(note_id: u64) -> Json<Note> {
@@ -27,8 +30,10 @@ fn note(note_id: u64) -> Json<Note> {
     Json(note_detail)
 }
 
-#[get("/topics")]
-fn topics() -> Json<Topic> {
+#[post("/topics", format = "application/json", data = "<user>")]
+fn topics(user: Json<User>) -> Json<Topic> {
+    println!("User Id {}", user.user_id);
+
     let first_note_title = "Test title".to_string();
     let first_note_body = "Test body".to_string();
     let second_note_title = "Test title 2".to_string();
