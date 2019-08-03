@@ -6,7 +6,6 @@ extern crate serde;
 
 use rocket_contrib::json::Json;
 
-
 mod cors;
 mod models;
 
@@ -59,12 +58,12 @@ fn topics(user: Json<User>) -> Json<Topic> {
 
 #[get("/")]
 fn home() -> String {
-    String::from("Welcome to Tigum!")
+    String::from("Welcome to Tigum API!")
 }
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![topics, note])
+        .mount("/", routes![home, topics, note])
         .attach(cors::CorsFairing)
         .launch();
 }
