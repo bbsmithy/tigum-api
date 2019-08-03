@@ -55,8 +55,7 @@ Response Body:
 {
   "topic_id": "u64",
   "title": "string",
-  "date_created": "string",
-  "notes": [1232, 1262, 1236]
+  "date_created": "string"
 }
 ```
 
@@ -118,7 +117,7 @@ Response Body:
 ]
 ```
 
-### GET /notes/note/<note_id>
+### GET /note/<note_id>
 
 Request Body:
 
