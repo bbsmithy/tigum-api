@@ -1,6 +1,6 @@
 pub mod note;
 
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 
 #[derive(Serialize)]
@@ -19,3 +19,8 @@ impl Topic {
         }
     }
 }
+
+#[derive(Deserialize)]
+pub struct TopicId {
+    pub topic_id: u64
+} 

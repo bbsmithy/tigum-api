@@ -7,28 +7,41 @@ extern crate serde;
 use rocket_contrib::json::Json;
 
 mod cors;
+mod guards;
 mod models;
 
-use models::generate_test_notes;
-use models::generate_test_topics;
+use models::topic::note::Note;
+use models::topic::{Topic, TopicId};
+use models::{
+    generate_single_note, generate_single_topic, generate_test_notes, generate_test_topics,
+};
 
-use models::topic::note::{Note};
-use models::topic::Topic;
-use models::user::User;
+use guards::User;
 
-#[get("/note/<topic_id>")]
-fn note(topic_id: u64) -> Json<Vec<Note>> {
+#[get("/notes/<topic_id>")]
+fn single_note(topic_id: u64, auth_user: User) -> Json<Note> {
     println!("Fetching notes for topic: {}", topic_id);
-    let notes: Vec<Note> = generate_test_notes(10);
-    Json(notes)
+    let note_response = generate_single_note();
+    return Json(note_response);
 }
 
-#[post("/topics", format = "application/json", data = "<user>")]
-fn topics(user: Json<User>) -> Json<Vec<Topic>> {
-    println!("User Id {}", user.user_id);
+#[post("/notes", format = "application/json", data = "<topic_id>")]
+fn notes(topic_id: Json<TopicId>, auth_user: User) -> Json<Vec<Note>> {
+    println!("{}", topic_id.topic_id.to_string());
+    let notes: Vec<Note> = generate_test_notes(10);
+    return Json(notes);
+}
 
+#[get("/topics/<topic_id>")]
+fn single_topic(topic_id: u64, auth_user: User) -> Json<Topic> {
+    let topic = generate_single_topic(topic_id);
+    return Json(topic);
+}
+
+#[get("/topics")]
+fn topics(auth_user: User) -> Json<Vec<Topic>> {
+    println!("User Id {}", auth_user.user_id);
     let topics: Vec<Topic> = generate_test_topics(10);
-
     return Json(topics);
 }
 
@@ -39,7 +52,7 @@ fn home() -> String {
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![home, topics, note])
+        .mount("/", routes![home, topics, single_topic, notes, single_note])
         .attach(cors::CorsFairing)
         .launch();
 }

@@ -78,7 +78,7 @@ Resource - A resource can be user generated or created by Sciob (Tigum extension
 
 Retreives a list of topics created by that user
 
-Request Body:
+Headers:
 
 ```json
 {
@@ -102,7 +102,7 @@ Response Body:
 
 Retreives a single topic
 
-Request Body:
+Headers:
 
 ```json
 {
@@ -120,14 +120,24 @@ Response Body:
 }
 ```
 
-### GET /notes/<topic_id>
+### POST /notes
 
-Retrieves a list of notes
+Retrieves a list of notes on a topic
+
+Headers:
+
+```json
+{
+  "user_id": "string"
+}
+```
 
 Request Body:
 
 ```json
-{}
+{
+  "topic_id": "string"
+}
 ```
 
 Response Body:
@@ -178,12 +188,14 @@ Response Body:
 ]
 ```
 
-### GET /note/<note_id>
+### GET /notes/<note_id>
 
-Request Body:
+Headers:
 
 ```json
-{}
+{
+  "user_id": "string"
+}
 ```
 
 Response Body:

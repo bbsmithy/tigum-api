@@ -29,6 +29,13 @@ pub fn generate_test_notes(amount: u64) -> Vec<Note> {
     return notes;
 }
 
+pub fn generate_single_note() -> Note {
+    let resources = generate_test_resources(10);
+    let note = Note::new(String::from("Test Single note"), 1234, resources);
+
+    note
+}
+
 pub fn generate_test_topics(amount: u64) -> Vec<Topic> {
     let mut topics: Vec<Topic> = vec![];
 
@@ -40,4 +47,13 @@ pub fn generate_test_topics(amount: u64) -> Vec<Topic> {
     }
 
     return topics;
+}
+
+pub fn generate_single_topic(topic_id: u64) -> Topic {
+    let title = "Test Single Topic".to_string();
+    let date_created = "12th of Never".to_string();
+
+    let topic = Topic::new(title, date_created, topic_id);
+
+    topic
 }
