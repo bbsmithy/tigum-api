@@ -26,37 +26,37 @@ Note - A note is an object that stores resources in order of how the user has cr
   "note_id": "u64",
   "note_content": [
     {
-      "type": "TEXT",
+      "content_type": "TEXT",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "VIDEO",
+      "content_type": "VIDEO",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "ARTICLE_SNIPPET",
+      "content_type": "ARTICLE_SNIPPET",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "CODE",
+      "content_type": "CODE",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "IMAGES",
+      "content_type": "IMAGES",
       "resource_id": "u64",
       "content": "string(parsed html)"
     },
     {
-      "type": "DOCUMENTS",
+      "content_type": "DOCUMENTS",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "EXCERCISES",
+      "content_type": "EXCERCISES",
       "resource_id": "u64",
       "content": "string (parsed html)"
     }
@@ -64,12 +64,12 @@ Note - A note is an object that stores resources in order of how the user has cr
 }
 ```
 
-Resource - A resource can be user generated or created by Sciob (Tigum extension for web clipping). It holds a content type and the content itself in parsed html.
+Resource - A resource can be user generated or created by Sciob (Tigum extension for web clipping). It holds a content content_type and the content itself in parsed html.
 
 ```json
 {
-  "type": "TEXT",
   "resource_id": "u64",
+  "content_type": "TEXT",
   "content": "string (parsed html)"
 }
 ```
@@ -139,37 +139,37 @@ Response Body:
     "note_id": "u64",
     "note_content": [
       {
-        "type": "TEXT",
+        "content_type": "TEXT",
         "resource_id": "u64",
         "content": "string (parsed html)"
       },
       {
-        "type": "VIDEO",
+        "content_type": "VIDEO",
         "resource_id": "u64",
         "content": "string (parsed html)"
       },
       {
-        "type": "ARTICLE_SNIPPET",
+        "content_type": "ARTICLE_SNIPPET",
         "resource_id": "u64",
         "content": "string (parsed html)"
       },
       {
-        "type": "CODE",
+        "content_type": "CODE",
         "resource_id": "u64",
         "content": "string (parsed html)"
       },
       {
-        "type": "IMAGES",
+        "content_type": "IMAGES",
         "resource_id": "u64",
         "content": "string(parsed html)"
       },
       {
-        "type": "DOCUMENTS",
+        "content_type": "DOCUMENTS",
         "resource_id": "u64",
         "content": "string (parsed html)"
       },
       {
-        "type": "EXCERCISES",
+        "content_type": "EXCERCISES",
         "resource_id": "u64",
         "content": "string (parsed html)"
       }
@@ -194,37 +194,37 @@ Response Body:
   "note_id": "u64",
   "note_content": [
     {
-      "type": "TEXT",
+      "content_type": "TEXT",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "VIDEO",
+      "content_type": "VIDEO",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "ARTICLE_SNIPPET",
+      "content_type": "ARTICLE_SNIPPET",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "CODE",
+      "content_type": "CODE",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "IMAGES",
+      "content_type": "IMAGES",
       "resource_id": "u64",
       "content": "string(parsed html)"
     },
     {
-      "type": "DOCUMENTS",
+      "content_type": "DOCUMENTS",
       "resource_id": "u64",
       "content": "string (parsed html)"
     },
     {
-      "type": "EXCERCISES",
+      "content_type": "EXCERCISES",
       "resource_id": "u64",
       "content": "string (parsed html)"
     }
