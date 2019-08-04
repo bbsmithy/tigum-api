@@ -2,8 +2,6 @@
 
 Backend for tigum - built with Rust
 
-## V1 Routes
-
 ## Data Types:
 
 Topic - A topic is an object for storing all of the notes a user has created for that topic.
@@ -73,6 +71,8 @@ Resource - A resource can be user generated or created by Sciob (Tigum extension
   "content": "string (parsed html)"
 }
 ```
+
+## V1 Routes
 
 ### GET /topics
 
