@@ -28,7 +28,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         println!("Running User request guard");
-        let keys: Vec<_> = request.headers().get("user_id").collect();
+        let keys: Vec<_> = request.headers().get("X-User-ID").collect();
         match keys.len() {
             0 => Outcome::Failure((Status::BadRequest, UserIdError::Missing)),
             1 if is_valid(keys[0]) => {
