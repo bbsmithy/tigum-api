@@ -1,8 +1,7 @@
-pub mod topic;
-pub mod user;
+pub mod models;
 
-use topic::note::{Note, Resource};
-use topic::Topic;
+use models::topic::note::{Note, Resource};
+use models::topic::Topic;
 
 fn generate_test_resources(amount: u64) -> Vec<Resource> {
     let mut resources: Vec<Resource> = vec![];

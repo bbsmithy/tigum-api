@@ -8,11 +8,11 @@ use rocket_contrib::json::Json;
 
 mod cors;
 mod guards;
-mod models;
+mod db;
 
-use models::topic::note::Note;
-use models::topic::{Topic, TopicId};
-use models::{
+use db::models::topic::note::Note;
+use db::models::topic::{Topic, TopicId};
+use db::{
     generate_single_note, generate_single_topic, generate_test_notes, generate_test_topics,
 };
 
@@ -20,27 +20,27 @@ use models::{
 use guards::User;
 
 #[get("/notes/<topic_id>")]
-fn single_note(topic_id: u64, auth_user: User) -> Json<Note> {
+fn single_note(topic_id: u64, _auth_user: User) -> Json<Note> {
     println!("Fetching notes for topic: {}", topic_id);
     let note_response = generate_single_note();
     return Json(note_response);
 }
 
 #[post("/notes", format = "application/json", data = "<topic_id>")]
-fn notes(topic_id: Json<TopicId>, auth_user: User) -> Json<Vec<Note>> {
+fn notes(topic_id: Json<TopicId>, _auth_user: User) -> Json<Vec<Note>> {
     println!("{}", topic_id.topic_id.to_string());
     let notes: Vec<Note> = generate_test_notes(10);
     return Json(notes);
 }
 
 #[get("/topics/<topic_id>")]
-fn single_topic(topic_id: u64, auth_user: User) -> Json<Topic> {
+fn single_topic(topic_id: u64, _auth_user: User) -> Json<Topic> {
     let topic = generate_single_topic(topic_id);
     return Json(topic);
 }
 
 #[get("/topics")]
-fn topics(auth_user: User) -> Json<Vec<Topic>> {
+fn topics(_auth_user: User) -> Json<Vec<Topic>> {
     let topics: Vec<Topic> = generate_test_topics(10);
     return Json(topics);
 }
