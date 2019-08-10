@@ -16,6 +16,7 @@ use models::{
     generate_single_note, generate_single_topic, generate_test_notes, generate_test_topics,
 };
 
+
 use guards::User;
 
 #[get("/notes/<topic_id>")]
@@ -40,9 +41,13 @@ fn single_topic(topic_id: u64, auth_user: User) -> Json<Topic> {
 
 #[get("/topics")]
 fn topics(auth_user: User) -> Json<Vec<Topic>> {
-    println!("User Id {}", auth_user.user_id);
     let topics: Vec<Topic> = generate_test_topics(10);
     return Json(topics);
+}
+
+#[route(OPTIONS, path = "/")]
+fn preflight_handler() {
+    println!("{}", String::from("Handling preflight"))
 }
 
 #[get("/")]
@@ -52,7 +57,7 @@ fn home() -> String {
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![home, topics, single_topic, notes, single_note])
+        .mount("/", routes![home, topics, single_topic, notes, single_note, preflight_handler])
         .attach(cors::CorsFairing)
         .launch();
 }
