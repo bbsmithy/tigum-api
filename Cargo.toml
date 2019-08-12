@@ -6,5 +6,11 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4.2"
-rocket_contrib = "*"
+mongodb = "*"
 serde = { features = ["derive"] }
+
+
+[dependencies.rocket_contrib]
+version = "0.4.2"
+default-features = false
+features = ["mongodb_pool", "json"]

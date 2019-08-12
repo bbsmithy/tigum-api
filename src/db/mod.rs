@@ -1,7 +1,15 @@
 pub mod models;
 
+
 use models::topic::note::{Note, Resource};
 use models::topic::Topic;
+use rocket_contrib::databases::mongodb;
+
+
+
+#[database("tigum_db")]
+pub struct TigumDBConn(mongodb::db::Database);
+
 
 fn generate_test_resources(amount: u64) -> Vec<Resource> {
     let mut resources: Vec<Resource> = vec![];
