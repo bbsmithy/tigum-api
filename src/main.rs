@@ -3,11 +3,12 @@
 #[macro_use]
 extern crate rocket;
 extern crate serde;
-
-#[macro_use] extern crate rocket_contrib;
+extern crate rocket_contrib;
 
 use rocket_contrib::json::Json;
-use rocket_contrib::databases::mongodb::ClientInner;
+
+use std::env;
+
 
 
 mod cors;
@@ -17,7 +18,7 @@ mod db;
 use db::models::topic::note::Note;
 use db::models::topic::{Topic, TopicId};
 use db::{
-    generate_single_note, generate_single_topic, generate_test_notes, generate_test_topics, TigumDBConn
+    generate_single_note, generate_single_topic, generate_test_notes, generate_test_topics
 };
 
 
@@ -45,7 +46,8 @@ fn single_topic(topic_id: u64, _auth_user: User) -> Json<Topic> {
 }
 
 #[get("/topics")]
-fn topics(conn: TigumDBConn, _auth_user: User) -> Json<Vec<Topic>> {
+fn topics(_auth_user: User) -> Json<Vec<Topic>> {
+    // println!("{}",conn.0.name);
     let topics: Vec<Topic> = generate_test_topics(10);
     return Json(topics);
 }
@@ -61,9 +63,12 @@ fn home() -> String {
 }
 
 fn main() {
+
+    let key = "RUST_BACKTRACE";
+    env::set_var(key, "1");
+
     rocket::ignite()
         .mount("/", routes![home, topics, single_topic, notes, single_note, preflight_handler])
         .attach(cors::CorsFairing)
-        .attach(TigumDBConn::fairing())
         .launch();
 }

@@ -2,11 +2,6 @@ use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
 use rocket::Outcome;
 
-use rocket_contrib::databases::mongodb;
-
-
-#[database("tigum_db")]
-pub struct TigumDBConn(mongodb::db::Database);
 
 pub struct User {
     pub user_id: String,
