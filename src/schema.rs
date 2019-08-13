@@ -1,8 +1,7 @@
 table! {
-    posts (id) {
+    topics (id) {
         id -> Int4,
         title -> Varchar,
-        body -> Text,
-        published -> Bool,
+        date_created -> Varchar,
     }
 }
