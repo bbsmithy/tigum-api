@@ -3,11 +3,13 @@
 #[macro_use]
 extern crate rocket;
 extern crate serde;
-extern crate rocket_contrib;
 
-use rocket_contrib::json::Json;
+#[macro_use] extern crate rocket_contrib;
+
 
 use std::env;
+
+use rocket_contrib::json::Json;
 
 
 

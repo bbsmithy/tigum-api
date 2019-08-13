@@ -13,3 +13,6 @@ workers = 2
 keep_alive = 5
 log = "critical"
 limits = { forms = 32768 }
+
+[global.databases]
+sqlite_logs = { url = "postgresql://utveuly3nqvusv6dobvo:7IOji0EeGz3rss8mimrJ@btt3z8bmoskqs6wnlfnx-postgresql.services.clever-cloud.com:5432/btt3z8bmoskqs6wnlfnx" }
