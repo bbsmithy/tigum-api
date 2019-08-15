@@ -1,8 +1,19 @@
+use rocket_contrib::databases;
+use rocket_contrib::json::Json;
+
+
 pub mod models;
-
-
 use models::topic::note::{Note, Resource};
 use models::topic::Topic;
+
+#[database("tigum_db")]
+pub struct TigumPgConn(databases::postgres::Connection);
+
+pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> String {
+    let updates = conn.execute("INSERT INTO topics (title, date_created) VALUES ($1, $2)",
+                 &[&topic.title, &topic.date_created]).unwrap();
+    format!("Rows affected {}", updates)
+}
 
 
 fn generate_test_resources(amount: u64) -> Vec<Resource> {

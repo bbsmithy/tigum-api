@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 pub mod note;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Topic {
     pub topic_id: u64,
     pub title: String,
