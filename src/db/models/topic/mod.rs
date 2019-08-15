@@ -1,7 +1,6 @@
-pub mod note;
-
 use serde::{Serialize, Deserialize};
 
+pub mod note;
 
 #[derive(Serialize)]
 pub struct Topic {

@@ -4,7 +4,10 @@
 extern crate rocket;
 extern crate serde;
 
+
 #[macro_use] extern crate rocket_contrib;
+
+use rocket_contrib::databases;
 
 
 use std::env;
@@ -25,6 +28,9 @@ use db::{
 
 
 use guards::User;
+
+#[database("tigum_db")]
+struct TigumPgConn(databases::postgres::Connection);
 
 
 #[get("/notes/<topic_id>")]
@@ -48,8 +54,12 @@ fn single_topic(topic_id: u64, _auth_user: User) -> Json<Topic> {
 }
 
 #[get("/topics")]
-fn topics(_auth_user: User) -> Json<Vec<Topic>> {
-    // println!("{}",conn.0.name);
+fn topics(conn: TigumPgConn, _auth_user: User) -> Json<Vec<Topic>> {
+    
+    let topic = Topic::new("Test Topic".to_string(), "15th March 1999".to_string(), 12345);
+    conn.execute("INSERT INTO topics (title, date_created) VALUES ($1, $2)",
+                 &[&topic.title, &topic.date_created]).unwrap();
+
     let topics: Vec<Topic> = generate_test_topics(10);
     return Json(topics);
 }
@@ -72,5 +82,6 @@ fn main() {
     rocket::ignite()
         .mount("/", routes![home, topics, single_topic, notes, single_note, preflight_handler])
         .attach(cors::CorsFairing)
+        .attach(TigumPgConn::fairing())
         .launch();
 }
