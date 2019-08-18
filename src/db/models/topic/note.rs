@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 #[derive(Serialize)]
 pub struct Resource {
@@ -17,22 +17,22 @@ impl Resource {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Note {
     pub title: String,
     pub note_id: u64,
-    pub note_content: Vec<Resource>,
+    pub note_content: Vec<i64>,
 }
 
 impl Note {
-    pub fn new(title: String, note_id: u64, note_content: Vec<Resource>) -> Note {
+    pub fn new(title: String, note_id: u64, note_content: Vec<i64>) -> Note {
         Note {
             title: title,
             note_id: note_id,
             note_content: note_content,
         }
     }
-    pub fn add_note_item<'a>(&'a mut self, note_item: Resource) -> &'a mut Note {
+    pub fn add_note_item<'a>(&'a mut self, note_item: i64) -> &'a mut Note {
         self.note_content.push(note_item);
         self
     }

@@ -15,16 +15,17 @@ pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> String {
     format!("Rows affected {}", updates)
 }
 
+pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
+    let update = conn.execute("INSERT INTO notes (title, note_content) VALUES ($1, $2)", &[&note.title, &note.note_content]).unwrap();
+    format!("Rows affected {}", update)
+}
 
-fn generate_test_resources(amount: u64) -> Vec<Resource> {
-    let mut resources: Vec<Resource> = vec![];
+
+fn generate_test_resources(amount: i64) -> Vec<i64> {
+    let mut resources: Vec<i64> = vec![];
     for n in 1..amount {
-        let content_type = "TEXT".to_string();
-        let content = "<h1>Hello</h1>".to_string();
-        let new_resource = Resource::new(n, content_type, content);
-        resources.push(new_resource);
+        resources.push(n);
     }
-
     return resources;
 }
 
@@ -48,7 +49,7 @@ pub fn generate_single_note() -> Note {
     note
 }
 
-pub fn generate_test_topics(amount: u64) -> Vec<Topic> {
+pub fn generate_test_topics(amount: i32) -> Vec<Topic> {
     let mut topics: Vec<Topic> = vec![];
 
     for n in 1..amount {
@@ -61,7 +62,7 @@ pub fn generate_test_topics(amount: u64) -> Vec<Topic> {
     return topics;
 }
 
-pub fn generate_single_topic(topic_id: u64) -> Topic {
+pub fn generate_single_topic(topic_id: i32) -> Topic {
     let title = "Test Single Topic".to_string();
     let date_created = "12th of Never".to_string();
 

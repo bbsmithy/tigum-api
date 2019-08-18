@@ -4,13 +4,13 @@ pub mod note;
 
 #[derive(Serialize, Deserialize)]
 pub struct Topic {
-    pub topic_id: u64,
+    pub topic_id: i32,
     pub title: String,
     pub date_created: String,
 }
 
 impl Topic {
-    pub fn new(title: String, date_created: String, topic_id: u64) -> Topic {
+    pub fn new(title: String, date_created: String, topic_id: i32) -> Topic {
         Topic {
             topic_id: topic_id,
             title: title,
