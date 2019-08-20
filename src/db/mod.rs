@@ -9,10 +9,21 @@ use models::topic::Topic;
 #[database("tigum_db")]
 pub struct TigumPgConn(databases::postgres::Connection);
 
-pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> String {
-    let updates = conn.execute("INSERT INTO topics (title, date_created) VALUES ($1, $2)",
-                 &[&topic.title, &topic.date_created]).unwrap();
-    format!("Rows affected {}", updates)
+pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Vec<Topic>> {
+    let query_result = conn.query("SELECT * FROM topics WHERE id = ($1)", &[&topic_id]).unwrap();
+    let mut result: Vec<Topic> = vec![];
+    for row in query_result.iter() {
+        let topic = Topic::new(row.get(2), row.get(1), row.get(0));
+        result.push(topic);
+    }
+    return Json(result)
+}
+
+pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> Json<Vec<Topic>> {
+    let updates = conn.execute("INSERT INTO topics (id, title, date_created) VALUES ($1, $2, $3)",
+                 &[&topic.topic_id, &topic.title, &topic.date_created]).unwrap();
+    let results = get_topic(&conn, topic.topic_id);
+    return results;
 }
 
 pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {

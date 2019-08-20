@@ -52,7 +52,7 @@ fn notes(topic_id: Json<TopicId>, _auth_user: User) -> Json<Vec<Note>> {
 // Topic Routes
 
 #[post("/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> String {
+fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> Json<Vec<Topic>> {
     println!("Creating topic: {}", topic.title);
     let update = create_topic(&conn, topic);
     update
