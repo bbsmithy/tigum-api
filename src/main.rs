@@ -16,9 +16,9 @@ mod db;
 
 // Database Models and Functions
 use db::models::topic::note::Note;
-use db::models::topic::{Topic, TopicId};
+use db::models::topic::{Topic, TopicId, TopicIds};
 use db::{
-    TigumPgConn, create_topic, create_note, generate_single_note, generate_single_topic, generate_test_notes, generate_test_topics
+    TigumPgConn, create_topic, create_note, generate_single_note, get_topic, get_topics, generate_test_notes, generate_test_topics
 };
 
 // Request Gaurds
@@ -53,25 +53,20 @@ fn notes(topic_id: Json<TopicId>, _auth_user: User) -> Json<Vec<Note>> {
 
 #[post("/create-topic", format = "application/json", data = "<topic>")]
 fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> Json<Vec<Topic>> {
-    println!("Creating topic: {}", topic.title);
     let update = create_topic(&conn, topic);
     update
 }
 
 #[get("/topics/<topic_id>")]
-fn single_topic(topic_id: i32, _auth_user: User) -> Json<Topic> {
-    let topic = generate_single_topic(topic_id);
-    return Json(topic);
+fn single_topic(conn: TigumPgConn, topic_id: i32, _auth_user: User) -> Json<Vec<Topic>> {
+    let topic = get_topic(&conn, topic_id);
+    return topic;
 }
 
-#[get("/topics")]
-fn topics(conn: TigumPgConn, _auth_user: User) -> Json<Vec<Topic>> {
-    let mut topic_results: Vec<Topic> = vec![];
-    for row in &conn.query("SELECT * FROM topics", &[]).unwrap() {
-        let result_topic = Topic::new(row.get(1), row.get(2), row.get(0));
-        topic_results.push(result_topic);
-    }
-    return Json(topic_results);
+#[post("/topics", format = "application/json", data = "<topic_ids>")]
+fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, _auth_user: User) -> Json<Vec<Topic>> {
+    let result_topics = get_topics(&conn, topic_ids);
+    return result_topics;
 }
 
 // CORS Prelight Request Handler

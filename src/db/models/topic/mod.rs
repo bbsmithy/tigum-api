@@ -22,4 +22,9 @@ impl Topic {
 #[derive(Deserialize)]
 pub struct TopicId {
     pub topic_id: u64
-} 
+}
+
+#[derive(Deserialize)]
+pub struct TopicIds {
+    pub ids: Vec<i32>
+}

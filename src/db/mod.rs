@@ -4,10 +4,27 @@ use rocket_contrib::json::Json;
 
 pub mod models;
 use models::topic::note::{Note, Resource};
-use models::topic::Topic;
+use models::topic::{Topic, TopicIds};
 
 #[database("tigum_db")]
 pub struct TigumPgConn(databases::postgres::Connection);
+
+
+
+pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
+    let update = conn.execute("INSERT INTO notes (title, note_content) VALUES ($1, $2)", &[&note.title, &note.note_content]).unwrap();
+    format!("Rows affected {}", update)
+}
+
+pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Topic>> {
+    let query_result = conn.query("SELECT * FROM topics WHERE id IN ($1)", &[&topic_ids.ids]).unwrap();
+    let mut results: Vec<Topic> = vec![];
+    for row in query_result.iter() {
+        let topic = Topic::new(row.get(2), row.get(1), row.get(0));
+        results.push(topic);
+    }
+    return Json(results);
+}
 
 pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Vec<Topic>> {
     let query_result = conn.query("SELECT * FROM topics WHERE id = ($1)", &[&topic_id]).unwrap();
@@ -24,11 +41,6 @@ pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> Json<Vec<Topic>> 
                  &[&topic.topic_id, &topic.title, &topic.date_created]).unwrap();
     let results = get_topic(&conn, topic.topic_id);
     return results;
-}
-
-pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
-    let update = conn.execute("INSERT INTO notes (title, note_content) VALUES ($1, $2)", &[&note.title, &note.note_content]).unwrap();
-    format!("Rows affected {}", update)
 }
 
 
@@ -60,7 +72,7 @@ pub fn generate_single_note() -> Note {
     note
 }
 
-pub fn generate_test_topics(amount: i32) -> Vec<Topic> {
+pub fn generate_test_topics(amount: i32) -> Json<Vec<Topic>> {
     let mut topics: Vec<Topic> = vec![];
 
     for n in 1..amount {
@@ -70,7 +82,7 @@ pub fn generate_test_topics(amount: i32) -> Vec<Topic> {
         topics.push(new_topic);
     }
 
-    return topics;
+    return Json(topics);
 }
 
 pub fn generate_single_topic(topic_id: i32) -> Topic {
