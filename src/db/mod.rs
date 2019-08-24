@@ -17,7 +17,7 @@ pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
 }
 
 pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Topic>> {
-    let query_result = conn.query("SELECT * FROM topics WHERE id IN ($1)", &[&topic_ids.ids]).unwrap();
+    let query_result = conn.query("SELECT * FROM topics WHERE id = ANY($1)", &[&topic_ids.ids]).unwrap();
     let mut results: Vec<Topic> = vec![];
     for row in query_result.iter() {
         let topic = Topic::new(row.get(2), row.get(1), row.get(0));
