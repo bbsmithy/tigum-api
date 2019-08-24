@@ -59,21 +59,21 @@ fn update_single_topic(conn: TigumPgConn, topic_id: i32, topic: Json<Topic>, aut
 
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> Json<Vec<Topic>> {
+fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> Json<Topic> {
     let update = create_topic(&conn, topic);
     update
 }
 
 #[get("/topics/<topic_id>")]
-fn single_topic(conn: TigumPgConn, topic_id: i32, _auth_user: User) -> Json<Vec<Topic>> {
+fn single_topic(conn: TigumPgConn, topic_id: i32, _auth_user: User) -> Json<Topic> {
     let topic = get_topic(&conn, topic_id);
     return topic;
 }
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
 fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, _auth_user: User) -> Json<Vec<Topic>> {
-    let result_topics = get_topics(&conn, topic_ids);
-    return result_topics;
+    let result_topic = get_topics(&conn, topic_ids);
+    return result_topic;
 }
 
 // CORS Prelight Request Handler
