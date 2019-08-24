@@ -16,6 +16,14 @@ pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
     format!("Rows affected {}", update)
 }
 
+// Topic DB Querys
+
+pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {
+    
+    let result_topic = generate_single_topic(1234);
+    return Json(result_topic);
+}
+
 pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Topic>> {
     let query_result = conn.query("SELECT * FROM topics WHERE id = ANY($1)", &[&topic_ids.ids]).unwrap();
     let mut results: Vec<Topic> = vec![];

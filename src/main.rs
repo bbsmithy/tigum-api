@@ -18,7 +18,7 @@ mod db;
 use db::models::topic::note::Note;
 use db::models::topic::{Topic, TopicId, TopicIds};
 use db::{
-    TigumPgConn, create_topic, create_note, generate_single_note, get_topic, get_topics, generate_test_notes, generate_test_topics
+    TigumPgConn, create_topic, get_topic, get_topics, update_topic, create_note, generate_single_note,  generate_test_notes
 };
 
 // Request Gaurds
@@ -51,7 +51,14 @@ fn notes(topic_id: Json<TopicId>, _auth_user: User) -> Json<Vec<Note>> {
 
 // Topic Routes
 
-#[post("/create-topic", format = "application/json", data = "<topic>")]
+#[put("/topics/<topic_id>", format = "application/json", data = "<topic>")]
+fn update_single_topic(conn: TigumPgConn, topic_id: i32, topic: Json<Topic>, auth_user: User) -> Json<Topic> {
+    let result = update_topic(&conn, topic_id, topic);
+    return result;
+}
+
+
+#[post("/topics/create-topic", format = "application/json", data = "<topic>")]
 fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> Json<Vec<Topic>> {
     let update = create_topic(&conn, topic);
     update
@@ -79,7 +86,7 @@ fn preflight_handler() {
 fn main() {
 
     rocket::ignite()
-        .mount("/", routes![topics, single_topic, create_single_topic, notes, single_note, create_single_note, preflight_handler])
+        .mount("/", routes![topics, single_topic, create_single_topic, update_single_topic, notes, single_note, create_single_note, preflight_handler])
         .attach(cors::CorsFairing)
         .attach(TigumPgConn::fairing())
         .launch();
