@@ -18,6 +18,14 @@ pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
 
 // Topic DB Querys
 
+pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> String {
+    let result = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]).unwrap();
+    let response = format!("{} rows deleted", result);
+
+    return response
+}
+
+
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {
     conn.execute("UPDATE topics SET title = ($2), date_created = ($3) WHERE id = ($1)", &[&topic_id, &topic.title, &topic.date_created]).unwrap();
     let result = get_topic(&conn, topic_id);
