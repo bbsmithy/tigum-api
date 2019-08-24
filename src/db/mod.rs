@@ -19,9 +19,9 @@ pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
 // Topic DB Querys
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {
-    
-    let result_topic = generate_single_topic(1234);
-    return Json(result_topic);
+    conn.execute("UPDATE topics SET title = ($2), date_created = ($3) WHERE id = ($1)", &[&topic_id, &topic.title, &topic.date_created]).unwrap();
+    let result = get_topic(&conn, topic_id);
+    return result
 }
 
 pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Topic>> {
@@ -34,17 +34,14 @@ pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Top
     return Json(results);
 }
 
-pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Vec<Topic>> {
-    let query_result = conn.query("SELECT * FROM topics WHERE id = ($1)", &[&topic_id]).unwrap();
-    let mut result: Vec<Topic> = vec![];
-    for row in query_result.iter() {
-        let topic = Topic::new(row.get(2), row.get(1), row.get(0));
-        result.push(topic);
-    }
+pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Topic> {
+    let query_result = conn.query("SELECT * FROM topics WHERE id = $1", &[&topic_id]).unwrap();
+    let topic = query_result.get(0);
+    let result = Topic::new(topic.get(2), topic.get(1), topic.get(0));
     return Json(result)
 }
 
-pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> Json<Vec<Topic>> {
+pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> Json<Topic> {
     let updates = conn.execute("INSERT INTO topics (id, title, date_created) VALUES ($1, $2, $3)",
                  &[&topic.topic_id, &topic.title, &topic.date_created]).unwrap();
     let results = get_topic(&conn, topic.topic_id);
