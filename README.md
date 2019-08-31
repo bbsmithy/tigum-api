@@ -12,7 +12,7 @@ Topic - A topic is an object for storing all of the notes a user has created for
     "topic_id": "i32",
     "title": "string",
     "date_created": "string"
-    "topic_content": Array<note_id(i32)>
+    "topic_content": "Array<note_id(i32)>"
   }
 ]
 ```
@@ -24,7 +24,7 @@ Note - A note is an object that stores resources in order of how the user has cr
   "note_title": "string (optional)",
   "note_id": "i32",
   "date_created": "string",
-  "note_content": Array<resource_id(i32)>
+  "note_content": "Array<resource_id(i32)>"
 }
 ```
 
