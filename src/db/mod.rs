@@ -3,20 +3,43 @@ use rocket_contrib::json::Json;
 
 
 pub mod models;
-use models::topic::note::{Note};
+use models::topic::note::{Note, NoteIds};
 use models::topic::{Topic, TopicIds};
 
 #[database("tigum_db")]
 pub struct TigumPgConn(databases::postgres::Connection);
 
 
+////////////////////////
+//// NOTE DB QUERYS ////
+////////////////////////
+
+pub fn get_notes(conn: &TigumPgConn, note_ids: Json<NoteIds>) -> Json<Vec<Note>> {
+    let query_result = conn.query("SELECT * FROM notes WHERE id = ANY($1)", &[&note_ids.ids]).unwrap();
+    let mut results: Vec<Note> = vec![];
+    for row in query_result.iter() {
+        let note = Note::new(row.get(1), row.get(0), row.get(2));
+        results.push(note);
+    }
+    return Json(results);
+}
+
+pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
+    let query_result = conn.query("SELECT * FROM notes WHERE id = $1", &[&note_id]).unwrap();
+    let note = query_result.get(0);
+    let note_response = Note::new(note.get(1), note.get(0), note.get(2));
+    return Json(note_response)
+}
 
 pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
     let update = conn.execute("INSERT INTO notes (title, note_content) VALUES ($1, $2)", &[&note.title, &note.note_content]).unwrap();
     format!("Rows affected {}", update)
 }
 
-// Topic DB Querys
+
+/////////////////////////
+//// TOPIC DB QUERYS ////
+/////////////////////////
 
 pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> String {
     let result = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]).unwrap();
@@ -55,16 +78,18 @@ pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> Json<Topic> {
     return results;
 }
 
+// END OF TOPIC DB QUERYS
 
-fn generate_test_resources(amount: i64) -> Vec<i64> {
-    let mut resources: Vec<i64> = vec![];
+
+fn generate_test_resources(amount: i32) -> Vec<i32> {
+    let mut resources: Vec<i32> = vec![];
     for n in 1..amount {
         resources.push(n);
     }
     return resources;
 }
 
-pub fn generate_test_notes(amount: u64) -> Vec<Note> {
+pub fn generate_test_notes(amount: i32) -> Vec<Note> {
     let mut notes: Vec<Note> = vec![];
 
     for n in 1..amount {

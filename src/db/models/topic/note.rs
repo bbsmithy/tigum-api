@@ -20,20 +20,31 @@ impl Resource {
 #[derive(Serialize, Deserialize)]
 pub struct Note {
     pub title: String,
-    pub note_id: u64,
-    pub note_content: Vec<i64>,
+    pub note_id: i32,
+    pub note_content: Vec<i32>,
 }
 
 impl Note {
-    pub fn new(title: String, note_id: u64, note_content: Vec<i64>) -> Note {
+    pub fn new(title: String, note_id: i32, note_content: Vec<i32>) -> Note {
         Note {
             title: title,
             note_id: note_id,
             note_content: note_content,
         }
     }
-    pub fn add_note_item<'a>(&'a mut self, note_item: i64) -> &'a mut Note {
+    pub fn add_note_item<'a>(&'a mut self, note_item: i32) -> &'a mut Note {
         self.note_content.push(note_item);
         self
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct NoteId {
+    pub id: i32
+}
+
+
+#[derive(Serialize, Deserialize)]
+pub struct NoteIds {
+    pub ids: Vec<i32>
 }
