@@ -6,15 +6,15 @@ pub mod note;
 pub struct Topic {
     pub topic_id: i32,
     pub title: String,
-    pub date_created: String,
+    pub topic_content: Vec<i32>
 }
 
 impl Topic {
-    pub fn new(title: String, date_created: String, topic_id: i32) -> Topic {
+    pub fn new(title: String, topic_id: i32, topic_content: Vec<i32>) -> Topic {
         Topic {
             topic_id: topic_id,
             title: title,
-            date_created: date_created
+            topic_content: topic_content
         }
     }
 }

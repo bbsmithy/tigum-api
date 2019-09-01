@@ -1,18 +1,31 @@
 use serde::{Serialize, Deserialize};
+use chrono::prelude::*;
 
-#[derive(Serialize)]
-pub struct Resource {
-    pub resource_id: u64,
+#[derive(Serialize, Deserialize)]
+pub struct NewResource {
     pub content_type: String,
     pub content: String,
+    pub generated_by: String
+}
+
+
+#[derive(Serialize, Deserialize)]
+pub struct Resource {
+    pub resource_id: i32,
+    pub date_created: String,
+    pub content_type: String,
+    pub content: String,
+    pub generated_by: String
 }
 
 impl Resource {
-    pub fn new(resource_id: u64, content_type: String, content: String) -> Resource {
+    pub fn new(resource_id: i32, date_created: String, content_type: String, content: String, generated_by: String) -> Resource {
         Resource {
             resource_id: resource_id,
+            date_created: date_created,
             content_type: content_type,
             content: content,
+            generated_by: generated_by
         }
     }
 }
