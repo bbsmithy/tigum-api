@@ -15,14 +15,23 @@ mod guards;
 mod db;
 
 // Database Models and Querys
-use db::models::topic::note::{Note, NoteId, NoteIds};
+use db::models::topic::note::{Note, NoteId, NoteIds, Resource, NewResource};
 use db::models::topic::{Topic, TopicIds};
 use db::TigumPgConn;
 use db::{create_topic, get_topic, get_topics, update_topic, delete_topic};
 use db::{create_note, get_note, get_notes, update_note, delete_note};
+use db::{create_resource};
 
 // Request Gaurds
 use guards::User;
+
+/////////////////////////
+//// RESOURCE ROUTES ////
+/////////////////////////
+#[post("/resources/create-resource", format = "application/json", data = "<resource>")]
+pub fn create_single_resource(conn: TigumPgConn, resource: Json<NewResource>) -> String {
+    create_resource(&conn, resource)
+}
 
 
 
@@ -76,7 +85,7 @@ fn update_single_topic(conn: TigumPgConn, topic_id: i32, topic: Json<Topic>, aut
 
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> Json<Topic> {
+fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> String {
     create_topic(&conn, topic)
 }
 
@@ -97,9 +106,28 @@ fn preflight_handler() {
     println!("{}", String::from("Handling preflight"))
 }
 
+fn create_routes() -> Vec<rocket::Route> {
+    let app_routes = routes![
+        topics, 
+        single_topic,
+        create_single_topic,
+        update_single_topic,
+        delete_single_topic,
+        notes,
+        single_note,
+        create_single_note,
+        update_single_note,
+        delete_single_note,
+        create_single_resource,
+        preflight_handler
+    ];
+    app_routes
+}
+
 fn main() {
+    let routes = create_routes();
     rocket::ignite()
-        .mount("/", routes![topics, single_topic, create_single_topic, update_single_topic, delete_single_topic, notes, single_note, create_single_note, update_single_note, delete_single_note, preflight_handler])
+        .mount("/", routes)
         .attach(cors::CorsFairing)
         .attach(TigumPgConn::fairing())
         .launch();

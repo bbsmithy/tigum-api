@@ -3,12 +3,27 @@ use rocket_contrib::json::Json;
 
 
 pub mod models;
-use models::topic::note::{Note, NoteIds};
+use models::topic::note::{Note, NoteIds, Resource, NewResource};
 use models::topic::{Topic, TopicIds};
 
 #[database("tigum_db")]
 pub struct TigumPgConn(databases::postgres::Connection);
 
+////////////////////////////
+//// RESOURCE DB QUERYS ////
+////////////////////////////
+
+pub fn get_resource(conn: &TigumPgConn, resource_id: i32) -> Json<Resource> {
+    let query_result = conn.query("SELECT * FROM resources WHERE id = $1", &[&resource_id]).unwrap();
+    let resource = query_result.get(0);
+    let resource_response = Resource::new(resource.get(0), resource.get(4), resource.get(1), resource.get(2), resource.get(3));
+    Json(resource_response)
+}
+
+pub fn create_resource(conn: &TigumPgConn, resource: Json<NewResource>) -> String {
+    let update = conn.execute("INSERT INTO resources (content_type, content, generated_by) VALUES ($1, $2, $3)", &[&resource.content_type, &resource.content, &resource.generated_by]).unwrap();
+    format!("{} rows affected", update)
+}
 
 ////////////////////////
 //// NOTE DB QUERYS ////
@@ -59,7 +74,7 @@ pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> String {
 
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {
-    conn.execute("UPDATE topics SET title = ($2), date_created = ($3) WHERE id = ($1)", &[&topic_id, &topic.title, &topic.date_created]).unwrap();
+    conn.execute("UPDATE topics SET title = ($2), date_created = ($3) WHERE id = ($1)", &[&topic_id, &topic.title, &topic.topic_content]).unwrap();
     get_topic(&conn, topic_id)
 }
 
@@ -80,8 +95,7 @@ pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Topic> {
     Json(result)
 }
 
-pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> Json<Topic> {
-    conn.execute("INSERT INTO topics (id, title, date_created) VALUES ($1, $2, $3)",
-                 &[&topic.topic_id, &topic.title, &topic.date_created]).unwrap();
-    get_topic(&conn, topic.topic_id)
+pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> String {
+    let update = conn.execute("INSERT INTO topics (title, topic_content) VALUES ($1, $2)", &[&topic.title, &topic.topic_content]).unwrap();
+    format!("{} rows affected", update)
 }
