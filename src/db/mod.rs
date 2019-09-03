@@ -4,7 +4,7 @@ use rocket_contrib::json::Json;
 
 pub mod models;
 use models::topic::note::{Note, NoteIds, Resource, NewResource};
-use models::topic::{Topic, TopicIds};
+use models::topic::{Topic, NewTopic, TopicIds};
 
 #[database("tigum_db")]
 pub struct TigumPgConn(databases::postgres::Connection);
@@ -82,7 +82,7 @@ pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Top
     let query_result = conn.query("SELECT * FROM topics WHERE id = ANY($1)", &[&topic_ids.ids]).unwrap();
     let mut results: Vec<Topic> = vec![];
     for row in query_result.iter() {
-        let topic = Topic::new(row.get(1), row.get(2), row.get(0));
+        let topic = Topic::new(row.get(1), row.get(0), row.get(2), row.get(3));
         results.push(topic);
     }
     Json(results)
@@ -91,11 +91,11 @@ pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Top
 pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Topic> {
     let query_result = conn.query("SELECT * FROM topics WHERE id = $1", &[&topic_id]).unwrap();
     let topic = query_result.get(0);
-    let result = Topic::new(topic.get(1), topic.get(2), topic.get(0));
+    let result = Topic::new(topic.get(1), topic.get(0), topic.get(2), topic.get(3));
     Json(result)
 }
 
-pub fn create_topic(conn: &TigumPgConn, topic: Json<Topic>) -> String {
+pub fn create_topic(conn: &TigumPgConn, topic: Json<NewTopic>) -> String {
     let update = conn.execute("INSERT INTO topics (title, topic_content) VALUES ($1, $2)", &[&topic.title, &topic.topic_content]).unwrap();
     format!("{} rows affected", update)
 }
