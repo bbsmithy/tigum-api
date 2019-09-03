@@ -15,7 +15,7 @@ mod guards;
 mod db;
 
 // Database Models and Querys
-use db::models::topic::note::{Note, NoteId, NoteIds, Resource, NewResource};
+use db::models::topic::note::{Note, NoteIds, Resource, NewResource};
 use db::models::topic::{Topic, TopicIds};
 use db::TigumPgConn;
 use db::{create_topic, get_topic, get_topics, update_topic, delete_topic};
@@ -84,13 +84,13 @@ fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> String {
 
 
 #[put("/topics/<topic_id>", format = "application/json", data = "<topic>")]
-fn update_single_topic(conn: TigumPgConn, topic_id: i32, topic: Json<Topic>, auth_user: User) -> Json<Topic> {
+fn update_single_topic(conn: TigumPgConn, topic_id: i32, topic: Json<Topic>, _auth_user: User) -> Json<Topic> {
     update_topic(&conn, topic_id, topic)
 }
 
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, auth_user: User) -> String {
+fn create_single_topic(conn: TigumPgConn, topic: Json<Topic>, _auth_user: User) -> String {
     create_topic(&conn, topic)
 }
 
