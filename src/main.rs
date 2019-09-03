@@ -20,7 +20,7 @@ use db::models::topic::{Topic, TopicIds};
 use db::TigumPgConn;
 use db::{create_topic, get_topic, get_topics, update_topic, delete_topic};
 use db::{create_note, get_note, get_notes, update_note, delete_note};
-use db::{create_resource};
+use db::{create_resource, get_resource};
 
 // Request Gaurds
 use guards::User;
@@ -32,6 +32,11 @@ use guards::User;
 pub fn create_single_resource(conn: TigumPgConn, resource: Json<NewResource>) -> String {
     create_resource(&conn, resource)
 }
+
+#[get("/resources/<resource_id>")]
+pub fn get_single_resource(conn: TigumPgConn, resource_id: i32, _auth_user: User) -> Json<Resource> {
+    get_resource(&conn, resource_id)
+} 
 
 
 
@@ -119,6 +124,7 @@ fn create_routes() -> Vec<rocket::Route> {
         update_single_note,
         delete_single_note,
         create_single_resource,
+        get_single_resource,
         preflight_handler
     ];
     app_routes

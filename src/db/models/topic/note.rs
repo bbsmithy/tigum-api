@@ -1,4 +1,6 @@
 use serde::{Serialize, Deserialize};
+use chrono::{NaiveDateTime};
+
 
 #[derive(Serialize, Deserialize)]
 pub struct NewResource {
@@ -11,14 +13,14 @@ pub struct NewResource {
 #[derive(Serialize, Deserialize)]
 pub struct Resource {
     pub resource_id: i32,
-    pub date_created: String,
+    pub date_created: NaiveDateTime,
     pub content_type: String,
     pub content: String,
     pub generated_by: String
 }
 
 impl Resource {
-    pub fn new(resource_id: i32, date_created: String, content_type: String, content: String, generated_by: String) -> Resource {
+    pub fn new(resource_id: i32, date_created: NaiveDateTime, content_type: String, content: String, generated_by: String) -> Resource {
         Resource {
             resource_id: resource_id,
             date_created: date_created,
