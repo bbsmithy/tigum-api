@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDateTime};
 
-
+// Used when creating a new Resource
 #[derive(Serialize, Deserialize)]
 pub struct NewResource {
     pub content_type: String,
@@ -9,7 +9,7 @@ pub struct NewResource {
     pub generated_by: String
 }
 
-
+// Used when reading or updating a Resource
 #[derive(Serialize, Deserialize)]
 pub struct Resource {
     pub resource_id: i32,
@@ -31,6 +31,14 @@ impl Resource {
     }
 }
 
+// Used when creating a new Note
+#[derive(Serialize, Deserialize)]
+pub struct NewNote {
+    pub title: String,
+    pub note_content: Vec<i32>,
+}
+
+// Used when reading or updating a Note
 #[derive(Serialize, Deserialize)]
 pub struct Note {
     pub title: String,

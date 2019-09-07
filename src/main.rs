@@ -15,7 +15,7 @@ mod guards;
 mod db;
 
 // Database Models and Querys
-use db::models::topic::note::{Note, NoteIds, Resource, NewResource};
+use db::models::topic::note::{Note, NewNote, NoteIds, Resource, NewResource};
 use db::models::topic::{Topic, NewTopic, TopicIds};
 use db::TigumPgConn;
 use db::{create_topic, get_topic, get_topics, update_topic, delete_topic};
@@ -36,7 +36,9 @@ pub fn create_single_resource(conn: TigumPgConn, resource: Json<NewResource>) ->
 #[get("/resources/<resource_id>")]
 pub fn get_single_resource(conn: TigumPgConn, resource_id: i32, _auth_user: User) -> Json<Resource> {
     get_resource(&conn, resource_id)
-} 
+}
+
+
 
 
 
@@ -57,7 +59,7 @@ fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>) -> Json
 
 
 #[post("/notes/create-note", format = "application/json", data = "<note>")]
-fn create_single_note(conn: TigumPgConn, note: Json<Note>) -> String {
+fn create_single_note(conn: TigumPgConn, note: Json<NewNote>) -> String {
     let update = create_note(&conn, note);
     format!("Row affected {}", update)
 }

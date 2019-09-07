@@ -3,7 +3,7 @@ use rocket_contrib::json::Json;
 
 
 pub mod models;
-use models::topic::note::{Note, NoteIds, Resource, NewResource};
+use models::topic::note::{Note, NewNote, NoteIds, Resource, NewResource};
 use models::topic::{Topic, NewTopic, TopicIds};
 
 #[database("tigum_db")]
@@ -57,7 +57,7 @@ pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
     Json(note_response)
 }
 
-pub fn create_note(conn: &TigumPgConn, note: Json<Note>) -> String {
+pub fn create_note(conn: &TigumPgConn, note: Json<NewNote>) -> String {
     let update = conn.execute("INSERT INTO notes (title, note_content) VALUES ($1, $2)", &[&note.title, &note.note_content]).unwrap();
     format!("Rows affected {}", update)
 }
