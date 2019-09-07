@@ -5,6 +5,7 @@ use rocket_contrib::json::Json;
 pub mod models;
 use models::topic::note::{Note, NewNote, NoteIds, Resource, NewResource};
 use models::topic::{Topic, NewTopic, TopicIds};
+use models::Ids;
 
 #[database("tigum_db")]
 pub struct TigumPgConn(databases::postgres::Connection);
@@ -12,6 +13,15 @@ pub struct TigumPgConn(databases::postgres::Connection);
 ////////////////////////////
 //// RESOURCE DB QUERYS ////
 ////////////////////////////
+pub fn get_resources(conn: &TigumPgConn, resource_ids: Json<Ids>) -> Json<Vec<Resource>> {
+    let query_result = conn.query("SELECT * FROM resources WHERE id = ANY($1)", &[&resource_ids.ids]).unwrap();
+    let mut results: Vec<Resource> = vec![];
+    for row in query_result.iter() {
+        let resources = Resource::new(row.get(0), row.get(4), row.get(1), row.get(2), row.get(3));
+        results.push(resources);
+    }
+    Json(results)
+}
 
 pub fn get_resource(conn: &TigumPgConn, resource_id: i32) -> Json<Resource> {
     let query_result = conn.query("SELECT * FROM resources WHERE id = $1", &[&resource_id]).unwrap();

@@ -46,6 +46,17 @@ pub struct Note {
     pub note_content: Vec<i32>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct NoteId {
+    pub id: i32
+}
+
+
+#[derive(Serialize, Deserialize)]
+pub struct NoteIds {
+    pub ids: Vec<i32>
+}
+
 impl Note {
     pub fn new(title: String, note_id: i32, note_content: Vec<i32>) -> Note {
         Note {
@@ -58,15 +69,4 @@ impl Note {
         self.note_content.push(note_item);
         self
     }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct NoteId {
-    pub id: i32
-}
-
-
-#[derive(Serialize, Deserialize)]
-pub struct NoteIds {
-    pub ids: Vec<i32>
 }
