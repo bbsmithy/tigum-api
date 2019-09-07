@@ -13,6 +13,19 @@ pub struct TigumPgConn(databases::postgres::Connection);
 ////////////////////////////
 //// RESOURCE DB QUERYS ////
 ////////////////////////////
+
+pub fn delete_resource(conn: &TigumPgConn, resource_id: i32) -> String {
+    let update = conn.execute("DELETE FROM resources WHERE id = $1", &[&resource_id]).unwrap();
+    format!("{} rows affected", update)
+}
+
+
+pub fn update_resource(conn: &TigumPgConn, resource_id: i32, resource: Json<Resource>) -> Json<Resource> {
+    conn.execute("UPDATE resources SET content = $2 WHERE id = $1", &[&resource_id, &resource.content]).unwrap();
+    get_resource(conn, resource_id)
+}
+
+
 pub fn get_resources(conn: &TigumPgConn, resource_ids: Json<Ids>) -> Json<Vec<Resource>> {
     let query_result = conn.query("SELECT * FROM resources WHERE id = ANY($1)", &[&resource_ids.ids]).unwrap();
     let mut results: Vec<Resource> = vec![];

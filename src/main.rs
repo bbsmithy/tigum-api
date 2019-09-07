@@ -23,7 +23,7 @@ use db::models::Ids;
 use db::TigumPgConn;
 use db::{create_topic, get_topic, get_topics, update_topic, delete_topic};
 use db::{create_note, get_note, get_notes, update_note, delete_note};
-use db::{create_resource, get_resource, get_resources};
+use db::{create_resource, get_resource, get_resources, update_resource, delete_resource};
 
 // Request Gaurds
 use guards::User;
@@ -31,6 +31,18 @@ use guards::User;
 /////////////////////////
 //// RESOURCE ROUTES ////
 /////////////////////////
+
+#[delete("/resources/<resource_id>")]
+fn delete_single_resource(conn: TigumPgConn, resource_id: i32) -> String {
+    delete_resource(&conn, resource_id)
+}
+
+
+#[put("/resources/<resource_id>", format = "application/json", data = "<resource>")]
+fn update_single_resource(conn: TigumPgConn, resource_id: i32, resource: Json<Resource>) -> Json<Resource> {
+    update_resource(&conn, resource_id, resource)
+}
+
 
 #[post("/resources/create-resource", format = "application/json", data = "<resource>")]
 pub fn create_single_resource(conn: TigumPgConn, resource: Json<NewResource>) -> String {
@@ -134,6 +146,8 @@ fn create_routes() -> Vec<rocket::Route> {
         resources,
         single_resource,
         create_single_resource,
+        update_single_resource,
+        delete_single_resource,
         preflight_handler
     ];
     app_routes
