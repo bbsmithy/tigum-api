@@ -4,26 +4,27 @@
 #[macro_use]
 extern crate rocket;
 extern crate serde;
-#[macro_use] extern crate rocket_contrib;
+#[macro_use]
+extern crate rocket_contrib;
 
 //Use Macros
 use rocket_contrib::json::Json;
 
 // Main modules
 mod cors;
-mod guards;
 mod db;
+mod guards;
 
 // Database Models
-use db::models::topic::note::{Note, NewNote, NoteIds, Resource, NewResource};
-use db::models::topic::{Topic, NewTopic, TopicIds};
+use db::models::topic::note::{NewNote, NewResource, Note, NoteIds, Resource};
+use db::models::topic::{NewTopic, Topic, TopicIds};
 use db::models::Ids;
 
 //Database Querys
 use db::TigumPgConn;
-use db::{create_topic, get_topic, get_topics, update_topic, delete_topic};
-use db::{create_note, get_note, get_notes, update_note, delete_note};
-use db::{create_resource, get_resource, get_resources, update_resource, delete_resource};
+use db::{create_note, delete_note, get_note, get_notes, update_note};
+use db::{create_resource, delete_resource, get_resource, get_resources, update_resource};
+use db::{create_topic, delete_topic, get_topic, get_topics, update_topic};
 
 // Request Gaurds
 use guards::User;
@@ -37,14 +38,24 @@ fn delete_single_resource(conn: TigumPgConn, resource_id: i32) -> String {
     delete_resource(&conn, resource_id)
 }
 
-
-#[put("/resources/<resource_id>", format = "application/json", data = "<resource>")]
-fn update_single_resource(conn: TigumPgConn, resource_id: i32, resource: Json<Resource>) -> Json<Resource> {
+#[put(
+    "/resources/<resource_id>",
+    format = "application/json",
+    data = "<resource>"
+)]
+fn update_single_resource(
+    conn: TigumPgConn,
+    resource_id: i32,
+    resource: Json<Resource>,
+) -> Json<Resource> {
     update_resource(&conn, resource_id, resource)
 }
 
-
-#[post("/resources/create-resource", format = "application/json", data = "<resource>")]
+#[post(
+    "/resources/create-resource",
+    format = "application/json",
+    data = "<resource>"
+)]
 pub fn create_single_resource(conn: TigumPgConn, resource: Json<NewResource>) -> String {
     create_resource(&conn, resource)
 }
@@ -59,7 +70,6 @@ fn resources(conn: TigumPgConn, resource_ids: Json<Ids>) -> Json<Vec<Resource>> 
     get_resources(&conn, resource_ids)
 }
 
-
 /////////////////////
 //// NOTE ROUTES ////
 /////////////////////
@@ -69,12 +79,10 @@ fn delete_single_note(conn: TigumPgConn, note_id: i32) -> String {
     delete_note(&conn, note_id)
 }
 
-
 #[put("/notes/<note_id>", format = "application/json", data = "<note>")]
 fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>) -> Json<Note> {
     update_note(&conn, note_id, note)
 }
-
 
 #[post("/notes/create-note", format = "application/json", data = "<note>")]
 fn create_single_note(conn: TigumPgConn, note: Json<NewNote>) -> String {
@@ -88,10 +96,9 @@ fn single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> Json<Note> 
 }
 
 #[post("/notes", format = "application/json", data = "<note_ids>")]
-fn notes(conn: TigumPgConn, note_ids: Json<NoteIds>, _auth_user: User) -> Json<Vec<Note>> { 
+fn notes(conn: TigumPgConn, note_ids: Json<NoteIds>, _auth_user: User) -> Json<Vec<Note>> {
     get_notes(&conn, note_ids)
 }
-
 
 //////////////////////
 //// TOPIC ROUTES ////
@@ -102,12 +109,15 @@ fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> String {
     delete_topic(&conn, topic_id)
 }
 
-
 #[put("/topics/<topic_id>", format = "application/json", data = "<topic>")]
-fn update_single_topic(conn: TigumPgConn, topic_id: i32, topic: Json<Topic>, _auth_user: User) -> Json<Topic> {
+fn update_single_topic(
+    conn: TigumPgConn,
+    topic_id: i32,
+    topic: Json<Topic>,
+    _auth_user: User,
+) -> Json<Topic> {
     update_topic(&conn, topic_id, topic)
 }
-
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
 fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, _auth_user: User) -> String {
@@ -133,7 +143,7 @@ fn preflight_handler() {
 
 fn create_routes() -> Vec<rocket::Route> {
     let app_routes = routes![
-        topics, 
+        topics,
         single_topic,
         create_single_topic,
         update_single_topic,
