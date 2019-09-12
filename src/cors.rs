@@ -18,6 +18,7 @@ impl Fairing for CorsFairing {
         // Add CORS headers to allow all origins to all outgoing requests
         if request.method() == Method::Options || response.content_type() == Some(ContentType::JSON) {
             response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+            response.set_header(Header::new("Access-Control-Allow-Methods", "*"));
             response.set_header(rocket::http::Header::new("Access-Control-Allow-Headers", "Content-Type,X-User-ID"));
         }
 
