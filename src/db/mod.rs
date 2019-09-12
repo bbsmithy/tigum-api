@@ -4,7 +4,7 @@ use rocket_contrib::json::Json;
 pub mod models;
 use models::topic::note::{NewNote, NewResource, Note, NoteIds, Resource};
 use models::topic::{NewTopic, Topic, TopicIds};
-use models::Ids;
+use models::{Id, Ids};
 
 #[database("tigum_db")]
 pub struct TigumPgConn(databases::postgres::Connection);
@@ -118,14 +118,20 @@ pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
     Json(note_response)
 }
 
-pub fn create_note(conn: &TigumPgConn, note: Json<NewNote>) -> String {
-    let update = conn
-        .execute(
-            "INSERT INTO notes (title, note_content) VALUES ($1, $2)",
+pub fn create_note(conn: &TigumPgConn, note: Json<NewNote>) -> Json<Id> {
+    let inserted_rows = conn
+        .query(
+            "INSERT INTO notes (title, note_content) VALUES ($1, $2) RETURNING id",
             &[&note.title, &note.note_content],
         )
         .unwrap();
-    format!("Rows affected {}", update)
+
+    let row = inserted_rows.get(0);
+    let note_id: i32 = row.get(0);
+
+    let id_response = Id { id: note_id };
+
+    Json(id_response)
 }
 
 /////////////////////////
@@ -139,7 +145,7 @@ fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::R
         results.push(topic);
     }
     results
-} 
+}
 
 pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> String {
     let result = conn
@@ -150,7 +156,7 @@ pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> String {
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {
     conn.execute(
-        "UPDATE topics SET title = ($2), date_created = ($3) WHERE id = ($1)",
+        "UPDATE topics SET title = ($2), topic_content = ($3) WHERE id = ($1)",
         &[&topic_id, &topic.title, &topic.topic_content],
     )
     .unwrap();
@@ -159,9 +165,7 @@ pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Js
 
 pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Topic>> {
     if topic_ids.ids.len() == 0 {
-        let query_result = conn
-            .query("SELECT * FROM topics", &[])
-            .unwrap();
+        let query_result = conn.query("SELECT * FROM topics", &[]).unwrap();
         let result = parse_topic_result(query_result);
         Json(result)
     } else {

@@ -18,7 +18,7 @@ mod guards;
 // Database Models
 use db::models::topic::note::{NewNote, NewResource, Note, NoteIds, Resource};
 use db::models::topic::{NewTopic, Topic, TopicIds};
-use db::models::Ids;
+use db::models::{Id, Ids};
 
 //Database Querys
 use db::TigumPgConn;
@@ -85,9 +85,8 @@ fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>) -> Json
 }
 
 #[post("/notes/create-note", format = "application/json", data = "<note>")]
-fn create_single_note(conn: TigumPgConn, note: Json<NewNote>) -> String {
-    let update = create_note(&conn, note);
-    format!("Row affected {}", update)
+fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, _auth_user: User) -> Json<Id> {
+    create_note(&conn, note)
 }
 
 #[get("/notes/<note_id>")]
@@ -116,12 +115,13 @@ fn update_single_topic(
     topic: Json<Topic>,
     _auth_user: User,
 ) -> Json<Topic> {
+    println!("Update topic");
     update_topic(&conn, topic_id, topic)
 }
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, _auth_user: User) -> String {
-    create_topic(&conn, topic)
+fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, _auth_user: User) -> Json<String> {
+    Json(create_topic(&conn, topic))
 }
 
 #[get("/topics/<topic_id>")]
