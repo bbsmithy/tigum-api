@@ -81,6 +81,15 @@ pub fn create_resource(conn: &TigumPgConn, resource: Json<NewResource>) -> Strin
 //// NOTE DB QUERYS ////
 ////////////////////////
 
+fn parse_note_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Note> {
+    let mut results: Vec<Note> = vec![];
+    for row in query_result.iter() {
+        let note = Note::new(row.get(1), row.get(0), row.get(2));
+        results.push(note);
+    }
+    results
+}
+
 pub fn delete_note(conn: &TigumPgConn, note_id: i32) -> String {
     let result = conn
         .execute("DELETE FROM notes WHERE id = $1", &[&note_id])
@@ -101,11 +110,7 @@ pub fn get_notes(conn: &TigumPgConn, note_ids: Json<NoteIds>) -> Json<Vec<Note>>
     let query_result = conn
         .query("SELECT * FROM notes WHERE id = ANY($1)", &[&note_ids.ids])
         .unwrap();
-    let mut results: Vec<Note> = vec![];
-    for row in query_result.iter() {
-        let note = Note::new(row.get(1), row.get(0), row.get(2));
-        results.push(note);
-    }
+    let results = parse_note_result(query_result);
     Json(results)
 }
 

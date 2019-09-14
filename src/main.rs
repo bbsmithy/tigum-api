@@ -115,7 +115,6 @@ fn update_single_topic(
     topic: Json<Topic>,
     _auth_user: User,
 ) -> Json<Topic> {
-    println!("Update topic");
     update_topic(&conn, topic_id, topic)
 }
 
