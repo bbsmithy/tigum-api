@@ -42,7 +42,14 @@ pub fn get_resources(conn: &TigumPgConn, resource_ids: Json<Ids>) -> Json<Vec<Re
         .unwrap();
     let mut results: Vec<Resource> = vec![];
     for row in query_result.iter() {
-        let resources = Resource::new(row.get(0), row.get(4), row.get(1), row.get(2), row.get(3));
+        let resources = Resource::new(
+            row.get(0),
+            row.get(4),
+            row.get(1),
+            row.get(2),
+            row.get(3),
+            row.get(5),
+        );
         results.push(resources);
     }
     Json(results)
@@ -59,22 +66,29 @@ pub fn get_resource(conn: &TigumPgConn, resource_id: i32) -> Json<Resource> {
         resource.get(1),
         resource.get(2),
         resource.get(3),
+        resource.get(5),
     );
     Json(resource_response)
 }
 
-pub fn create_resource(conn: &TigumPgConn, resource: Json<NewResource>) -> String {
-    let update = conn
-        .execute(
-            "INSERT INTO resources (content_type, content, generated_by) VALUES ($1, $2, $3)",
+pub fn create_resource(conn: &TigumPgConn, resource: Json<NewResource>) -> Json<Id> {
+    let inserted_row = conn
+        .query(
+            "INSERT INTO resources (content_type, content, generated_by, title) VALUES ($1, $2, $3, $4) RETURNING id",
             &[
                 &resource.content_type,
                 &resource.content,
                 &resource.generated_by,
+                &resource.title
             ],
         )
         .unwrap();
-    format!("{} rows affected", update)
+    let row = inserted_row.get(0);
+    let resource_id: i32 = row.get(0);
+
+    let id_response = Id { id: resource_id };
+
+    Json(id_response)
 }
 
 ////////////////////////
@@ -84,7 +98,7 @@ pub fn create_resource(conn: &TigumPgConn, resource: Json<NewResource>) -> Strin
 fn parse_note_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Note> {
     let mut results: Vec<Note> = vec![];
     for row in query_result.iter() {
-        let note = Note::new(row.get(1), row.get(0), row.get(2));
+        let note = Note::new(row.get(1), row.get(0), row.get(2), row.get(3));
         results.push(note);
     }
     results
@@ -119,7 +133,7 @@ pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
         .query("SELECT * FROM notes WHERE id = $1", &[&note_id])
         .unwrap();
     let note = query_result.get(0);
-    let note_response = Note::new(note.get(1), note.get(0), note.get(2));
+    let note_response = Note::new(note.get(1), note.get(0), note.get(2), note.get(3));
     Json(note_response)
 }
 
@@ -146,7 +160,7 @@ pub fn create_note(conn: &TigumPgConn, note: Json<NewNote>) -> Json<Id> {
 fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Topic> {
     let mut results: Vec<Topic> = vec![];
     for row in query_result.iter() {
-        let topic = Topic::new(row.get(1), row.get(0), row.get(2), row.get(3));
+        let topic = Topic::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
         results.push(topic);
     }
     results
@@ -161,8 +175,8 @@ pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> String {
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {
     conn.execute(
-        "UPDATE topics SET title = ($2), topic_content = ($3) WHERE id = ($1)",
-        &[&topic_id, &topic.title, &topic.topic_content],
+        "UPDATE topics SET title = ($2), notes = ($3), resources = ($4) WHERE id = ($1)",
+        &[&topic_id, &topic.title, &topic.notes, &topic.resources],
     )
     .unwrap();
     get_topic(&conn, topic_id)
@@ -187,15 +201,21 @@ pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Topic> {
         .query("SELECT * FROM topics WHERE id = $1", &[&topic_id])
         .unwrap();
     let topic = query_result.get(0);
-    let result = Topic::new(topic.get(1), topic.get(0), topic.get(2), topic.get(3));
+    let result = Topic::new(
+        topic.get(0),
+        topic.get(1),
+        topic.get(2),
+        topic.get(3),
+        topic.get(4),
+    );
     Json(result)
 }
 
 pub fn create_topic(conn: &TigumPgConn, topic: Json<NewTopic>) -> String {
     let update = conn
         .execute(
-            "INSERT INTO topics (title, topic_content) VALUES ($1, $2)",
-            &[&topic.title, &topic.topic_content],
+            "INSERT INTO topics (title, notes, resources) VALUES ($1, $2, $3)",
+            &[&topic.title, &topic.notes, &topic.resources],
         )
         .unwrap();
     format!("{} rows affected", update)

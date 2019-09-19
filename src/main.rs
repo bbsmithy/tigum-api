@@ -56,7 +56,7 @@ fn update_single_resource(
     format = "application/json",
     data = "<resource>"
 )]
-pub fn create_single_resource(conn: TigumPgConn, resource: Json<NewResource>) -> String {
+pub fn create_single_resource(conn: TigumPgConn, resource: Json<NewResource>) -> Json<Id> {
     create_resource(&conn, resource)
 }
 
