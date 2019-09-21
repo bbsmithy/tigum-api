@@ -42,15 +42,16 @@ pub fn get_resources(conn: &TigumPgConn, resource_ids: Json<Ids>) -> Json<Vec<Re
         .unwrap();
     let mut results: Vec<Resource> = vec![];
     for row in query_result.iter() {
-        let resources = Resource::new(
-            row.get(0),
-            row.get(4),
-            row.get(1),
-            row.get(2),
-            row.get(3),
-            row.get(5),
-        );
-        results.push(resources);
+        let resource = Resource {
+            resource_id: row.get(0),
+            date_created: row.get(4),
+            content_type: row.get(1),
+            content: row.get(2),
+            generated_by: row.get(3),
+            thumbnail_img: row.get(6),
+            title: row.get(5),
+        };
+        results.push(resource);
     }
     Json(results)
 }
@@ -59,27 +60,29 @@ pub fn get_resource(conn: &TigumPgConn, resource_id: i32) -> Json<Resource> {
     let query_result = conn
         .query("SELECT * FROM resources WHERE id = $1", &[&resource_id])
         .unwrap();
-    let resource = query_result.get(0);
-    let resource_response = Resource::new(
-        resource.get(0),
-        resource.get(4),
-        resource.get(1),
-        resource.get(2),
-        resource.get(3),
-        resource.get(5),
-    );
+    let row = query_result.get(0);
+    let resource_response = Resource {
+        resource_id: row.get(0),
+        date_created: row.get(4),
+        content_type: row.get(1),
+        content: row.get(2),
+        generated_by: row.get(3),
+        title: row.get(5),
+        thumbnail_img: row.get(6)
+    };
     Json(resource_response)
 }
 
 pub fn create_resource(conn: &TigumPgConn, resource: Json<NewResource>) -> Json<Id> {
     let inserted_row = conn
         .query(
-            "INSERT INTO resources (content_type, content, generated_by, title) VALUES ($1, $2, $3, $4) RETURNING id",
+            "INSERT INTO resources (content_type, content, generated_by, title, thumbnail_img) VALUES ($1, $2, $3, $4, $5) RETURNING id",
             &[
                 &resource.content_type,
                 &resource.content,
                 &resource.generated_by,
-                &resource.title
+                &resource.title,
+                &resource.thumbnail_img
             ],
         )
         .unwrap();
