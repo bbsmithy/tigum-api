@@ -75,7 +75,7 @@ fn resources(conn: TigumPgConn, resource_ids: Json<Ids>) -> Json<Vec<Resource>> 
 /////////////////////
 
 #[delete("/notes/<note_id>")]
-fn delete_single_note(conn: TigumPgConn, note_id: i32) -> String {
+fn delete_single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> String {
     delete_note(&conn, note_id)
 }
 
@@ -136,8 +136,10 @@ fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, _auth_user: User) -> Jso
 // CORS Prelight Request Handler
 
 #[route(OPTIONS, path = "/")]
-fn preflight_handler() {
-    println!("{}", String::from("Handling preflight"))
+fn preflight_handler() -> String {
+    let res: String = String::from("Handling preflight");
+    println!("{}", res);
+    res
 }
 
 fn create_routes() -> Vec<rocket::Route> {
