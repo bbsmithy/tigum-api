@@ -107,11 +107,11 @@ fn parse_note_result(query_result: rocket_contrib::databases::postgres::rows::Ro
     results
 }
 
-pub fn delete_note(conn: &TigumPgConn, note_id: i32) -> String {
+pub fn delete_note(conn: &TigumPgConn, note_id: i32) -> Json<String> {
     let result = conn
         .execute("DELETE FROM notes WHERE id = $1", &[&note_id])
         .unwrap();
-    format!("{} rows deleted", result)
+    Json(format!("{} rows deleted", result))
 }
 
 pub fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>) -> Json<Note> {

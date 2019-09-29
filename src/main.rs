@@ -75,7 +75,7 @@ fn resources(conn: TigumPgConn, resource_ids: Json<Ids>) -> Json<Vec<Resource>> 
 /////////////////////
 
 #[delete("/notes/<note_id>")]
-fn delete_single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> String {
+fn delete_single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> Json<String> {
     delete_note(&conn, note_id)
 }
 
