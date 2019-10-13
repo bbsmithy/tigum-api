@@ -13,11 +13,11 @@ pub struct TigumPgConn(databases::postgres::Connection);
 //// RESOURCE DB QUERYS ////
 ////////////////////////////
 
-pub fn delete_resource(conn: &TigumPgConn, resource_id: i32) -> String {
+pub fn delete_resource(conn: &TigumPgConn, resource_id: i32) -> Json<String> {
     let update = conn
         .execute("DELETE FROM resources WHERE id = $1", &[&resource_id])
         .unwrap();
-    format!("{} rows affected", update)
+    Json(format!("{} rows affected", update))
 }
 
 pub fn update_resource(

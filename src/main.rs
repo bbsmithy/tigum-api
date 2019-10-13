@@ -34,7 +34,7 @@ use guards::User;
 /////////////////////////
 
 #[delete("/resources/<resource_id>")]
-fn delete_single_resource(conn: TigumPgConn, resource_id: i32) -> String {
+fn delete_single_resource(conn: TigumPgConn, resource_id: i32, _auth_user: User) -> Json<String> {
     delete_resource(&conn, resource_id)
 }
 
@@ -138,7 +138,6 @@ fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, _auth_user: User) -> Jso
 #[route(OPTIONS, path = "/")]
 fn preflight_handler() -> String {
     let res: String = String::from("Handling preflight");
-    println!("{}", res);
     res
 }
 
