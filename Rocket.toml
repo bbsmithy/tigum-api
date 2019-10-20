@@ -16,4 +16,4 @@ limits = { forms = 32768 }
 
 
 [global.databases.tigum_db]
-url = "postgresql://utveuly3nqvusv6dobvo:7IOji0EeGz3rss8mimrJ@btt3z8bmoskqs6wnlfnx-postgresql.services.clever-cloud.com:5432/btt3z8bmoskqs6wnlfnx"
+url = "postgresql://utveuly3nqvusv6dobvo:sL6h3t1m7rCDR7wN0R4h@btt3z8bmoskqs6wnlfnx-postgresql.services.clever-cloud.com:5432/btt3z8bmoskqs6wnlfnx"
