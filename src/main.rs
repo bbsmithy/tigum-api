@@ -22,11 +22,11 @@ use db::models::topic::{NewTopic, Topic, TopicIds};
 use db::models::{Id, Ids};
 
 //Database Querys
-use db::querys::video::{create_video, delete_video, get_video, get_videos, update_video};
+use db::querys::video_q::{create_video, delete_video, get_video, get_videos, update_video};
 use db::querys::TigumPgConn;
-use db::querys::{create_note, delete_note, get_note, get_notes, update_note};
+use db::querys::note_q::{create_note, delete_note, get_note, get_notes, update_note};
 use db::querys::{create_resource, delete_resource, get_resource, get_resources, update_resource};
-use db::querys::{create_topic, delete_topic, get_topic, get_topics, update_topic};
+use db::querys::topic_q::{create_topic, delete_topic, get_topic, get_topics, update_topic};
 
 // Request Gaurds
 use guards::User;
