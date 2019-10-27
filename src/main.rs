@@ -16,18 +16,58 @@ mod db;
 mod guards;
 
 // Database Models
-use db::models::topic::note::{NewNote, NewResource, Note, NoteIds, Resource};
+use db::models::resources::note::{NewNote, NewResource, Note, NoteIds, Resource};
+use db::models::resources::video::{NewVideo, Video};
 use db::models::topic::{NewTopic, Topic, TopicIds};
 use db::models::{Id, Ids};
 
 //Database Querys
-use db::TigumPgConn;
-use db::{create_note, delete_note, get_note, get_notes, update_note};
-use db::{create_resource, delete_resource, get_resource, get_resources, update_resource};
-use db::{create_topic, delete_topic, get_topic, get_topics, update_topic};
+use db::querys::video::{create_video, delete_video};
+use db::querys::TigumPgConn;
+use db::querys::{create_note, delete_note, get_note, get_notes, update_note};
+use db::querys::{create_resource, delete_resource, get_resource, get_resources, update_resource};
+use db::querys::{create_topic, delete_topic, get_topic, get_topics, update_topic};
 
 // Request Gaurds
 use guards::User;
+
+/////////////////////////
+//// VIDEO ROUTES ////
+/////////////////////////
+
+#[delete("/video/<id>")]
+fn delete_single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+    delete_video(&conn, id)
+}
+
+// #[put(
+//     "/video/<id>",
+//     format = "application/json",
+//     data = "<video>"
+// )]
+// fn update_single_video(
+//     conn: TigumPgConn,
+//     id: i32,
+//     video: Json<Video>,
+// ) -> Json<Video> {
+//     update_video(&conn, id, video)
+// }
+
+#[post("/video/create", format = "application/json", data = "<video>")]
+pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>) -> Json<Id> {
+    println!("{:?}", video);
+    create_video(&conn, video)
+}
+
+// #[get("/video/<id>")]
+// pub fn single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Video> {
+//     get_video(&conn, id)
+// }
+
+// #[post("/video", format = "application/json", data = "<ids>")]
+// fn videos(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
+//     get_videos(&conn, ids)
+// }
 
 /////////////////////////
 //// RESOURCE ROUTES ////
@@ -158,6 +198,8 @@ fn create_routes() -> Vec<rocket::Route> {
         create_single_resource,
         update_single_resource,
         delete_single_resource,
+        create_single_video,
+        delete_single_video,
         preflight_handler
     ];
     app_routes
