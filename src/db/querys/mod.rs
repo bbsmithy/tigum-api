@@ -70,7 +70,7 @@ pub fn get_resource(conn: &TigumPgConn, resource_id: i32) -> Json<Resource> {
         content: row.get(2),
         generated_by: row.get(3),
         title: row.get(5),
-        thumbnail_img: row.get(6)
+        thumbnail_img: row.get(6),
     };
     Json(resource_response)
 }

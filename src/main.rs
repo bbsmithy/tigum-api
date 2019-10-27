@@ -22,7 +22,7 @@ use db::models::topic::{NewTopic, Topic, TopicIds};
 use db::models::{Id, Ids};
 
 //Database Querys
-use db::querys::video::{create_video, delete_video, get_video};
+use db::querys::video::{create_video, delete_video, get_video, get_videos, update_video};
 use db::querys::TigumPgConn;
 use db::querys::{create_note, delete_note, get_note, get_notes, update_note};
 use db::querys::{create_resource, delete_resource, get_resource, get_resources, update_resource};
@@ -40,18 +40,10 @@ fn delete_single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Str
     delete_video(&conn, id)
 }
 
-// #[put(
-//     "/video/<id>",
-//     format = "application/json",
-//     data = "<video>"
-// )]
-// fn update_single_video(
-//     conn: TigumPgConn,
-//     id: i32,
-//     video: Json<Video>,
-// ) -> Json<Video> {
-//     update_video(&conn, id, video)
-// }
+#[put("/videos/<id>", format = "application/json", data = "<video>")]
+fn update_single_video(conn: TigumPgConn, id: i32, video: Json<NewVideo>) -> Json<Video> {
+    update_video(&conn, id, video)
+}
 
 #[post("/videos/create", format = "application/json", data = "<video>")]
 pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>) -> Json<Id> {
@@ -64,10 +56,10 @@ pub fn single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Video>
     get_video(&conn, id)
 }
 
-// #[post("/video", format = "application/json", data = "<ids>")]
-// fn videos(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
-//     get_videos(&conn, ids)
-// }
+#[post("/videos", format = "application/json", data = "<ids>")]
+fn videos(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
+    get_videos(&conn, ids)
+}
 
 /////////////////////////
 //// RESOURCE ROUTES ////
@@ -201,6 +193,8 @@ fn create_routes() -> Vec<rocket::Route> {
         create_single_video,
         delete_single_video,
         single_video,
+        videos,
+        update_single_video,
         preflight_handler
     ];
     app_routes

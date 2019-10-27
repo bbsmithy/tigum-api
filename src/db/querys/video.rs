@@ -1,5 +1,5 @@
 //Use Macros
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use rocket_contrib::json::Json;
 
 use crate::db::models;
@@ -8,55 +8,8 @@ use crate::db::querys::TigumPgConn;
 use models::resources::video::{NewVideo, Video};
 use models::{Id, Ids};
 
-pub fn delete_video(conn: &TigumPgConn, id: i32) -> Json<String> {
-    let update = conn
-        .execute("DELETE FROM videos WHERE id = $1", &[&id])
-        .unwrap();
-    Json(format!("{} rows affected", update))
-}
-
-// pub fn update_video(
-//     conn: &TigumPgConn,
-//     id: i32,
-//     video: Json<Video>,
-// ) -> Json<Video> {
-//     conn.execute(
-//         "UPDATE videos SET content = $2 WHERE id = $1",
-//         &[&id, &video.content],
-//     )
-//     .unwrap();
-//     get_video(conn, id)
-// }
-
-// pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
-//     let query_result = conn
-//         .query(
-//             "SELECT * FROM videos WHERE id = ANY($1)",
-//             &[&ids.ids],
-//         )
-//         .unwrap();
-//     let mut results: Vec<Video> = vec![];
-//     for row in query_result.iter() {
-//         let resource = Video {
-//             id: row.get(0),
-//             date_created: row.get(4),
-//             content_type: row.get(1),
-//             content: row.get(2),
-//             generated_by: row.get(3),
-//             thumbnail_img: row.get(6),
-//             title: row.get(5),
-//         };
-//         results.push(resource);
-//     }
-//     Json(results)
-// }
-
-pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
-    let query_result = conn
-        .query("SELECT * FROM videos WHERE id = $1", &[&id])
-        .unwrap();
-    let row = query_result.get(0);
-    let video_response = Video {
+fn row_to_video(row: rocket_contrib::databases::postgres::rows::Row) -> Video {
+    Video {
         id: row.get(0),
         topic_id: row.get(6),
         user_id: row.get(7),
@@ -65,7 +18,44 @@ pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
         origin: row.get(3),
         date_created: row.get(4),
         thumbnail_img: row.get(5),
-    };
+    }
+}
+
+pub fn delete_video(conn: &TigumPgConn, id: i32) -> Json<String> {
+    let update = conn
+        .execute("DELETE FROM videos WHERE id = $1", &[&id])
+        .unwrap();
+    Json(format!("{} rows affected", update))
+}
+
+pub fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>) -> Json<Video> {
+    let updated_rows = conn.query(
+        "UPDATE videos SET topic_id = $2, user_id = $3, title = $4, iframe = $5, origin = $6, thumbnail_img = $7 WHERE id = $1 RETURNING *",
+        &[&id, &video.topic_id, &video.user_id, &video.title, &video.iframe, &video.origin, &video.thumbnail_img],
+    ).unwrap();
+
+    let video_response = row_to_video(updated_rows.get(0));
+
+    Json(video_response)
+}
+
+pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
+    let query_result = conn
+        .query("SELECT * FROM videos WHERE id = ANY($1)", &[&ids.ids])
+        .unwrap();
+    let mut results: Vec<Video> = vec![];
+    for row in query_result.iter() {
+        let video_response = row_to_video(row);
+        results.push(video_response);
+    }
+    Json(results)
+}
+
+pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
+    let query_result = conn
+        .query("SELECT * FROM videos WHERE id = $1", &[&id])
+        .unwrap();
+    let video_response = row_to_video(query_result.get(0));
     Json(video_response)
 }
 
