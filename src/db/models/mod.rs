@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod topic;
 pub mod user;
+pub mod resources;
 
 #[derive(Serialize, Deserialize)]
 pub struct Ids {

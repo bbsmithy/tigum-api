@@ -1,8 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-pub mod note;
-
 #[derive(Deserialize)]
 pub struct NewTopic {
     pub title: String,
