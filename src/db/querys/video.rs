@@ -1,13 +1,12 @@
 //Use Macros
+use chrono::{NaiveDate, NaiveDateTime};
 use rocket_contrib::json::Json;
 
 use crate::db::models;
-use crate::db::querys::{TigumPgConn};
+use crate::db::querys::TigumPgConn;
 
-use models::resources::video::{Video, NewVideo};
-use models::{Ids, Id};
-
-
+use models::resources::video::{NewVideo, Video};
+use models::{Id, Ids};
 
 pub fn delete_video(conn: &TigumPgConn, id: i32) -> Json<String> {
     let update = conn
@@ -52,22 +51,23 @@ pub fn delete_video(conn: &TigumPgConn, id: i32) -> Json<String> {
 //     Json(results)
 // }
 
-// pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
-//     let query_result = conn
-//         .query("SELECT * FROM videos WHERE id = $1", &[&id])
-//         .unwrap();
-//     let row = query_result.get(0);
-//     let resource_response = Video {
-//         id: row.get(0),
-//         date_created: row.get(4),
-//         content_type: row.get(1),
-//         content: row.get(2),
-//         generated_by: row.get(3),
-//         title: row.get(5),
-//         thumbnail_img: row.get(6)
-//     };
-//     Json(resource_response)
-// }
+pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
+    let query_result = conn
+        .query("SELECT * FROM videos WHERE id = $1", &[&id])
+        .unwrap();
+    let row = query_result.get(0);
+    let video_response = Video {
+        id: row.get(0),
+        topic_id: row.get(6),
+        user_id: row.get(7),
+        title: row.get(1),
+        iframe: row.get(2),
+        origin: row.get(3),
+        date_created: row.get(4),
+        thumbnail_img: row.get(5),
+    };
+    Json(video_response)
+}
 
 pub fn create_video(conn: &TigumPgConn, video: Json<NewVideo>) -> Json<Id> {
     let inserted_row = conn
