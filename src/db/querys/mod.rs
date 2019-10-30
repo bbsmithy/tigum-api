@@ -7,7 +7,6 @@ pub mod topic_q;
 pub mod video_q;
 
 use models::resources::note::{NewResource, Resource};
-use models::topic::{NewTopic, Topic, TopicIds};
 use models::{Id, Ids};
 
 #[database("tigum_db")]

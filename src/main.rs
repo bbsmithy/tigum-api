@@ -22,11 +22,11 @@ use db::models::topic::{NewTopic, Topic, TopicIds};
 use db::models::{Id, Ids};
 
 //Database Querys
+use db::querys::note_q::{create_note, delete_note, get_note, get_notes, update_note};
+use db::querys::topic_q::{create_topic, delete_topic, get_topic, get_topics, update_topic};
 use db::querys::video_q::{create_video, delete_video, get_video, get_videos, update_video};
 use db::querys::TigumPgConn;
-use db::querys::note_q::{create_note, delete_note, get_note, get_notes, update_note};
 use db::querys::{create_resource, delete_resource, get_resource, get_resources, update_resource};
-use db::querys::topic_q::{create_topic, delete_topic, get_topic, get_topics, update_topic};
 
 // Request Gaurds
 use guards::User;
@@ -58,6 +58,7 @@ pub fn single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Video>
 
 #[post("/videos", format = "application/json", data = "<ids>")]
 fn videos(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
+    println!("{:?}", ids);
     get_videos(&conn, ids)
 }
 
@@ -151,8 +152,8 @@ fn update_single_topic(
 }
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, _auth_user: User) -> Json<String> {
-    Json(create_topic(&conn, topic))
+fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, _auth_user: User) -> Json<Topic> {
+    create_topic(&conn, topic)
 }
 
 #[get("/topics/<topic_id>")]
@@ -162,6 +163,7 @@ fn single_topic(conn: TigumPgConn, topic_id: i32, _auth_user: User) -> Json<Topi
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
 fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, _auth_user: User) -> Json<Vec<Topic>> {
+    println!("{:?}", topic_ids);
     get_topics(&conn, topic_ids)
 }
 
