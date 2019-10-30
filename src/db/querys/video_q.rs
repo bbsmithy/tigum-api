@@ -39,6 +39,7 @@ pub fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>) -> Json<
 }
 
 pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
+    println!("{:?}", ids);
     let query_result = conn
         .query("SELECT * FROM videos WHERE id = ANY($1)", &[&ids.ids])
         .unwrap();
