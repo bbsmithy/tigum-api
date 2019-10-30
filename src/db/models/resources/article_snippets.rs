@@ -1,26 +1,22 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-// Used when creating a new Video
+// Used when creating a new ArticleSnippet
 #[derive(Serialize, Deserialize)]
-pub struct NewVideo {
+pub struct NewArticleSnippet {
+    pub content: String,
+    pub origin: String,
     pub topic_id: i32,
     pub user_id: i32,
-    pub title: String,
-    pub iframe: String,
-    pub origin: String,
-    pub thumbnail_img: String,
 }
 
-// Used when reading or updating a Video
+// Used when reading or updating a ArtcileSnippet
 #[derive(Serialize, Deserialize)]
-pub struct Video {
+pub struct ArticleSnippet {
     pub id: i32,
-    pub topic_id: i32,
-    pub user_id: i32,
-    pub title: String,
-    pub iframe: String,
+    pub content: String,
     pub origin: String,
     pub date_created: NaiveDateTime,
-    pub thumbnail_img: String,
+    pub topic_id: i32,
+    pub user_id: i32,
 }

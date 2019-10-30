@@ -1,42 +1,22 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-// Used when creating a new Resource
-#[derive(Serialize, Deserialize)]
-pub struct NewResource {
-    pub content_type: String,
-    pub content: String,
-    pub title: String,
-    pub generated_by: String,
-    pub thumbnail_img: String,
-}
-
-// Used when reading or updating a Resource
-#[derive(Serialize, Deserialize)]
-pub struct Resource {
-    pub resource_id: i32,
-    pub date_created: NaiveDateTime,
-    pub content_type: String,
-    pub content: String,
-    pub generated_by: String,
-    pub thumbnail_img: String,
-    pub title: String,
-}
-
 // Used when creating a new Note
 #[derive(Serialize, Deserialize)]
 pub struct NewNote {
     pub title: String,
-    pub note_content: Vec<i32>,
+    pub topic_id: i32,
+    pub user_id: i32,
 }
 
 // Used when reading or updating a Note
 #[derive(Serialize, Deserialize)]
 pub struct Note {
+    pub id: i32,
     pub title: String,
-    pub note_id: i32,
-    pub note_content: Vec<i32>,
     pub date_created: NaiveDateTime,
+    pub topic_id: i32,
+    pub user_id: i32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -51,20 +31,18 @@ pub struct NoteIds {
 
 impl Note {
     pub fn new(
+        id: i32,
         title: String,
-        note_id: i32,
-        note_content: Vec<i32>,
         date_created: NaiveDateTime,
+        topic_id: i32,
+        user_id: i32,
     ) -> Note {
         Note {
+            id: id,
             title: title,
-            note_id: note_id,
-            note_content: note_content,
             date_created: date_created,
+            topic_id: topic_id,
+            user_id: user_id,
         }
-    }
-    pub fn add_note_item<'a>(&'a mut self, note_item: i32) -> &'a mut Note {
-        self.note_content.push(note_item);
-        self
     }
 }
