@@ -1,30 +1,52 @@
+//Use Macros
+use crate::db;
+use rocket::Route;
+use rocket_contrib::json::Json;
+
+use db::models::resources::article_snippets::NewArticleSnippet;
+use db::models::Id;
+
+use db::querys::article_snippets_query::create_article_snippet;
+use db::querys::TigumPgConn;
+
 /////////////////////////////////
 //// ARTICLE SNIPPETS ROUTES ////
 /////////////////////////////////
 
-#[delete("/videos/<id>")]
-fn delete_single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
-    delete_video(&conn, id)
+// #[delete("/article_snippets/<id>")]
+// fn delete_single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+//     delete_article_snippet(&conn, id)
+// }
+
+// #[put("/article_snippets/<id>", format = "application/json", data = "<article_snippet>")]
+// fn update_single_article_snippet(conn: TigumPgConn, id: i32, article_snippet: Json<NewVideo>) -> Json<Video> {
+//     update_article_snippet(&conn, id, article_snippet)
+// }
+
+#[post(
+    "/article_snippets/create",
+    format = "application/json",
+    data = "<article_snippet>"
+)]
+fn create_single_article_snippet(
+    conn: TigumPgConn,
+    article_snippet: Json<NewArticleSnippet>,
+) -> Json<Id> {
+    println!("{:?}", article_snippet);
+    create_article_snippet(&conn, article_snippet)
 }
 
-#[put("/videos/<id>", format = "application/json", data = "<video>")]
-fn update_single_video(conn: TigumPgConn, id: i32, video: Json<NewVideo>) -> Json<Video> {
-    update_video(&conn, id, video)
-}
+// #[get("/article_snippets/<id>")]
+// fn single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Video> {
+//     get_article_snippet(&conn, id)
+// }
 
-#[post("/videos/create", format = "application/json", data = "<video>")]
-pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>) -> Json<Id> {
-    println!("{:?}", video);
-    create_video(&conn, video)
-}
+// #[post("/article_snippets", format = "application/json", data = "<ids>")]
+// fn article_snippets(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
+//     println!("{:?}", ids);
+//     get_article_snippets(&conn, ids)
+// }
 
-#[get("/videos/<id>")]
-pub fn single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Video> {
-    get_video(&conn, id)
-}
-
-#[post("/videos", format = "application/json", data = "<ids>")]
-fn videos(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
-    println!("{:?}", ids);
-    get_videos(&conn, ids)
+pub fn get_article_snippet_routes() -> Vec<Route> {
+    routes![create_single_article_snippet]
 }

@@ -19,15 +19,15 @@ mod routes;
 // Database Models
 use db::models::resources::note::{NewNote, Note, NoteIds};
 use db::models::topic::{NewTopic, Topic, TopicIds};
-use db::models::{Id, Ids};
+use db::models::Id;
 
 //Database Querys
-use db::querys::note_q::{create_note, delete_note, get_note, get_notes, update_note};
-use db::querys::topic_q::{create_topic, delete_topic, get_topic, get_topics, update_topic};
+use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note};
+use db::querys::topic_query::{create_topic, delete_topic, get_topic, get_topics, update_topic};
 use db::querys::TigumPgConn;
 
 //Request Routes
-// use routes::article_snippet_routes::
+use routes::article_snippet_routes::get_article_snippet_routes;
 use routes::video_routes::video_routes;
 
 // Request Gaurds
@@ -120,7 +120,9 @@ fn create_routes() -> Vec<rocket::Route> {
         preflight_handler
     ];
     let mut video_routes_config = video_routes();
+    let mut article_snippets_routes_config = get_article_snippet_routes();
     app_routes.append(&mut video_routes_config);
+    app_routes.append(&mut article_snippets_routes_config);
     app_routes
 }
 
