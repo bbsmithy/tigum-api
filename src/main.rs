@@ -17,50 +17,19 @@ mod guards;
 mod routes;
 
 // Database Models
-use db::models::resources::note::{NewNote, Note, NoteIds};
 use db::models::topic::{NewTopic, Topic, TopicIds};
-use db::models::Id;
 
 //Database Querys
-use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note};
 use db::querys::topic_query::{create_topic, delete_topic, get_topic, get_topics, update_topic};
 use db::querys::TigumPgConn;
 
 //Request Routes
 use routes::article_snippet_routes::get_article_snippet_routes;
 use routes::video_routes::video_routes;
+use routes::note_routes::get_note_routes;
 
 // Request Gaurds
 use guards::User;
-
-/////////////////////
-//// NOTE ROUTES ////
-/////////////////////
-
-#[delete("/notes/<note_id>")]
-fn delete_single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> Json<String> {
-    delete_note(&conn, note_id)
-}
-
-#[put("/notes/<note_id>", format = "application/json", data = "<note>")]
-fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>) -> Json<Note> {
-    update_note(&conn, note_id, note)
-}
-
-#[post("/notes/create-note", format = "application/json", data = "<note>")]
-fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, _auth_user: User) -> Json<Id> {
-    create_note(&conn, note)
-}
-
-#[get("/notes/<note_id>")]
-fn single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> Json<Note> {
-    get_note(&conn, note_id)
-}
-
-#[post("/notes", format = "application/json", data = "<note_ids>")]
-fn notes(conn: TigumPgConn, note_ids: Json<NoteIds>, _auth_user: User) -> Json<Vec<Note>> {
-    get_notes(&conn, note_ids)
-}
 
 //////////////////////
 //// TOPIC ROUTES ////
@@ -112,17 +81,14 @@ fn create_routes() -> Vec<rocket::Route> {
         create_single_topic,
         update_single_topic,
         delete_single_topic,
-        notes,
-        single_note,
-        create_single_note,
-        update_single_note,
-        delete_single_note,
         preflight_handler
     ];
     let mut video_routes_config = video_routes();
     let mut article_snippets_routes_config = get_article_snippet_routes();
+    let mut note_routes_config = get_note_routes();
     app_routes.append(&mut video_routes_config);
     app_routes.append(&mut article_snippets_routes_config);
+    app_routes.append(&mut note_routes_config);
     app_routes
 }
 
