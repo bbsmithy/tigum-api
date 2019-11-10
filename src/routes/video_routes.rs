@@ -5,10 +5,10 @@ use rocket::Route;
 //Use Macros
 use rocket_contrib::json::Json;
 
-use db::querys::video_query::{create_video, delete_video, get_video, get_videos, update_video};
-use db::querys::TigumPgConn;
 use db::models::resources::video::{NewVideo, Video};
 use db::models::{Id, Ids};
+use db::querys::video_query::{create_video, delete_video, get_video, get_videos, update_video};
+use db::querys::TigumPgConn;
 
 /////////////////////////
 //// VIDEO ROUTES ///////
@@ -41,9 +41,8 @@ pub fn videos(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
     get_videos(&conn, ids)
 }
 
-
 pub fn video_routes() -> Vec<Route> {
-    routes![ 
+    routes![
         create_single_video,
         delete_single_video,
         single_video,
