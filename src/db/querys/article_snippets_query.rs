@@ -1,8 +1,6 @@
 //Use Macros
 use rocket_contrib::json::Json;
 
-use crate::util::date::create_fake_date;
-
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
 
@@ -10,14 +8,13 @@ use models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use models::{Id, Ids};
 
 fn row_to_article_snippet(row: rocket_contrib::databases::postgres::rows::Row) -> ArticleSnippet {
-    println!("{:#?}", row);
     ArticleSnippet {
-        id: 42,
-        topic_id: 78,
-        user_id: 1234,
-        content: "Hello name".to_string(),
-        origin: "orgin".to_string(),
-        date_created: create_fake_date(),
+        id: row.get(0),
+        topic_id: row.get(4),
+        user_id: row.get(5),
+        content: row.get(1),
+        origin: row.get(2),
+        date_created: row.get(3),
     }
 }
 
@@ -55,13 +52,13 @@ pub fn get_article_snippets(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<Arti
     Json(results)
 }
 
-// pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
-//     let query_result = conn
-//         .query("SELECT * FROM videos WHERE id = $1", &[&id])
-//         .unwrap();
-//     let video_response = row_to_video(query_result.get(0));
-//     Json(video_response)
-// }
+pub fn get_article_snippet(conn: &TigumPgConn, id: i32) -> Json<ArticleSnippet> {
+    let query_result = conn
+        .query("SELECT * FROM article_snippets WHERE id = $1", &[&id])
+        .unwrap();
+    let article_snippet_response = row_to_article_snippet(query_result.get(0));
+    Json(article_snippet_response)
+}
 
 pub fn create_article_snippet(
     conn: &TigumPgConn,

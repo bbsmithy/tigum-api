@@ -1,12 +1,15 @@
 //Use Macros
 use crate::db;
+use crate::guards::User;
 use rocket::Route;
 use rocket_contrib::json::Json;
 
 use db::models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use db::models::{Id, Ids};
 
-use db::querys::article_snippets_query::{create_article_snippet, get_article_snippets};
+use db::querys::article_snippets_query::{
+    create_article_snippet, get_article_snippet, get_article_snippets,
+};
 use db::querys::TigumPgConn;
 
 /////////////////////////////////
@@ -36,10 +39,10 @@ fn create_single_article_snippet(
     create_article_snippet(&conn, article_snippet)
 }
 
-// #[get("/article_snippets/<id>")]
-// fn single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Video> {
-//     get_article_snippet(&conn, id)
-// }
+#[get("/article_snippets/<id>")]
+fn single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<ArticleSnippet> {
+    get_article_snippet(&conn, id)
+}
 
 #[post("/article_snippets", format = "application/json", data = "<ids>")]
 fn article_snippets(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<ArticleSnippet>> {
@@ -48,5 +51,9 @@ fn article_snippets(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<ArticleSnippe
 }
 
 pub fn get_article_snippet_routes() -> Vec<Route> {
-    routes![create_single_article_snippet, article_snippets]
+    routes![
+        create_single_article_snippet,
+        article_snippets,
+        single_article_snippet
+    ]
 }
