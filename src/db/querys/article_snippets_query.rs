@@ -1,25 +1,25 @@
 //Use Macros
 use rocket_contrib::json::Json;
-use rocket::Route;
+
+use crate::util::date::create_fake_date;
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
 
-use models::resources::article_snippets::{NewArticleSnippet, ArticleSnippet};
+use models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use models::{Id, Ids};
 
-// fn row_to_video(row: rocket_contrib::databases::postgres::rows::Row) -> Video {
-//     Video {
-//         id: row.get(0),
-//         topic_id: row.get(6),
-//         user_id: row.get(7),
-//         title: row.get(1),
-//         iframe: row.get(2),
-//         origin: row.get(3),
-//         date_created: row.get(4),
-//         thumbnail_img: row.get(5),
-//     }
-// }
+fn row_to_article_snippet(row: rocket_contrib::databases::postgres::rows::Row) -> ArticleSnippet {
+    println!("{:#?}", row);
+    ArticleSnippet {
+        id: 42,
+        topic_id: 78,
+        user_id: 1234,
+        content: "Hello name".to_string(),
+        origin: "orgin".to_string(),
+        date_created: create_fake_date(),
+    }
+}
 
 // pub fn delete_video(conn: &TigumPgConn, id: i32) -> Json<String> {
 //     let update = conn
@@ -39,18 +39,21 @@ use models::{Id, Ids};
 //     Json(video_response)
 // }
 
-// pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
-//     println!("{:?}", ids);
-//     let query_result = conn
-//         .query("SELECT * FROM videos WHERE id = ANY($1)", &[&ids.ids])
-//         .unwrap();
-//     let mut results: Vec<Video> = vec![];
-//     for row in query_result.iter() {
-//         let video_response = row_to_video(row);
-//         results.push(video_response);
-//     }
-//     Json(results)
-// }
+pub fn get_article_snippets(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<ArticleSnippet>> {
+    println!("{:?}", ids);
+    let query_result = conn
+        .query(
+            "SELECT * FROM article_snippets WHERE id = ANY($1)",
+            &[&ids.ids],
+        )
+        .unwrap();
+    let mut results: Vec<ArticleSnippet> = vec![];
+    for row in query_result.iter() {
+        let article_snippet_response = row_to_article_snippet(row);
+        results.push(article_snippet_response);
+    }
+    Json(results)
+}
 
 // pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
 //     let query_result = conn
@@ -60,7 +63,10 @@ use models::{Id, Ids};
 //     Json(video_response)
 // }
 
-pub fn create_article_snippet(conn: &TigumPgConn, article_snippet: Json<NewArticleSnippet>) -> Json<Id> {
+pub fn create_article_snippet(
+    conn: &TigumPgConn,
+    article_snippet: Json<NewArticleSnippet>,
+) -> Json<Id> {
     let inserted_row = conn
         .query(
             "INSERT INTO article_snippets (content, origin, topic_id, user_id) VALUES ($1, $2, $3, $4) RETURNING id",
@@ -73,6 +79,7 @@ pub fn create_article_snippet(conn: &TigumPgConn, article_snippet: Json<NewArtic
         )
         .unwrap();
     let row = inserted_row.get(0);
+    println!("{:#?}", row);
     let id: i32 = row.get(0);
 
     let id_response = Id { id: id };
