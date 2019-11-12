@@ -25,16 +25,20 @@ fn row_to_article_snippet(row: rocket_contrib::databases::postgres::rows::Row) -
 //     Json(format!("{} rows affected", update))
 // }
 
-// pub fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>) -> Json<Video> {
-//     let updated_rows = conn.query(
-//         "UPDATE videos SET topic_id = $2, user_id = $3, title = $4, iframe = $5, origin = $6, thumbnail_img = $7 WHERE id = $1 RETURNING *",
-//         &[&id, &video.topic_id, &video.user_id, &video.title, &video.iframe, &video.origin, &video.thumbnail_img],
-//     ).unwrap();
+pub fn update_article_snippet(
+    conn: &TigumPgConn,
+    id: i32,
+    article_snippet: Json<NewArticleSnippet>,
+) -> Json<ArticleSnippet> {
+    let updated_rows = conn.query(
+        "UPDATE article_snippets SET topic_id = $2, user_id = $3, content = $4, origin = $5 WHERE id = $1 RETURNING *",
+        &[&id, &article_snippet.topic_id, &article_snippet.user_id, &article_snippet.content, &article_snippet.origin],
+    ).unwrap();
 
-//     let video_response = row_to_video(updated_rows.get(0));
+    let article_snippet_response = row_to_article_snippet(updated_rows.get(0));
 
-//     Json(video_response)
-// }
+    Json(article_snippet_response)
+}
 
 pub fn get_article_snippets(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<ArticleSnippet>> {
     println!("{:?}", ids);

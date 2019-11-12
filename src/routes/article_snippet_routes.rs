@@ -8,7 +8,7 @@ use db::models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet}
 use db::models::{Id, Ids};
 
 use db::querys::article_snippets_query::{
-    create_article_snippet, get_article_snippet, get_article_snippets,
+    create_article_snippet, get_article_snippet, get_article_snippets, update_article_snippet,
 };
 use db::querys::TigumPgConn;
 
@@ -21,10 +21,18 @@ use db::querys::TigumPgConn;
 //     delete_article_snippet(&conn, id)
 // }
 
-// #[put("/article_snippets/<id>", format = "application/json", data = "<article_snippet>")]
-// fn update_single_article_snippet(conn: TigumPgConn, id: i32, article_snippet: Json<NewVideo>) -> Json<Video> {
-//     update_article_snippet(&conn, id, article_snippet)
-// }
+#[put(
+    "/article_snippets/<id>",
+    format = "application/json",
+    data = "<article_snippet>"
+)]
+fn update_single_article_snippet(
+    conn: TigumPgConn,
+    id: i32,
+    article_snippet: Json<NewArticleSnippet>,
+) -> Json<ArticleSnippet> {
+    update_article_snippet(&conn, id, article_snippet)
+}
 
 #[post(
     "/article_snippets/create",
@@ -54,6 +62,7 @@ pub fn get_article_snippet_routes() -> Vec<Route> {
     routes![
         create_single_article_snippet,
         article_snippets,
-        single_article_snippet
+        single_article_snippet,
+        update_single_article_snippet
     ]
 }
