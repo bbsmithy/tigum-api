@@ -8,7 +8,8 @@ use db::models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet}
 use db::models::{Id, Ids};
 
 use db::querys::article_snippets_query::{
-    create_article_snippet, get_article_snippet, get_article_snippets, update_article_snippet,
+    create_article_snippet, delete_article_snippet, get_article_snippet, get_article_snippets,
+    update_article_snippet,
 };
 use db::querys::TigumPgConn;
 
@@ -16,10 +17,10 @@ use db::querys::TigumPgConn;
 //// ARTICLE SNIPPETS ROUTES ////
 /////////////////////////////////
 
-// #[delete("/article_snippets/<id>")]
-// fn delete_single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
-//     delete_article_snippet(&conn, id)
-// }
+#[delete("/article_snippets/<id>")]
+fn delete_single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+    delete_article_snippet(&conn, id)
+}
 
 #[put(
     "/article_snippets/<id>",
@@ -63,6 +64,7 @@ pub fn get_article_snippet_routes() -> Vec<Route> {
         create_single_article_snippet,
         article_snippets,
         single_article_snippet,
-        update_single_article_snippet
+        update_single_article_snippet,
+        delete_single_article_snippet
     ]
 }

@@ -18,12 +18,12 @@ fn row_to_article_snippet(row: rocket_contrib::databases::postgres::rows::Row) -
     }
 }
 
-// pub fn delete_video(conn: &TigumPgConn, id: i32) -> Json<String> {
-//     let update = conn
-//         .execute("DELETE FROM videos WHERE id = $1", &[&id])
-//         .unwrap();
-//     Json(format!("{} rows affected", update))
-// }
+pub fn delete_article_snippet(conn: &TigumPgConn, id: i32) -> Json<String> {
+    let update = conn
+        .execute("DELETE FROM article_snippets WHERE id = $1", &[&id])
+        .unwrap();
+    Json(format!("{} rows affected", update))
+}
 
 pub fn update_article_snippet(
     conn: &TigumPgConn,
