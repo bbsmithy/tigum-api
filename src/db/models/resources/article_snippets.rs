@@ -11,7 +11,7 @@ pub struct NewArticleSnippet {
 }
 
 // Used when reading or updating a ArtcileSnippet
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ArticleSnippet {
     pub id: i32,
     pub content: String,
