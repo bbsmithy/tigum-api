@@ -68,7 +68,7 @@ pub fn get_article_snippet(conn: &TigumPgConn, id: i32) -> Json<ArticleSnippet> 
 
 pub fn create_article_snippet(
     conn: &TigumPgConn,
-    article_snippet: Json<NewArticleSnippet>,
+    article_snippet: &Json<NewArticleSnippet>,
 ) -> Json<Id> {
     let inserted_row = conn
         .query(

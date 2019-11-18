@@ -5,12 +5,14 @@ use rocket::Route;
 use rocket_contrib::json::Json;
 
 use db::models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
+use db::models::resources::ResourceType;
 use db::models::{Id, Ids};
 
 use db::querys::article_snippets_query::{
     create_article_snippet, delete_article_snippet, get_article_snippet, get_article_snippets,
     update_article_snippet,
 };
+use db::querys::topic_query::update_topic_resource_list;
 use db::querys::TigumPgConn;
 
 /////////////////////////////////
@@ -44,8 +46,14 @@ fn create_single_article_snippet(
     conn: TigumPgConn,
     article_snippet: Json<NewArticleSnippet>,
 ) -> Json<Id> {
-    println!("{:?}", article_snippet);
-    create_article_snippet(&conn, article_snippet)
+    let new_article_snippet = create_article_snippet(&conn, &article_snippet);
+    update_topic_resource_list(
+        &conn,
+        article_snippet.topic_id,
+        new_article_snippet.id,
+        ResourceType::Snippet,
+    );
+    return new_article_snippet;
 }
 
 #[get("/article_snippets/<id>")]
