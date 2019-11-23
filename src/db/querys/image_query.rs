@@ -67,7 +67,7 @@ pub fn get_image(conn: &TigumPgConn, id: i32) -> Json<Image> {
 
 pub fn create_image(
     conn: &TigumPgConn,
-    image: Json<NewImage>,
+    image: &Json<NewImage>,
 ) -> Json<Id> {
     let inserted_row = conn
         .query(

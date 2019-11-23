@@ -6,10 +6,12 @@ use rocket::Route;
 use rocket_contrib::json::Json;
 
 use db::models::resources::documents::{Document, NewDocument};
+use db::models::resources::ResourceType;
 use db::models::{Id, Ids};
 use db::querys::document_query::{
     create_document, delete_document, get_document, get_documents, update_document,
 };
+use db::querys::topic_query::update_topic_resource_list;
 use db::querys::TigumPgConn;
 
 //////////////////////////
@@ -32,8 +34,14 @@ pub fn update_single_document(
 
 #[post("/documents/create", format = "application/json", data = "<document>")]
 pub fn create_single_document(conn: TigumPgConn, document: Json<NewDocument>) -> Json<Id> {
-    println!("{:#?}", document);
-    create_document(&conn, document)
+    let new_document = create_document(&conn, &document);
+    update_topic_resource_list(
+        &conn,
+        document.topic_id,
+        new_document.id,
+        ResourceType::Document,
+    );
+    new_document
 }
 
 #[get("/documents/<id>")]

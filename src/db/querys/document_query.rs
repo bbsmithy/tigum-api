@@ -69,7 +69,7 @@ pub fn get_document(conn: &TigumPgConn, id: i32) -> Json<Document> {
 
 pub fn create_document(
     conn: &TigumPgConn,
-    document: Json<NewDocument>,
+    document: &Json<NewDocument>,
 ) -> Json<Id> {
     let inserted_row = conn
         .query(
