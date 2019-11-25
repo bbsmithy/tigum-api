@@ -56,7 +56,7 @@ pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
     Json(note_response)
 }
 
-pub fn create_note(conn: &TigumPgConn, note: Json<NewNote>) -> Json<Id> {
+pub fn create_note(conn: &TigumPgConn, note: &Json<NewNote>) -> Json<Id> {
     let inserted_rows = conn
         .query(
             "INSERT INTO notes (title, topic_id, user_id) VALUES ($1, $2, $3) RETURNING id",

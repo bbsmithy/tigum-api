@@ -5,11 +5,15 @@ use rocket::Route;
 //Use Macros
 use rocket_contrib::json::Json;
 
-use db::querys::note_query::{delete_note, get_notes, update_note, create_note, get_note};
-use db::querys::TigumPgConn;
-use db::models::resources::note::{Note, NewNote, NoteIds};
-use db::models::{Id};
+// Models
+use db::models::resources::note::{NewNote, Note, NoteIds};
+use db::models::resources::ResourceType;
+use db::models::Id;
 
+// Querys
+use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note};
+use db::querys::topic_query::update_topic_resource_list;
+use db::querys::TigumPgConn;
 
 /////////////////////
 //// NOTE ROUTES ////
@@ -27,7 +31,9 @@ fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>) -> Json
 
 #[post("/notes/create-note", format = "application/json", data = "<note>")]
 fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, _auth_user: User) -> Json<Id> {
-    create_note(&conn, note)
+    let new_note = create_note(&conn, &note);
+    update_topic_resource_list(&conn, note.topic_id, new_note.id, ResourceType::Note);
+    new_note
 }
 
 #[get("/notes/<note_id>")]
@@ -41,5 +47,11 @@ fn notes(conn: TigumPgConn, note_ids: Json<NoteIds>, _auth_user: User) -> Json<V
 }
 
 pub fn get_note_routes() -> Vec<Route> {
-    routes![notes, single_note, create_single_note, update_single_note, delete_single_note]
-} 
+    routes![
+        notes,
+        single_note,
+        create_single_note,
+        update_single_note,
+        delete_single_note
+    ]
+}
