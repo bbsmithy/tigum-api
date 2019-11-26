@@ -59,7 +59,7 @@ pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
     Json(video_response)
 }
 
-pub fn create_video(conn: &TigumPgConn, video: Json<NewVideo>) -> Json<Id> {
+pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>) -> Json<Id> {
     let inserted_row = conn
         .query(
             "INSERT INTO videos (topic_id, user_id, title, iframe, origin, thumbnail_img) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
