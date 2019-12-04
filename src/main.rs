@@ -18,12 +18,12 @@ use db::querys::TigumPgConn;
 
 //Request Routes
 use routes::article_snippet_routes::get_article_snippet_routes;
+use routes::code_routes::get_code_routes;
+use routes::document_routes::document_routes;
+use routes::image_routes::image_routes;
 use routes::note_routes::get_note_routes;
 use routes::topic_routes::get_topic_routes;
 use routes::video_routes::video_routes;
-use routes::image_routes::image_routes;
-use routes::document_routes::document_routes;
-use routes::code_routes::get_code_routes;
 
 // Request Gaurds
 use guards::User;
@@ -58,7 +58,7 @@ fn main() {
     let routes = create_routes();
     rocket::ignite()
         .mount("/", routes)
-        .attach(cors::CorsFairing)
         .attach(TigumPgConn::fairing())
+        .attach(cors::CorsFairing)
         .launch();
 }

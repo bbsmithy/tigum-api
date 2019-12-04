@@ -8,10 +8,7 @@ use db::models::resources::code::{Code, NewCode};
 use db::models::resources::ResourceType;
 use db::models::{Id, Ids};
 
-use db::querys::code_query::{
-    create_code, delete_code, get_code, get_codes,
-    update_code,
-};
+use db::querys::code_query::{create_code, delete_code, get_code, get_codes, update_code};
 use db::querys::topic_query::update_topic_resource_list;
 use db::querys::TigumPgConn;
 
@@ -24,35 +21,15 @@ fn delete_single_code(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Stri
     delete_code(&conn, id)
 }
 
-#[put(
-    "/code/<id>",
-    format = "application/json",
-    data = "<code>"
-)]
-fn update_single_code(
-    conn: TigumPgConn,
-    id: i32,
-    code: Json<NewCode>,
-) -> Json<Code> {
+#[put("/code/<id>", format = "application/json", data = "<code>")]
+fn update_single_code(conn: TigumPgConn, id: i32, code: Json<NewCode>) -> Json<Code> {
     update_code(&conn, id, code)
 }
 
-#[post(
-    "/code/create",
-    format = "application/json",
-    data = "<code>"
-)]
-fn create_single_code(
-    conn: TigumPgConn,
-    code: Json<NewCode>,
-) -> Json<Id> {
+#[post("/code/create", format = "application/json", data = "<code>")]
+fn create_single_code(conn: TigumPgConn, code: Json<NewCode>) -> Json<Id> {
     let new_code = create_code(&conn, &code);
-    update_topic_resource_list(
-        &conn,
-        code.topic_id,
-        new_code.id,
-        ResourceType::Snippet,
-    );
+    update_topic_resource_list(&conn, code.topic_id, new_code.id, ResourceType::Code);
     return new_code;
 }
 

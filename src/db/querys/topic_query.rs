@@ -49,6 +49,7 @@ pub fn update_topic_resource_list(
         ResourceType::Image => conn.execute("UPDATE topics SET images = array_append(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Note => conn.execute("UPDATE topics SET notes = array_append(notes, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Video => conn.execute("UPDATE topics SET videos = array_append(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Code => conn.execute("UPDATE topics SET code = array_append(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         _ => Ok(1)
     };
     print!("{:?}", result);
