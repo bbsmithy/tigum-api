@@ -5,7 +5,6 @@ use crate::db::models;
 use crate::db::querys::TigumPgConn;
 
 use models::resources::note::{NewNote, Note, NoteIds};
-use models::Id;
 
 fn parse_note_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Note> {
     let mut results: Vec<Note> = vec![];
@@ -56,18 +55,16 @@ pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
     Json(note_response)
 }
 
-pub fn create_note(conn: &TigumPgConn, note: &Json<NewNote>) -> Json<Id> {
+pub fn create_note(conn: &TigumPgConn, note: &Json<NewNote>) -> Json<Note> {
     let inserted_rows = conn
         .query(
-            "INSERT INTO notes (title, topic_id, user_id) VALUES ($1, $2, $3) RETURNING id",
+            "INSERT INTO notes (title, topic_id, user_id) VALUES ($1, $2, $3) RETURNING *",
             &[&note.title, &note.topic_id, &note.user_id],
         )
         .unwrap();
 
     let row = inserted_rows.get(0);
-    let note_id: i32 = row.get(0);
+    let note_response = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
 
-    let id_response = Id { id: note_id };
-
-    Json(id_response)
+    Json(note_response)
 }

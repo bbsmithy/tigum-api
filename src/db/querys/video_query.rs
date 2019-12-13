@@ -5,7 +5,7 @@ use crate::db::models;
 use crate::db::querys::TigumPgConn;
 
 use models::resources::video::{NewVideo, Video};
-use models::{Id, Ids};
+use models::Ids;
 
 fn row_to_video(row: rocket_contrib::databases::postgres::rows::Row) -> Video {
     Video {
@@ -59,10 +59,10 @@ pub fn get_video(conn: &TigumPgConn, id: i32) -> Json<Video> {
     Json(video_response)
 }
 
-pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>) -> Json<Id> {
+pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>) -> Json<Video> {
     let inserted_row = conn
         .query(
-            "INSERT INTO videos (topic_id, user_id, title, iframe, origin, thumbnail_img) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+            "INSERT INTO videos (topic_id, user_id, title, iframe, origin, thumbnail_img) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
             &[
                 &video.topic_id,
                 &video.user_id,
@@ -74,9 +74,7 @@ pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>) -> Json<Id> {
         )
         .unwrap();
     let row = inserted_row.get(0);
-    let id: i32 = row.get(0);
+    let video_response = row_to_video(row);
 
-    let id_response = Id { id: id };
-
-    Json(id_response)
+    Json(video_response)
 }

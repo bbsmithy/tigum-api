@@ -7,7 +7,7 @@ use rocket_contrib::json::Json;
 
 use db::models::resources::video::{NewVideo, Video};
 use db::models::resources::ResourceType;
-use db::models::{Id, Ids};
+use db::models::Ids;
 
 use db::querys::topic_query::update_topic_resource_list;
 use db::querys::video_query::{create_video, delete_video, get_video, get_videos, update_video};
@@ -28,7 +28,7 @@ pub fn update_single_video(conn: TigumPgConn, id: i32, video: Json<NewVideo>) ->
 }
 
 #[post("/videos/create", format = "application/json", data = "<video>")]
-pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>) -> Json<Id> {
+pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>) -> Json<Video> {
     let new_video = create_video(&conn, &video);
     update_topic_resource_list(&conn, video.topic_id, new_video.id, ResourceType::Video);
     new_video
