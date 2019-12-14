@@ -15,6 +15,7 @@ fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::R
 }
 
 fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
+    println!("{:?}", row);
     let topic = Topic::new(
         row.get(0),
         row.get(1),
@@ -25,6 +26,7 @@ fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
         row.get(6),
         row.get(7),
         row.get(8),
+        row.get(10),
         123,
     );
     return topic;

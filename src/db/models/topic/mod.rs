@@ -18,6 +18,7 @@ pub struct Topic {
     pub article_snippets: Vec<i32>,
     pub documents: Vec<i32>,
     pub excercises: Vec<i32>,
+    pub images: Vec<i32>,
     pub user_id: i32
 }
 
@@ -32,6 +33,7 @@ impl Topic {
         article_snippets: Vec<i32>,
         documents: Vec<i32>,
         excercises: Vec<i32>,
+        images: Vec<i32>,
         user_id: i32
     ) -> Topic {
         Topic {
@@ -44,6 +46,7 @@ impl Topic {
             article_snippets: article_snippets,
             documents: documents,
             excercises: excercises,
+            images: images,
             user_id: user_id
         }
     }
