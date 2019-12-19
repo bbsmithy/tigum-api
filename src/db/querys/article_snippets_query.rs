@@ -69,10 +69,10 @@ pub fn get_article_snippet(conn: &TigumPgConn, id: i32) -> Json<ArticleSnippet> 
 pub fn create_article_snippet(
     conn: &TigumPgConn,
     article_snippet: &Json<NewArticleSnippet>,
-) -> Json<Id> {
+) -> Json<ArticleSnippet> {
     let inserted_row = conn
         .query(
-            "INSERT INTO article_snippets (content, origin, topic_id, user_id) VALUES ($1, $2, $3, $4) RETURNING id",
+            "INSERT INTO article_snippets (content, origin, topic_id, user_id) VALUES ($1, $2, $3, $4) RETURNING *",
             &[
                 &article_snippet.content,
                 &article_snippet.origin,
@@ -83,9 +83,6 @@ pub fn create_article_snippet(
         .unwrap();
     let row = inserted_row.get(0);
     println!("{:#?}", row);
-    let id: i32 = row.get(0);
-
-    let id_response = Id { id: id };
-
-    Json(id_response)
+    let article_snippet = row_to_article_snippet(row);
+    Json(article_snippet)
 }

@@ -45,7 +45,7 @@ fn update_single_article_snippet(
 fn create_single_article_snippet(
     conn: TigumPgConn,
     article_snippet: Json<NewArticleSnippet>,
-) -> Json<Id> {
+) -> Json<ArticleSnippet> {
     let new_article_snippet = create_article_snippet(&conn, &article_snippet);
     update_topic_resource_list(
         &conn,
