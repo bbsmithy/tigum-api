@@ -19,8 +19,8 @@ use db::querys::TigumPgConn;
 //Request Routes
 use routes::article_snippet_routes::get_article_snippet_routes;
 use routes::code_routes::get_code_routes;
-use routes::document_routes::document_routes;
 use routes::image_routes::image_routes;
+use routes::link_routes::link_routes;
 use routes::note_routes::get_note_routes;
 use routes::topic_routes::get_topic_routes;
 use routes::video_routes::video_routes;
@@ -42,14 +42,14 @@ fn create_routes() -> Vec<rocket::Route> {
     let mut note_routes_config = get_note_routes();
     let mut topic_routes_config = get_topic_routes();
     let mut image_routes_config = image_routes();
-    let mut document_routes_config = document_routes();
+    let mut link_routes_config = link_routes();
     let mut code_routes_config = get_code_routes();
     app_routes.append(&mut video_routes_config);
     app_routes.append(&mut article_snippets_routes_config);
     app_routes.append(&mut note_routes_config);
     app_routes.append(&mut topic_routes_config);
     app_routes.append(&mut image_routes_config);
-    app_routes.append(&mut document_routes_config);
+    app_routes.append(&mut link_routes_config);
     app_routes.append(&mut code_routes_config);
     app_routes
 }

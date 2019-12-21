@@ -1,6 +1,6 @@
 pub mod article_snippets;
 pub mod code;
-pub mod documents;
+pub mod link;
 pub mod image;
 pub mod note;
 pub mod video;
@@ -11,6 +11,6 @@ pub enum ResourceType {
     Note,
     Video,
     Image,
-    Document,
+    Link,
     Code,
 }

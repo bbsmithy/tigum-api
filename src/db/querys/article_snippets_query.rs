@@ -5,7 +5,7 @@ use crate::db::models;
 use crate::db::querys::TigumPgConn;
 
 use models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
-use models::{Id, Ids};
+use models::Ids;
 
 fn row_to_article_snippet(row: rocket_contrib::databases::postgres::rows::Row) -> ArticleSnippet {
     ArticleSnippet {
@@ -60,9 +60,8 @@ pub fn get_article_snippet(conn: &TigumPgConn, id: i32) -> Json<ArticleSnippet> 
     let query_result = conn
         .query("SELECT * FROM article_snippets WHERE id = $1", &[&id])
         .unwrap();
-        println!("{:#?}", query_result);
+    println!("{:#?}", query_result);
     let article_snippet_response = row_to_article_snippet(query_result.get(0));
-    
     Json(article_snippet_response)
 }
 
