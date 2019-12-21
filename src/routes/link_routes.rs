@@ -33,7 +33,7 @@ pub fn update_single_link(
 }
 
 #[post("/links/create", format = "application/json", data = "<link>")]
-pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>) -> Json<Id> {
+pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>) -> Json<Link> {
     let new_link = create_link(&conn, &link);
     update_topic_resource_list(
         &conn,

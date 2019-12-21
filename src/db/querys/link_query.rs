@@ -60,10 +60,10 @@ pub fn get_link(conn: &TigumPgConn, id: i32) -> Json<Link> {
     Json(link_response)
 }
 
-pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>) -> Json<Id> {
+pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>) -> Json<Link> {
     let inserted_row = conn
         .query(
-            "INSERT INTO links (title, topic_id, user_id, source) VALUES ($1, $2, $3, $4) RETURNING id",
+            "INSERT INTO links (title, topic_id, user_id, source) VALUES ($1, $2, $3, $4) RETURNING *",
             &[
                 &link.title,
                 &link.topic_id,
@@ -75,9 +75,7 @@ pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>) -> Json<Id> {
 
     let row = inserted_row.get(0);
     println!("{:#?}", row);
-    let id: i32 = row.get(0);
+    let link_response = row_to_link(row);
 
-    let id_response = Id { id: id };
-
-    Json(id_response)
+    Json(link_response)
 }

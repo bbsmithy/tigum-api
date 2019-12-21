@@ -16,10 +16,10 @@ pub struct Topic {
     pub videos: Vec<i32>,
     pub code: Vec<i32>,
     pub article_snippets: Vec<i32>,
-    pub documents: Vec<i32>,
+    pub links: Vec<i32>,
     pub excercises: Vec<i32>,
     pub images: Vec<i32>,
-    pub user_id: i32
+    pub user_id: i32,
 }
 
 impl Topic {
@@ -31,10 +31,10 @@ impl Topic {
         videos: Vec<i32>,
         code: Vec<i32>,
         article_snippets: Vec<i32>,
-        documents: Vec<i32>,
+        links: Vec<i32>,
         excercises: Vec<i32>,
         images: Vec<i32>,
-        user_id: i32
+        user_id: i32,
     ) -> Topic {
         Topic {
             id: id,
@@ -44,10 +44,10 @@ impl Topic {
             videos: videos,
             code: code,
             article_snippets: article_snippets,
-            documents: documents,
+            links: links,
             excercises: excercises,
             images: images,
-            user_id: user_id
+            user_id: user_id,
         }
     }
 }
