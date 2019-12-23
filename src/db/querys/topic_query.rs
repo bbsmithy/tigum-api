@@ -45,10 +45,6 @@ pub fn update_topic_resource_list(
     resource_id: i32,
     resource_type: ResourceType,
 ) {
-    println!(
-        "UPDATE TOPIC RESOURCE LIST topic:{}, resource:{}",
-        topic_id, resource_id
-    );
     let result = match resource_type {
         ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_append(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Link => conn.execute("UPDATE topics SET links = array_append(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
