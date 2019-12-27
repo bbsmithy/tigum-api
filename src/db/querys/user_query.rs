@@ -1,22 +1,24 @@
 use rocket_contrib::json::Json;
 
-use crate::db::models::user::{CreateUser, User};
+use crate::db::models::user::CreateUser;
 use crate::db::querys::TigumPgConn;
-use crate::util::auth::hash_password;
 
-pub fn get_user_password(conn: &TigumPgConn, id: i32) {
-    let user_rows = conn.query("SELECT * FROM users WHERE id = $1", &[&id]);
-    println!("{:?}", user_rows);
+pub fn get_user_password(conn: &TigumPgConn, email: &String) -> String {
+    let user_password_hash = conn
+        .query(
+            "SELECT password_hash FROM users WHERE email = $1",
+            &[&email],
+        )
+        .unwrap();
+    let user_row = user_password_hash.get(0);
+    let user_email = user_row.get(0);
+    user_email
 }
 
-pub fn create_user(conn: &TigumPgConn, new_user: Json<CreateUser>) {
-    let name = "Brian Smith".to_string();
-    let email = "bean.smith77@gmail.com".to_string();
-    let salt = "salty".to_string();
-    let ps_hash = "ps_hash".to_string();
+pub fn create_user(conn: &TigumPgConn, new_user: Json<CreateUser>, hashed_password: String) {
     let user_row = conn.query(
-        "INSERT INTO users (name, email, salt, password_hash) VALUES ($1, $2, $3, $4) RETURNING *",
-        &[&name, &email, &salt, &ps_hash],
+        "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *",
+        &[&new_user.name, &new_user.email, &hashed_password],
     );
     println!("USER CREATED!: {:?}", user_row);
 }

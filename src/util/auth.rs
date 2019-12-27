@@ -1,4 +1,4 @@
-use bcrypt::{hash, hash_with_result, verify};
+use bcrypt::{hash, verify};
 
 pub fn hash_password(plain: &String) -> Result<String, bcrypt::BcryptError> {
     Ok(hash(plain, 10)?)

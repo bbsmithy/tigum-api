@@ -22,7 +22,6 @@ pub struct CreateUser {
 pub struct LoginUser {
     pub email: String,
     pub password: String,
-    pub hash: String,
 }
 
 #[derive(Deserialize)]
@@ -39,11 +38,10 @@ impl User {
             id,
             name,
             password,
-            email
+            email,
         }
     }
 }
-
 
 fn is_valid(user_id: &str) -> bool {
     user_id == "test-user-id".to_string()
@@ -60,7 +58,12 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
                 // CHECK JWT TOKEN HERE
                 // PARSE DATA AND CREATE USER
                 // USER WILL BE ACCESSIBLE IN REQUEST GAURD auth_user
-                let auth_user = User::new(123, "Brian Smith".to_string(), "PS".to_string(), "bs@gm.com".to_string());
+                let auth_user = User::new(
+                    123,
+                    "Brian Smith".to_string(),
+                    "PS".to_string(),
+                    "bs@gm.com".to_string(),
+                );
                 Outcome::Success(auth_user)
             }
             1 => Outcome::Failure((Status::BadRequest, UserIdError::Invalid)),
