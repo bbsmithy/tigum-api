@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
+use rocket::response::{self, Response, Responder};
+use rocket::http::{Status};
 
-use rocket::http::Status;
+
+
+use rocket::response::status::Custom;
 use rocket::request::{self, FromRequest, Request};
 use rocket::Outcome;
 
@@ -24,24 +28,24 @@ pub struct LoginUser {
     pub password: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct User {
-    pub id: u64,
+    pub id: i32,
     pub name: String,
-    pub password: String,
     pub email: String,
 }
 
 impl User {
-    pub fn new(id: u64, name: String, password: String, email: String) -> User {
+    pub fn new(id: i32, name: String, password: String, email: String) -> User {
         User {
             id,
             name,
-            password,
             email,
         }
     }
 }
+
+
 
 fn is_valid(user_id: &str) -> bool {
     user_id == "test-user-id".to_string()

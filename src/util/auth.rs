@@ -1,7 +1,7 @@
 use bcrypt::{hash, verify};
 
 pub fn hash_password(plain: &String) -> Result<String, bcrypt::BcryptError> {
-    Ok(hash(plain, 10)?)
+    hash(plain, 10)
 }
 
 pub fn verify_password(plain: &String, hash_string: &str) -> Result<bool, bcrypt::BcryptError> {
