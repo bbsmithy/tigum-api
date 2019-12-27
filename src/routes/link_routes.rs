@@ -1,5 +1,4 @@
 use crate::db;
-use crate::User;
 use rocket::Route;
 
 //Use Macros
@@ -7,7 +6,9 @@ use rocket_contrib::json::Json;
 
 use db::models::resources::link::{Link, NewLink};
 use db::models::resources::ResourceType;
-use db::models::{Id, Ids};
+use db::models::Ids;
+use db::models::user::User;
+
 use db::querys::link_query::{
     create_link, delete_link, get_link, get_links, update_link,
 };

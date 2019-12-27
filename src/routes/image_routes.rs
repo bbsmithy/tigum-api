@@ -1,5 +1,4 @@
 use crate::db;
-use crate::User;
 use rocket::Route;
 
 //Use Macros
@@ -11,6 +10,7 @@ use db::querys::image_query::{create_image, delete_image, get_image, get_images,
 use db::querys::topic_query::update_topic_resource_list;
 use db::querys::TigumPgConn;
 use db::models::resources::ResourceType;
+use db::models::user::User;
 
 
 /////////////////////////

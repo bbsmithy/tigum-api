@@ -1,5 +1,4 @@
 use crate::db;
-use crate::User;
 use rocket::Route;
 
 //Use Macros
@@ -12,6 +11,7 @@ use db::models::Ids;
 use db::querys::topic_query::update_topic_resource_list;
 use db::querys::video_query::{create_video, delete_video, get_video, get_videos, update_video};
 use db::querys::TigumPgConn;
+use db::models::user::User;
 
 /////////////////////////
 //// VIDEO ROUTES ///////

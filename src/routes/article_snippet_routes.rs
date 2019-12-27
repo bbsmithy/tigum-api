@@ -1,12 +1,12 @@
 //Use Macros
 use crate::db;
-use crate::guards::User;
 use rocket::Route;
 use rocket_contrib::json::Json;
 
 use db::models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use db::models::resources::ResourceType;
 use db::models::Ids;
+use db::models::user::User;
 
 use db::querys::article_snippets_query::{
     create_article_snippet, delete_article_snippet, get_article_snippet, get_article_snippets,

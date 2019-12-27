@@ -10,7 +10,6 @@ extern crate rocket_contrib;
 // Main modules
 mod cors;
 mod db;
-mod guards;
 mod routes;
 mod util;
 
@@ -25,9 +24,6 @@ use routes::note_routes::get_note_routes;
 use routes::topic_routes::get_topic_routes;
 use routes::user_routes::get_user_routes;
 use routes::video_routes::video_routes;
-
-// Request Gaurds
-use guards::User;
 
 // CORS Prelight Request Handler
 

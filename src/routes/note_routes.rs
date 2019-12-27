@@ -1,5 +1,4 @@
 use crate::db;
-use crate::User;
 use rocket::Route;
 
 //Use Macros
@@ -8,6 +7,7 @@ use rocket_contrib::json::Json;
 // Models
 use db::models::resources::note::{NewNote, Note, NoteIds};
 use db::models::resources::ResourceType;
+use db::models::user::User;
 
 // Querys
 use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note};

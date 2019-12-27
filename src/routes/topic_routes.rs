@@ -8,12 +8,10 @@ use rocket_contrib::json::Json;
 
 // Database Models
 use db::models::topic::{NewTopic, Topic, TopicIds};
+use db::models::user::User;
 
 //Database Querys
 use db::querys::topic_query::{create_topic, delete_topic, get_topic, get_topics, update_topic};
-
-// Request Gaurds
-use crate::guards::User;
 
 //////////////////////
 //// TOPIC ROUTES ////

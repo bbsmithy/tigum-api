@@ -1,12 +1,12 @@
 //Use Macros
 use crate::db;
-use crate::guards::User;
 use rocket::Route;
 use rocket_contrib::json::Json;
 
 use db::models::resources::code::{Code, NewCode};
 use db::models::resources::ResourceType;
 use db::models::{Id, Ids};
+use db::models::user::User;
 
 use db::querys::code_query::{create_code, delete_code, get_code, get_codes, update_code};
 use db::querys::topic_query::update_topic_resource_list;
