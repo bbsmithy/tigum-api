@@ -6,6 +6,7 @@ extern crate rocket;
 extern crate serde;
 #[macro_use]
 extern crate rocket_contrib;
+extern crate crypto;
 
 // Main modules
 mod cors;
@@ -15,7 +16,7 @@ mod util;
 
 use db::querys::TigumPgConn;
 
-//Request Routes
+// Request Routes
 use routes::article_snippet_routes::get_article_snippet_routes;
 use routes::code_routes::get_code_routes;
 use routes::image_routes::image_routes;
@@ -26,7 +27,6 @@ use routes::user_routes::get_user_routes;
 use routes::video_routes::video_routes;
 
 // CORS Prelight Request Handler
-
 #[route(OPTIONS, path = "/")]
 fn preflight_handler() -> String {
     String::from("Handling preflight")

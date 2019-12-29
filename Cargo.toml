@@ -6,9 +6,11 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4.2"
-jsonwebtoken = "1"
+jwt = "0.4.0"
+rust-crypto = "^0.2"
 chrono = { version = "0.4", features = ["serde"] }
 rocket_contrib = { features = ["postgres_pool", "json", "databases"] }
 postgres = { version = "0.15", features = ["with-chrono"] }
 serde = { features = ["derive"] }
+rustc-serialize = "0.3"
 bcrypt = { version = "0.6.1" }

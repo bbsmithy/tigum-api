@@ -1,29 +1,36 @@
 use rocket_contrib::json::Json;
 
-use crate::db::models::user::{CreateUser, User};
+use crate::db::models::user::{CreateUser, User, AuthUser};
 use crate::db::querys::TigumPgConn;
 use rocket::http::Status;
 use rocket::response::status;
 
 fn row_to_user(row: rocket_contrib::databases::postgres::rows::Row) -> User {
-    let user = User {
+    User {
         id: row.get(0),
         name: row.get(1),
         email: row.get(2),
-    };
-    user
+    }
 }
 
-pub fn get_user_password(conn: &TigumPgConn, email: &String) -> String {
+fn row_to_auth_user(row: rocket_contrib::databases::postgres::rows::Row) -> AuthUser {
+    AuthUser {
+        id: row.get(0),
+        name: row.get(1),
+        email: row.get(2),
+        password_hash: row.get(3)
+    }
+}
+
+pub fn get_user(conn: &TigumPgConn, email: &String) -> AuthUser {
     let user_password_hash = conn
         .query(
-            "SELECT password_hash FROM users WHERE email = $1",
+            "SELECT * FROM users WHERE email = $1",
             &[&email],
         )
         .unwrap();
-    let user_ps_hash_row = user_password_hash.get(0);
-    let user_email = user_ps_hash_row.get(0);
-    user_email
+    let user_row = user_password_hash.get(0);
+    row_to_auth_user(user_row)
 }
 
 pub fn create_user(

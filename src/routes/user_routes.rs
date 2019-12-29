@@ -3,18 +3,19 @@ use rocket::http::Status;
 use rocket::response::status;
 use rocket::Route;
 
+
 //Use Macros
 use db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
 
 // Models
-use db::models::user::{CreateUser, LoginUser, User};
+use db::models::user::{CreateUser, LoginUser, User, AuthUser};
 
 // Util
-use crate::util::auth::{hash_password, verify_password};
+use crate::util::auth::{hash_password, verify_password, encode_jwt};
 
 // Querys
-use db::querys::user_query::{create_user, get_user_password};
+use db::querys::user_query::{create_user, get_user};
 
 /////////////////////////
 //// USER ROUTES ////////
@@ -50,12 +51,14 @@ pub fn user_signup(
 }
 
 #[post("/user/login", format = "application/json", data = "<login>")]
-pub fn user_login(conn: TigumPgConn, login: Json<LoginUser>, _auth_user: User) {
+pub fn user_login(conn: TigumPgConn, login: Json<LoginUser>) -> String {
     // Check if email exists and return User
-    let password = get_user_password(&conn, &login.email);
+    let user = get_user(&conn, &login.email);
     // Check if login.password matches
-    let is_correct = verify_password(&login.password, &password);
-    println!("Passord is: {:?}", is_correct);
+    let is_correct = verify_password(&login.password, &user.password_hash);
+
+    // Encode JWT token with user
+    encode_jwt(user.id)
 }
 
 pub fn get_user_routes() -> Vec<Route> {
