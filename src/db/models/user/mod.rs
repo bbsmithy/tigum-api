@@ -43,26 +43,23 @@ impl User {
     }
 }
 
-fn is_jwt_valid(user_id: &str) -> bool {
-    // CHECK JWT TOKEN HERE
-    user_id == "test-user-id".to_string()
-}
-
 impl<'a, 'r> FromRequest<'a, 'r> for User {
     type Error = UserIdError;
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         // Use request.cookies().get("jwt") instead to get jwt token
-        let keys: Vec<_> = request.headers().get("X-User-ID").collect();
-        match keys.len() {
-            0 => Outcome::Failure((Status::BadRequest, UserIdError::Missing)),
-            1 if is_jwt_valid(keys[0]) => {
+        let cookies = request.cookies();
+        let jwt_value = cookies.get("jwt");
+
+        match jwt_value {
+            Some(jwt_token) => {
+                let jwt_token = jwt_token.value();
+                println!("{}", jwt_token);
                 // PARSE DATA AND CREATE USER
                 // USER WILL BE ACCESSIBLE IN REQUEST GAURD auth_user
                 let auth_user = User::new(123, "Brian Smith".to_string(), "bs@gm.com".to_string());
                 Outcome::Success(auth_user)
             }
-            1 => Outcome::Failure((Status::BadRequest, UserIdError::Invalid)),
             _ => Outcome::Failure((Status::BadRequest, UserIdError::BadCount)),
         }
     }

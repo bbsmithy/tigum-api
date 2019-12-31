@@ -54,6 +54,7 @@ fn create_routes() -> Vec<rocket::Route> {
 }
 
 fn main() {
+    // TODO refactor to use multiple mounts
     let routes = create_routes();
     rocket::ignite()
         .mount("/", routes)
