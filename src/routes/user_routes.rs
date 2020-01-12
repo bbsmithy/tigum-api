@@ -24,7 +24,7 @@ use db::querys::user_query::{create_user, get_user};
 fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
     let jwt_cookie = Cookie::build("jwt", jwt_value)
         .path("/")
-        .domain(".devkeep.io")
+        .domain("devkeep.io")
         .permanent()
         .same_site(SameSite::None)
         .finish();
