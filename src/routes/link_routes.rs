@@ -20,7 +20,7 @@ use db::querys::TigumPgConn;
 //////////////////////////
 
 #[delete("/links/<id>")]
-pub fn delete_single_link(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+pub fn delete_single_link(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
     delete_link(&conn, id)
 }
 
@@ -46,7 +46,7 @@ pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>) -> Json<Link> 
 }
 
 #[get("/links/<id>")]
-pub fn single_link(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Link> {
+pub fn single_link(conn: TigumPgConn, id: i32, auth_user: User) -> Json<Link> {
     get_link(&conn, id)
 }
 

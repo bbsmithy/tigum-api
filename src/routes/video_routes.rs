@@ -18,7 +18,7 @@ use db::models::user::User;
 /////////////////////////
 
 #[delete("/videos/<id>")]
-pub fn delete_single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+pub fn delete_single_video(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
     delete_video(&conn, id)
 }
 
@@ -35,7 +35,7 @@ pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>) -> Json<Vid
 }
 
 #[get("/videos/<id>")]
-pub fn single_video(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Video> {
+pub fn single_video(conn: TigumPgConn, id: i32, auth_user: User) -> Json<Video> {
     get_video(&conn, id)
 }
 

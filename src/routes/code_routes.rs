@@ -17,7 +17,7 @@ use db::querys::TigumPgConn;
 /////////////////////
 
 #[delete("/code/<id>")]
-fn delete_single_code(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+fn delete_single_code(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
     delete_code(&conn, id)
 }
 
@@ -34,7 +34,7 @@ fn create_single_code(conn: TigumPgConn, code: Json<NewCode>) -> Json<Id> {
 }
 
 #[get("/code/<id>")]
-fn single_code(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Code> {
+fn single_code(conn: TigumPgConn, id: i32, auth_user: User) -> Json<Code> {
     get_code(&conn, id)
 }
 

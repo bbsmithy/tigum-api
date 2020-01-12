@@ -20,7 +20,7 @@ use db::querys::TigumPgConn;
 /////////////////////////////////
 
 #[delete("/article_snippets/<id>")]
-fn delete_single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
     delete_article_snippet(&conn, id)
 }
 
@@ -57,7 +57,7 @@ fn create_single_article_snippet(
 }
 
 #[get("/article_snippets/<id>")]
-fn single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<ArticleSnippet> {
+fn single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> Json<ArticleSnippet> {
     get_article_snippet(&conn, id)
 }
 

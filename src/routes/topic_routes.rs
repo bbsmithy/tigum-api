@@ -27,24 +27,28 @@ fn update_single_topic(
     conn: TigumPgConn,
     topic_id: i32,
     topic: Json<Topic>,
-    _auth_user: User,
+    auth_user: User,
 ) -> Json<Topic> {
     update_topic(&conn, topic_id, topic)
 }
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, _auth_user: User) -> Json<Topic> {
+fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User) -> Json<Topic> {
     create_topic(&conn, topic)
 }
 
 #[get("/topics/<topic_id>")]
-fn single_topic(conn: TigumPgConn, topic_id: i32, _auth_user: User) -> Json<Topic> {
+fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> Json<Topic> {
     get_topic(&conn, topic_id)
 }
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
-fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, _auth_user: User) -> Json<Vec<Topic>> {
+fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> Json<Vec<Topic>> {
     println!("{:?}", topic_ids);
+    println!(
+        "auth_user: {}, {}, {}",
+        auth_user.name, auth_user.email, auth_user.id
+    );
     get_topics(&conn, topic_ids)
 }
 

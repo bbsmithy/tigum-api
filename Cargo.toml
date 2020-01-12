@@ -12,5 +12,6 @@ chrono = { version = "0.4", features = ["serde"] }
 rocket_contrib = { features = ["postgres_pool", "json", "databases"] }
 postgres = { version = "0.15", features = ["with-chrono"] }
 serde = { features = ["derive"] }
+serde_json = "1.0"
 rustc-serialize = "0.3"
 bcrypt = { version = "0.6.1" }

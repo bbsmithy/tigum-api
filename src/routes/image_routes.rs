@@ -18,7 +18,7 @@ use db::models::user::User;
 /////////////////////////
 
 #[delete("/images/<id>")]
-pub fn delete_single_image(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
+pub fn delete_single_image(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
     delete_image(&conn, id)
 }
 
@@ -40,7 +40,7 @@ pub fn create_single_image(conn: TigumPgConn, image: Json<NewImage>) -> Json<Id>
 }
 
 #[get("/images/<id>")]
-pub fn single_image(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<Image> {
+pub fn single_image(conn: TigumPgConn, id: i32, auth_user: User) -> Json<Image> {
     get_image(&conn, id)
 }
 
