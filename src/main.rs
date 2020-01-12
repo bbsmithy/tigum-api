@@ -55,10 +55,13 @@ fn create_routes() -> Vec<rocket::Route> {
 
 fn main() {
     // TODO refactor to use multiple mounts
+
+    let cors_fairing = cors::CorsFairing::new();
     let routes = create_routes();
+    
     rocket::ignite()
         .mount("/", routes)
         .attach(TigumPgConn::fairing())
-        .attach(cors::CorsFairing)
+        .attach(cors_fairing)
         .launch();
 }
