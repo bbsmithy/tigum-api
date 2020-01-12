@@ -9,7 +9,7 @@ use db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
 
 // Models
-use db::models::user::{CreateUser, LoginUser, User, AuthUser};
+use db::models::user::{AuthUser, CreateUser, LoginUser, User};
 
 // Util
 use crate::util::auth::{encode_jwt, hash_password, verify_password};
@@ -24,7 +24,7 @@ use db::querys::user_query::{create_user, get_user};
 fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
     let jwt_cookie = Cookie::build("jwt", jwt_value)
         .path("/")
-        .domain("localhost")
+        .domain(".devkeep.io")
         .permanent()
         .same_site(SameSite::None)
         .finish();
@@ -73,7 +73,6 @@ pub fn user_login(
 ) -> Result<Json<User>, status::Custom<String>> {
     // Check if email exists and return User
     let auth_user = get_user(&conn, &login.email);
-    
     // Check if login.password matches
     let is_correct = verify_password(&login.password, &auth_user.password_hash);
     match is_correct {
