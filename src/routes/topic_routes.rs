@@ -44,12 +44,7 @@ fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> Json<Topic
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
 fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> Json<Vec<Topic>> {
-    println!("{:?}", topic_ids);
-    println!(
-        "auth_user: {}, {}, {}",
-        auth_user.name, auth_user.email, auth_user.id
-    );
-    get_topics(&conn, topic_ids)
+    get_topics(&conn, topic_ids, auth_user)
 }
 
 pub fn get_topic_routes() -> Vec<Route> {

@@ -5,8 +5,8 @@ use rocket_contrib::json::Json;
 
 use db::models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use db::models::resources::ResourceType;
-use db::models::Ids;
 use db::models::user::User;
+use db::models::Ids;
 
 use db::querys::article_snippets_query::{
     create_article_snippet, delete_article_snippet, get_article_snippet, get_article_snippets,
@@ -20,7 +20,7 @@ use db::querys::TigumPgConn;
 /////////////////////////////////
 
 #[delete("/article_snippets/<id>")]
-fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
+fn delete_single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
     delete_article_snippet(&conn, id)
 }
 

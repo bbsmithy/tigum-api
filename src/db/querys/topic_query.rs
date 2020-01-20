@@ -4,6 +4,7 @@ use rocket_contrib::json::Json;
 
 use models::resources::ResourceType;
 use models::topic::{NewTopic, Topic, TopicIds};
+use models::user::User;
 
 fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Topic> {
     let mut results: Vec<Topic> = vec![];
@@ -69,14 +70,19 @@ pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Js
     Json(result)
 }
 
-pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>) -> Json<Vec<Topic>> {
+pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user: User) -> Json<Vec<Topic>> {
     if topic_ids.ids.len() == 0 {
-        let query_result = conn.query("SELECT * FROM topics", &[]).unwrap();
+        let query_result = conn
+            .query("SELECT * FROM topics WHERE user_id = $1", &[&user.id])
+            .unwrap();
         let result = parse_topic_result(query_result);
         Json(result)
     } else {
         let query_result = conn
-            .query("SELECT * FROM topics WHERE id = ANY($1)", &[&topic_ids.ids])
+            .query(
+                "SELECT * FROM topics WHERE id = ANY($1) AND user_id = $2",
+                &[&topic_ids.ids, &user.id],
+            )
             .unwrap();
         let results = parse_topic_result(query_result);
         Json(results)
