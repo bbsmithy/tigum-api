@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 pub struct NewLink {
     pub title: String,
     pub topic_id: i32,
-    pub user_id: i32,
     pub source: String,
 }
 

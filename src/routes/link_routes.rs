@@ -21,7 +21,7 @@ use db::querys::TigumPgConn;
 
 #[delete("/links/<id>")]
 pub fn delete_single_link(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
-    delete_link(&conn, id)
+    delete_link(&conn, id, auth_user.id)
 }
 
 #[put("/links/<id>", format = "application/json", data = "<link>")]
@@ -29,13 +29,14 @@ pub fn update_single_link(
     conn: TigumPgConn,
     id: i32,
     link: Json<NewLink>,
+    auth_user: User
 ) -> Json<Link> {
-    update_link(&conn, id, link)
+    update_link(&conn, id, link, auth_user.id)
 }
 
 #[post("/links/create", format = "application/json", data = "<link>")]
-pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>) -> Json<Link> {
-    let new_link = create_link(&conn, &link);
+pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>, auth_user: User) -> Json<Link> {
+    let new_link = create_link(&conn, &link, auth_user.id);
     update_topic_resource_list(
         &conn,
         link.topic_id,
@@ -47,13 +48,12 @@ pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>) -> Json<Link> 
 
 #[get("/links/<id>")]
 pub fn single_link(conn: TigumPgConn, id: i32, auth_user: User) -> Json<Link> {
-    get_link(&conn, id)
+    get_link(&conn, id, auth_user.id)
 }
 
 #[post("/links", format = "application/json", data = "<ids>")]
-pub fn links(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Link>> {
-    println!("{:?}", ids);
-    get_links(&conn, ids)
+pub fn links(conn: TigumPgConn, ids: Json<Ids>, auth_user: User) -> Json<Vec<Link>> {
+    get_links(&conn, ids, auth_user.id)
 }
 
 pub fn link_routes() -> Vec<Route> {

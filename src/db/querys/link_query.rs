@@ -5,7 +5,7 @@ use crate::db::models;
 use crate::db::querys::TigumPgConn;
 
 use models::resources::link::{Link, NewLink};
-use models::{Id, Ids};
+use models::Ids;
 
 fn row_to_link(row: rocket_contrib::databases::postgres::rows::Row) -> Link {
     Link {
@@ -18,18 +18,21 @@ fn row_to_link(row: rocket_contrib::databases::postgres::rows::Row) -> Link {
     }
 }
 
-pub fn delete_link(conn: &TigumPgConn, id: i32) -> Json<String> {
+pub fn delete_link(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<String> {
     let update = conn
-        .execute("DELETE FROM links WHERE id = $1", &[&id])
+        .execute(
+            "DELETE FROM links WHERE id = $1 AND user_id = $2",
+            &[&id, &user_id],
+        )
         .unwrap();
     Json(format!("{} rows affected", update))
 }
 
-pub fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>) -> Json<Link> {
+pub fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>, user_id: i32) -> Json<Link> {
     let updated_rows = conn
         .query(
-            "UPDATE links SET topic_id = $2, user_id = $3, title = $4 WHERE id = $1 RETURNING *",
-            &[&id, &link.topic_id, &link.user_id, &link.title],
+            "UPDATE links SET topic_id = $2, user_id = $3, title = $4 WHERE id = $1 AND user_id = $5 RETURNING *",
+            &[&id, &link.topic_id, &user_id, &link.title, &user_id],
         )
         .unwrap();
 
@@ -38,10 +41,13 @@ pub fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>) -> Json<Lin
     Json(link_response)
 }
 
-pub fn get_links(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<Link>> {
+pub fn get_links(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> Json<Vec<Link>> {
     println!("{:?}", ids);
     let query_result = conn
-        .query("SELECT * FROM links WHERE id = ANY($1)", &[&ids.ids])
+        .query(
+            "SELECT * FROM links WHERE id = ANY($1) AND user_id = $2",
+            &[&ids.ids, &user_id],
+        )
         .unwrap();
     let mut results: Vec<Link> = vec![];
     for row in query_result.iter() {
@@ -51,30 +57,31 @@ pub fn get_links(conn: &TigumPgConn, ids: Json<Ids>) -> Json<Vec<Link>> {
     Json(results)
 }
 
-pub fn get_link(conn: &TigumPgConn, id: i32) -> Json<Link> {
+pub fn get_link(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<Link> {
     let query_result = conn
-        .query("SELECT * FROM links WHERE id = $1", &[&id])
+        .query(
+            "SELECT * FROM links WHERE id = $1 AND user_id = $2",
+            &[&id, &user_id],
+        )
         .unwrap();
-    println!("{:#?}", query_result);
     let link_response = row_to_link(query_result.get(0));
     Json(link_response)
 }
 
-pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>) -> Json<Link> {
+pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>, user_id: i32) -> Json<Link> {
     let inserted_row = conn
         .query(
             "INSERT INTO links (title, topic_id, user_id, source) VALUES ($1, $2, $3, $4) RETURNING *",
             &[
                 &link.title,
                 &link.topic_id,
-                &link.user_id,
+                &user_id,
                 &link.source
             ],
         )
         .unwrap();
 
     let row = inserted_row.get(0);
-    println!("{:#?}", row);
     let link_response = row_to_link(row);
 
     Json(link_response)
