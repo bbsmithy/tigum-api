@@ -39,7 +39,6 @@ pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
 pub fn user_signup(
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
-    _auth_user: User,
 ) -> Result<Json<User>, status::Custom<String>> {
     if new_user.password.is_empty() {
         return Err(status::Custom(

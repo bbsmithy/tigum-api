@@ -4,7 +4,6 @@ use rocket_contrib::json::Json;
 
 use models::resources::ResourceType;
 use models::topic::{NewTopic, Topic, TopicIds};
-use models::user::User;
 
 fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Topic> {
     let mut results: Vec<Topic> = vec![];
@@ -28,7 +27,6 @@ fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
         row.get(7),
         row.get(8),
         row.get(10),
-        123,
     );
     return topic;
 }
@@ -70,10 +68,10 @@ pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Js
     Json(result)
 }
 
-pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user: User) -> Json<Vec<Topic>> {
+pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user_id: i32) -> Json<Vec<Topic>> {
     if topic_ids.ids.len() == 0 {
         let query_result = conn
-            .query("SELECT * FROM topics WHERE user_id = $1", &[&user.id])
+            .query("SELECT * FROM topics WHERE user_id = $1", &[&user_id])
             .unwrap();
         let result = parse_topic_result(query_result);
         Json(result)
@@ -81,7 +79,7 @@ pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user: User) -> 
         let query_result = conn
             .query(
                 "SELECT * FROM topics WHERE id = ANY($1) AND user_id = $2",
-                &[&topic_ids.ids, &user.id],
+                &[&topic_ids.ids, &user_id],
             )
             .unwrap();
         let results = parse_topic_result(query_result);
@@ -89,20 +87,23 @@ pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user: User) -> 
     }
 }
 
-pub fn get_topic(conn: &TigumPgConn, topic_id: i32) -> Json<Topic> {
+pub fn get_topic(conn: &TigumPgConn, topic_id: i32, user_id: i32) -> Json<Topic> {
     let query_result = conn
-        .query("SELECT * FROM topics WHERE id = $1", &[&topic_id])
+        .query(
+            "SELECT * FROM topics WHERE id = $1 AND user_id = $2",
+            &[&topic_id, &user_id],
+        )
         .unwrap();
     let row = query_result.get(0);
     let result = row_to_topic(row);
     Json(result)
 }
 
-pub fn create_topic(conn: &TigumPgConn, topic: Json<NewTopic>) -> Json<Topic> {
+pub fn create_topic(conn: &TigumPgConn, topic: Json<NewTopic>, user_id: i32) -> Json<Topic> {
     let result = conn
         .query(
             "INSERT INTO topics (title, user_id) VALUES ($1, $2) RETURNING *",
-            &[&topic.title, &topic.user_id],
+            &[&topic.title, &user_id],
         )
         .unwrap();
     let new_topic = row_to_topic(result.get(0));

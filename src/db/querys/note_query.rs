@@ -16,25 +16,25 @@ fn parse_note_result(query_result: rocket_contrib::databases::postgres::rows::Ro
     results
 }
 
-pub fn delete_note(conn: &TigumPgConn, note_id: i32) -> Json<String> {
+pub fn delete_note(conn: &TigumPgConn, note_id: i32, user_id: i32) -> Json<String> {
     let result = conn
-        .execute("DELETE FROM notes WHERE id = $1", &[&note_id])
+        .execute("DELETE FROM notes WHERE id = $1 AND user_id = $2", &[&note_id, &user_id])
         .unwrap();
     Json(format!("{} rows deleted", result))
 }
 
-pub fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>) -> Json<Note> {
+pub fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, user_id: i32) -> Json<Note> {
     conn.execute(
-        "UPDATE notes SET title = ($2) WHERE id = ($1)",
-        &[&note_id, &note.title],
+        "UPDATE notes SET title = ($2) WHERE id = ($1) AND user_id = $3",
+        &[&note_id, &note.title, &user_id],
     )
     .unwrap();
     get_note(&conn, note_id)
 }
 
-pub fn get_notes(conn: &TigumPgConn, note_ids: Json<NoteIds>) -> Json<Vec<Note>> {
+pub fn get_notes(conn: &TigumPgConn, note_ids: Json<NoteIds>, user_id: i32) -> Json<Vec<Note>> {
     let query_result = conn
-        .query("SELECT * FROM notes WHERE id = ANY($1)", &[&note_ids.ids])
+        .query("SELECT * FROM notes WHERE id = ANY($1) AND user_id = $2", &[&note_ids.ids, &user_id])
         .unwrap();
     let results = parse_note_result(query_result);
     Json(results)
@@ -55,11 +55,11 @@ pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
     Json(note_response)
 }
 
-pub fn create_note(conn: &TigumPgConn, note: &Json<NewNote>) -> Json<Note> {
+pub fn create_note(conn: &TigumPgConn, note: &Json<NewNote>, user_id: i32) -> Json<Note> {
     let inserted_rows = conn
         .query(
             "INSERT INTO notes (title, topic_id, user_id) VALUES ($1, $2, $3) RETURNING *",
-            &[&note.title, &note.topic_id, &note.user_id],
+            &[&note.title, &note.topic_id, &user_id],
         )
         .unwrap();
 

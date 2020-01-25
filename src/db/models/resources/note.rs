@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 pub struct NewNote {
     pub title: String,
     pub topic_id: i32,
-    pub user_id: i32,
 }
 
 // Used when reading or updating a Note

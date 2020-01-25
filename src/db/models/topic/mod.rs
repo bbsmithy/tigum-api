@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Debug)]
 pub struct NewTopic {
     pub title: String,
-    pub user_id: i32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -19,7 +18,6 @@ pub struct Topic {
     pub links: Vec<i32>,
     pub excercises: Vec<i32>,
     pub images: Vec<i32>,
-    pub user_id: i32,
 }
 
 impl Topic {
@@ -34,7 +32,6 @@ impl Topic {
         links: Vec<i32>,
         excercises: Vec<i32>,
         images: Vec<i32>,
-        user_id: i32,
     ) -> Topic {
         Topic {
             id: id,
@@ -47,7 +44,6 @@ impl Topic {
             links: links,
             excercises: excercises,
             images: images,
-            user_id: user_id,
         }
     }
 }

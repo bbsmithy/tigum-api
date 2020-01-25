@@ -19,18 +19,18 @@ use db::querys::TigumPgConn;
 /////////////////////
 
 #[delete("/notes/<note_id>")]
-fn delete_single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> Json<String> {
-    delete_note(&conn, note_id)
+fn delete_single_note(conn: TigumPgConn, note_id: i32, auth_user: User) -> Json<String> {
+    delete_note(&conn, note_id, auth_user.id)
 }
 
 #[put("/notes/<note_id>", format = "application/json", data = "<note>")]
-fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>) -> Json<Note> {
-    update_note(&conn, note_id, note)
+fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>, auth_user: User) -> Json<Note> {
+    update_note(&conn, note_id, note, auth_user.id)
 }
 
 #[post("/notes/create-note", format = "application/json", data = "<note>")]
-fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, _auth_user: User) -> Json<Note> {
-    let new_note = create_note(&conn, &note);
+fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, auth_user: User) -> Json<Note> {
+    let new_note = create_note(&conn, &note, auth_user.id);
     update_topic_resource_list(&conn, note.topic_id, new_note.id, ResourceType::Note);
     new_note
 }
@@ -41,8 +41,8 @@ fn single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> Json<Note> 
 }
 
 #[post("/notes", format = "application/json", data = "<note_ids>")]
-fn notes(conn: TigumPgConn, note_ids: Json<NoteIds>, _auth_user: User) -> Json<Vec<Note>> {
-    get_notes(&conn, note_ids)
+fn notes(conn: TigumPgConn, note_ids: Json<NoteIds>, auth_user: User) -> Json<Vec<Note>> {
+    get_notes(&conn, note_ids, auth_user.id)
 }
 
 pub fn get_note_routes() -> Vec<Route> {
