@@ -20,8 +20,8 @@ use db::querys::TigumPgConn;
 /////////////////////////////////
 
 #[delete("/article_snippets/<id>")]
-fn delete_single_article_snippet(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
-    delete_article_snippet(&conn, id)
+fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
+    delete_article_snippet(&conn, id, auth_user.id)
 }
 
 #[put(
@@ -33,8 +33,9 @@ fn update_single_article_snippet(
     conn: TigumPgConn,
     id: i32,
     article_snippet: Json<NewArticleSnippet>,
+    auth_user: User,
 ) -> Json<ArticleSnippet> {
-    update_article_snippet(&conn, id, article_snippet)
+    update_article_snippet(&conn, id, article_snippet, auth_user.id)
 }
 
 #[post(
@@ -45,8 +46,9 @@ fn update_single_article_snippet(
 fn create_single_article_snippet(
     conn: TigumPgConn,
     article_snippet: Json<NewArticleSnippet>,
+    auth_user: User,
 ) -> Json<ArticleSnippet> {
-    let new_article_snippet = create_article_snippet(&conn, &article_snippet);
+    let new_article_snippet = create_article_snippet(&conn, &article_snippet, auth_user.id);
     update_topic_resource_list(
         &conn,
         article_snippet.topic_id,
@@ -58,13 +60,17 @@ fn create_single_article_snippet(
 
 #[get("/article_snippets/<id>")]
 fn single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> Json<ArticleSnippet> {
-    get_article_snippet(&conn, id)
+    get_article_snippet(&conn, id, auth_user.id)
 }
 
 #[post("/article_snippets", format = "application/json", data = "<ids>")]
-fn article_snippets(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<ArticleSnippet>> {
+fn article_snippets(
+    conn: TigumPgConn,
+    ids: Json<Ids>,
+    auth_user: User,
+) -> Json<Vec<ArticleSnippet>> {
     println!("{:?}", ids);
-    get_article_snippets(&conn, ids)
+    get_article_snippets(&conn, ids, auth_user.id)
 }
 
 pub fn get_article_snippet_routes() -> Vec<Route> {

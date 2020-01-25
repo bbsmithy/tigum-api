@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewVideo {
     pub topic_id: i32,
-    pub user_id: i32,
     pub title: String,
     pub iframe: String,
     pub origin: String,

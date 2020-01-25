@@ -19,30 +19,30 @@ use db::models::user::User;
 
 #[delete("/videos/<id>")]
 pub fn delete_single_video(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
-    delete_video(&conn, id)
+    delete_video(&conn, id, auth_user.id)
 }
 
 #[put("/videos/<id>", format = "application/json", data = "<video>")]
-pub fn update_single_video(conn: TigumPgConn, id: i32, video: Json<NewVideo>) -> Json<Video> {
-    update_video(&conn, id, video)
+pub fn update_single_video(conn: TigumPgConn, id: i32, video: Json<NewVideo>, auth_user: User) -> Json<Video> {
+    update_video(&conn, id, video, auth_user.id)
 }
 
 #[post("/videos/create", format = "application/json", data = "<video>")]
-pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>) -> Json<Video> {
-    let new_video = create_video(&conn, &video);
+pub fn create_single_video(conn: TigumPgConn, video: Json<NewVideo>, auth_user: User) -> Json<Video> {
+    let new_video = create_video(&conn, &video, auth_user.id);
     update_topic_resource_list(&conn, video.topic_id, new_video.id, ResourceType::Video);
     new_video
 }
 
 #[get("/videos/<id>")]
 pub fn single_video(conn: TigumPgConn, id: i32, auth_user: User) -> Json<Video> {
-    get_video(&conn, id)
+    get_video(&conn, id, auth_user.id)
 }
 
 #[post("/videos", format = "application/json", data = "<ids>")]
-pub fn videos(conn: TigumPgConn, ids: Json<Ids>) -> Json<Vec<Video>> {
+pub fn videos(conn: TigumPgConn, ids: Json<Ids>, auth_user: User) -> Json<Vec<Video>> {
     println!("{:?}", ids);
-    get_videos(&conn, ids)
+    get_videos(&conn, ids, auth_user.id)
 }
 
 pub fn video_routes() -> Vec<Route> {

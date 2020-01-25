@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct NewArticleSnippet {
     pub content: String,
     pub origin: String,
-    pub topic_id: i32,
-    pub user_id: i32,
+    pub topic_id: i32
 }
 
 // Used when reading or updating a ArtcileSnippet
