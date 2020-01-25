@@ -37,6 +37,7 @@ pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
 
 #[post("/user/signup", format = "application/json", data = "<new_user>")]
 pub fn user_signup(
+    mut cookies: Cookies,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
 ) -> Result<Json<User>, status::Custom<String>> {
@@ -60,7 +61,13 @@ pub fn user_signup(
             )
         })
         .and_then(|hashed_password| create_user(&conn, new_user, hashed_password))
-        .map(|user| Json(user))
+        .map(|user| {
+            // Encode JWT token with user
+            let jwt_value = encode_jwt(&user);
+            let jwt_cookie = create_cookie(jwt_value);
+            cookies.add(jwt_cookie);
+            Json(user)
+        })
 }
 
 #[post("/user/login", format = "application/json", data = "<login>")]
