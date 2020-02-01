@@ -30,12 +30,12 @@ fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
     jwt_cookie
 }
 
-#[post("/user/checklogin", format = "application/json")]
+#[post("/user/checklogin")]
 pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
     Json(auth_user)
 }
 
-#[post("/user/signup", format = "application/json", data = "<new_user>")]
+#[post("/user/signup", data = "<new_user>")]
 pub fn user_signup(
     mut cookies: Cookies,
     conn: TigumPgConn,
@@ -50,6 +50,7 @@ pub fn user_signup(
             "Password must not be empty".to_string(),
         ));
     }
+    //TODO: Handle user exists
     hash_password(&new_user.password)
         .map_err(|_err| {
             status::Custom(
@@ -70,7 +71,7 @@ pub fn user_signup(
         })
 }
 
-#[post("/user/login", format = "application/json", data = "<login>")]
+#[post("/user/login", data = "<login>")]
 pub fn user_login(
     mut cookies: Cookies,
     conn: TigumPgConn,
