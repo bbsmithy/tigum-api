@@ -40,6 +40,7 @@ fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
 
     let jwt_cookie = Cookie::build("jwt", jwt_value)
         .path("/")
+        .domain(domain)
         .permanent()
         .same_site(SameSite::None)
         .finish();
