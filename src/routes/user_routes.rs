@@ -24,11 +24,11 @@ use db::querys::user_query::{create_user, get_user};
 /////////////////////////
 
 fn get_cookie_domain() -> String {
-    let dev = "localhost".to_string();
-    let prod = "0.0.0.0".to_string();
-    let domain = match Config::active().unwrap().address {
-        dev => "localhost".to_string(),
-        prod => "devkeep.io".to_string(),
+    let config = Config::active().unwrap();
+    let domain = match config.address.as_str() {
+        "localhost" => "localhost".to_string(),
+        "0.0.0.0" => "devkeep.io".to_string(),
+        _ => "devkeep.io".to_string(),
     };
     domain
 }
