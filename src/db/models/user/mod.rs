@@ -66,7 +66,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let cookies = request.cookies();
-        let jwt_value = cookies.get("jwt");
+        let jwt_value = cookies.get("__silly_devkeep");
 
         match jwt_value {
             Some(jwt_token) => {
