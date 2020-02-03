@@ -23,22 +23,17 @@ use db::querys::user_query::{create_user, get_user};
 //// USER ROUTES ////////
 /////////////////////////
 
-fn get_cookie_domain() -> String {
-    let config = Config::active().unwrap();
-    let domain = match config.address.as_str() {
-        "localhost" => "localhost".to_string(),
-        "0.0.0.0" => "devkeep.io".to_string(),
-        _ => "devkeep.io".to_string(),
-    };
-    domain
+fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
+    let jwt_cookie = Cookie::build("__silly_devkeep", jwt_value)
+        .path("/")
+        .permanent()
+        .same_site(SameSite::None)
+        .finish();
+    jwt_cookie
 }
 
-fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
-    let domain = get_cookie_domain();
-
-    println!("JWT COOKIE DOMAIN: {}", domain);
-
-    let jwt_cookie = Cookie::build("jwt", jwt_value)
+fn expire_cookie<'a>() -> Cookie<'a> {
+    let jwt_cookie = Cookie::build("__silly_devkeep", "")
         .path("/")
         .permanent()
         .same_site(SameSite::None)
@@ -49,6 +44,13 @@ fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
 #[post("/user/checklogin")]
 pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
     Json(auth_user)
+}
+
+#[post("/user/logout")]
+pub fn logout(mut cookies: Cookies, _conn: TigumPgConn) -> String {
+    let expired_cookie = expire_cookie();
+    cookies.remove(expired_cookie);
+    "OK".to_string()
 }
 
 #[post("/user/signup", data = "<new_user>")]
@@ -127,5 +129,5 @@ pub fn user_login(
 }
 
 pub fn get_user_routes() -> Vec<Route> {
-    routes![user_signup, user_login, check_login]
+    routes![user_signup, user_login, check_login, logout]
 }
