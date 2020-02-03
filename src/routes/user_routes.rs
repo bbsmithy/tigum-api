@@ -4,6 +4,8 @@ use rocket::http::{Cookie, Cookies, SameSite};
 use rocket::response::status;
 use rocket::Route;
 
+use rocket::Config;
+
 //Use Macros
 use db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
@@ -21,9 +23,23 @@ use db::querys::user_query::{create_user, get_user};
 //// USER ROUTES ////////
 /////////////////////////
 
+
+fn get_cookie_domain() -> String {
+    let dev = "localhost".to_string();
+    let prod = "0.0.0.0".to_string();
+    let domain = match Config::active().unwrap().address {
+        dev => "localhost".to_string(),
+        prod => "devkeep.io".to_string()
+    };
+    domain
+}
+
+
 fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
+    let domain = get_cookie_domain();
     let jwt_cookie = Cookie::build("jwt", jwt_value)
         .path("/")
+        .domain(domain)
         .permanent()
         .same_site(SameSite::None)
         .finish();
