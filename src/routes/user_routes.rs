@@ -4,8 +4,6 @@ use rocket::http::{Cookie, Cookies, SameSite};
 use rocket::response::status;
 use rocket::Route;
 
-use rocket::Config;
-
 //Use Macros
 use db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
@@ -26,8 +24,8 @@ use db::querys::user_query::{create_user, get_user};
 fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
     let jwt_cookie = Cookie::build("__silly_devkeep", jwt_value)
         .path("/")
+        .same_site(SameSite::Lax)
         .permanent()
-        .same_site(SameSite::None)
         .finish();
     jwt_cookie
 }
@@ -35,25 +33,32 @@ fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
 fn expire_cookie<'a>() -> Cookie<'a> {
     let jwt_cookie = Cookie::build("__silly_devkeep", "")
         .path("/")
+        .same_site(SameSite::Lax)
         .permanent()
-        .same_site(SameSite::None)
         .finish();
     jwt_cookie
 }
 
-#[post("/user/checklogin")]
+/**
+ * DK {
+ *  name: check_login
+ *  desc: "Check login takes in a request and looks for a jwt token in the cookie, 
+ *  then trys to verify the cookie"
+ * }
+ */
+#[post("/user/checklogin", format = "application/json")]
 pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
     Json(auth_user)
 }
 
-#[post("/user/logout")]
+#[post("/user/logout", format = "application/json")]
 pub fn logout(mut cookies: Cookies, _conn: TigumPgConn) -> String {
     let expired_cookie = expire_cookie();
     cookies.remove(expired_cookie);
     "OK".to_string()
 }
 
-#[post("/user/signup", data = "<new_user>")]
+#[post("/user/signup", format = "application/json", data = "<new_user>")]
 pub fn user_signup(
     mut cookies: Cookies,
     conn: TigumPgConn,
@@ -89,7 +94,7 @@ pub fn user_signup(
         })
 }
 
-#[post("/user/login", data = "<login>")]
+#[post("/user/login", format = "application/json", data = "<login>")]
 pub fn user_login(
     mut cookies: Cookies,
     conn: TigumPgConn,
