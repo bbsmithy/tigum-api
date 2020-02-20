@@ -26,12 +26,14 @@ fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
     let cookie_string = format!("__silly_devkeep={}; Path=/; SameSite=None", jwt_value);
     let mut jwt_cookie = Cookie::parse(cookie_string).unwrap();
     jwt_cookie.make_permanent();
+    jwt_cookie.set_secure(true);
     jwt_cookie
 }
 
 fn expire_cookie<'a>() -> Cookie<'a> {
     let mut jwt_cookie = Cookie::parse("__silly_devkeep=; Path=/; SameSite=None").unwrap();
     jwt_cookie.make_permanent();
+    jwt_cookie.set_secure(true);
     jwt_cookie
 }
 
