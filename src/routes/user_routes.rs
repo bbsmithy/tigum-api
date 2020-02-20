@@ -3,6 +3,7 @@ use rocket::http::Status;
 use rocket::http::{Cookie, Cookies, SameSite};
 use rocket::response::status;
 use rocket::Route;
+use std::format;
 
 //Use Macros
 use db::querys::TigumPgConn;
@@ -22,20 +23,15 @@ use db::querys::user_query::{create_user, get_user};
 /////////////////////////
 
 fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
-    let jwt_cookie = Cookie::build("__silly_devkeep", jwt_value)
-        .path("/")
-        .same_site(SameSite::Lax)
-        .permanent()
-        .finish();
+    let cookie_string = format!("__silly_devkeep={}; Path=/; SameSite=None", jwt_value);
+    let mut jwt_cookie = Cookie::parse(cookie_string).unwrap();
+    jwt_cookie.make_permanent();
     jwt_cookie
 }
 
 fn expire_cookie<'a>() -> Cookie<'a> {
-    let jwt_cookie = Cookie::build("__silly_devkeep", "")
-        .path("/")
-        .same_site(SameSite::Lax)
-        .permanent()
-        .finish();
+    let mut jwt_cookie = Cookie::parse("__silly_devkeep=; Path=/; SameSite=None").unwrap();
+    jwt_cookie.make_permanent();
     jwt_cookie
 }
 
