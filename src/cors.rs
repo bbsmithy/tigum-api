@@ -38,7 +38,29 @@ impl Fairing for CorsFairing {
             None => "none".to_string(),
         };
 
+
+        let headers = response.headers().iter();
+        headers.for_each(|header| {
+            println!("{}", header)
+        });
+        let jwt_set_cookie_header = response.headers().get_one("Set-Cookie");
+
+        match jwt_set_cookie_header {
+            Some(jwt_set_cookie_header) => { 
+                let fixed_cookie = format!("{}; SameSite=None", jwt_set_cookie_header);
+                println!("Fixed cookie {}", fixed_cookie);
+                response.remove_header("Set-Cookie");
+                response.set_header(Header::new("Set-Cookie", fixed_cookie));
+                let set_cookie = response.headers().get_one("Set-Cookie").unwrap();
+                println!("The new Set-Cookie header {}", set_cookie);
+            },
+            None => println!("{}", "No Set-Cookie header in response")
+        }
+
+
         let allowed_origin_header = Header::new("Access-Control-Allow-Origin", allowed_origin);
+
+        // response.set_header(Header::new("Set-Cookie", fixed_cookie));
 
         // Add CORS headers to allow all origins to all outgoing requests
         response.set_header(allowed_origin_header);

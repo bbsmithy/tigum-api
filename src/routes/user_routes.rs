@@ -23,7 +23,7 @@ use db::querys::user_query::{create_user, get_user};
 /////////////////////////
 
 fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
-    let cookie_string = format!("__silly_devkeep={}; Path=/; SameSite=None", jwt_value);
+    let cookie_string = format!("__silly_devkeep={}; Path=/", jwt_value);
     let mut jwt_cookie = Cookie::parse(cookie_string).unwrap();
     jwt_cookie.make_permanent();
     jwt_cookie.set_secure(true);
@@ -31,7 +31,7 @@ fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
 }
 
 fn expire_cookie<'a>() -> Cookie<'a> {
-    let mut jwt_cookie = Cookie::parse("__silly_devkeep=; Path=/; SameSite=None").unwrap();
+    let mut jwt_cookie = Cookie::parse("__silly_devkeep=; Path=/").unwrap();
     jwt_cookie.make_permanent();
     jwt_cookie.set_secure(true);
     jwt_cookie
@@ -44,6 +44,7 @@ fn expire_cookie<'a>() -> Cookie<'a> {
  *  then trys to verify the cookie"
  * }
  */
+
 #[post("/user/checklogin", format = "application/json")]
 pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
     Json(auth_user)
