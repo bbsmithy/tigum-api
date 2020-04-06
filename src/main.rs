@@ -33,6 +33,7 @@ fn preflight_handler() -> String {
 }
 
 fn create_routes() -> Vec<rocket::Route> {
+    println!("CREATE ROUTES");
     let mut app_routes = routes![preflight_handler];
     let mut video_routes_config = video_routes();
     let mut article_snippets_routes_config = get_article_snippet_routes();
@@ -58,7 +59,6 @@ fn main() {
 
     let cors_fairing = cors::CorsFairing::new();
     let routes = create_routes();
-    
     rocket::ignite()
         .mount("/", routes)
         .attach(TigumPgConn::fairing())
