@@ -11,6 +11,7 @@ impl CorsFairing {
             allow_origins: vec![
                 "http://localhost:3000".to_string(),
                 "https://devkeep.io".to_string(),
+                "https://tigum.io".to_string(),
             ],
         }
     }
