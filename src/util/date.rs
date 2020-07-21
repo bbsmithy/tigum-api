@@ -1,5 +1,4 @@
-use chrono::{NaiveDateTime, NaiveDate, NaiveTime, Utc};
-use std::time::{Duration, Instant};
+use chrono::{NaiveDateTime, NaiveDate, NaiveTime};
 
 pub fn create_fake_date() -> NaiveDateTime {
     let date = NaiveDate::from_ymd(2019, 12, 24);

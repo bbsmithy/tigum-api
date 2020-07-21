@@ -48,7 +48,7 @@ impl Fairing for CorsFairing {
 
         match jwt_set_cookie_header {
             Some(jwt_set_cookie_header) => { 
-                let fixed_cookie = format!("{}; SameSite=None", jwt_set_cookie_header);
+                let fixed_cookie = format!("{}; SameSite=None; Secure", jwt_set_cookie_header);
                 println!("Fixed cookie {}", fixed_cookie);
                 response.remove_header("Set-Cookie");
                 response.set_header(Header::new("Set-Cookie", fixed_cookie));

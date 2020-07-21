@@ -50,7 +50,7 @@ pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> Json<Vec<
     Json(results)
 }
 
-pub fn get_video(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<Video> {
+pub fn get_video(conn: &TigumPgConn, id: i32, _user_id: i32) -> Json<Video> {
     let query_result = conn
         .query("SELECT * FROM videos WHERE id = $1", &[&id])
         .unwrap();

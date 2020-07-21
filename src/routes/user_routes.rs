@@ -1,6 +1,6 @@
 use crate::db;
 use rocket::http::Status;
-use rocket::http::{Cookie, Cookies, SameSite};
+use rocket::http::{Cookie, Cookies};
 use rocket::response::status;
 use rocket::Route;
 use std::format;
