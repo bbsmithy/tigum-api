@@ -15,7 +15,6 @@ fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::R
 }
 
 fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
-    println!("{:?}", row);
     let topic = Topic::new(
         row.get(0),
         row.get(1),
@@ -31,20 +30,21 @@ fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
     return topic;
 }
 
-pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> String {
-    let result = conn
-        .execute("DELETE FROM topics WHERE id = $1", &[&topic_id])
-        .unwrap();
-    format!("{} rows deleted", result)
+pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> Result<String, String> {
+    let q = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]);
+    match q {
+        Ok(result) => Ok(format!("{} rows deleted", result)),
+        Err(error) => Err(format!("DB error occured {}", error))
+    }
 }
 
-pub fn update_topic_resource_list(
+pub fn add_to_topic_resource_list(
     conn: &TigumPgConn,
     topic_id: i32,
     resource_id: i32,
     resource_type: ResourceType,
 ) {
-    let result = match resource_type {
+    match resource_type {
         ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_append(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Link => conn.execute("UPDATE topics SET links = array_append(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Image => conn.execute("UPDATE topics SET images = array_append(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
@@ -52,7 +52,22 @@ pub fn update_topic_resource_list(
         ResourceType::Video => conn.execute("UPDATE topics SET videos = array_append(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Code => conn.execute("UPDATE topics SET code = array_append(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
     };
-    print!("{:?}", result);
+}
+
+pub fn remove_from_topic_resource(
+    conn: &TigumPgConn,
+    topic_id: i32,
+    resource_id: i32,
+    resource_type: ResourceType 
+){
+    match resource_type {
+        ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_append(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Link => conn.execute("UPDATE topics SET links = array_append(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Image => conn.execute("UPDATE topics SET images = array_append(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Note => conn.execute("UPDATE topics SET notes = array_append(notes, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Video => conn.execute("UPDATE topics SET videos = array_append(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Code => conn.execute("UPDATE topics SET code = array_append(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
+    };
 }
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {
@@ -62,7 +77,7 @@ pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Js
             &[&topic_id, &topic.title, &topic.notes, &topic.videos],
         )
         .unwrap();
-    println!("{:?}", updated_topic_rows);
+    
     let result = row_to_topic(updated_topic_rows.get(0));
     Json(result)
 }

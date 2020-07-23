@@ -9,7 +9,7 @@ use db::models::{Id, Ids};
 use db::models::user::User;
 
 use db::querys::code_query::{create_code, delete_code, get_code, get_codes, update_code};
-use db::querys::topic_query::update_topic_resource_list;
+use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::TigumPgConn;
 
 /////////////////////
@@ -29,7 +29,7 @@ fn update_single_code(conn: TigumPgConn, id: i32, code: Json<NewCode>, auth_user
 #[post("/code/create", format = "application/json", data = "<code>")]
 fn create_single_code(conn: TigumPgConn, code: Json<NewCode>, auth_user: User) -> Json<Id> {
     let new_code = create_code(&conn, &code, auth_user.id);
-    update_topic_resource_list(&conn, code.topic_id, new_code.id, ResourceType::Code);
+    add_to_topic_resource_list(&conn, code.topic_id, new_code.id, ResourceType::Code);
     return new_code;
 }
 

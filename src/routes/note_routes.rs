@@ -11,7 +11,7 @@ use db::models::user::User;
 
 // Querys
 use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note};
-use db::querys::topic_query::update_topic_resource_list;
+use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::TigumPgConn;
 
 /////////////////////
@@ -31,7 +31,7 @@ fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>, auth_us
 #[post("/notes/create-note", format = "application/json", data = "<note>")]
 fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, auth_user: User) -> Json<Note> {
     let new_note = create_note(&conn, &note, auth_user.id);
-    update_topic_resource_list(&conn, note.topic_id, new_note.id, ResourceType::Note);
+    add_to_topic_resource_list(&conn, note.topic_id, new_note.id, ResourceType::Note);
     new_note
 }
 

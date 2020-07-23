@@ -9,7 +9,7 @@ use db::models::resources::ResourceType;
 use db::models::Ids;
 
 use db::models::user::User;
-use db::querys::topic_query::update_topic_resource_list;
+use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::video_query::{create_video, delete_video, get_video, get_videos, update_video};
 use db::querys::TigumPgConn;
 
@@ -39,7 +39,7 @@ pub fn create_single_video(
     auth_user: User,
 ) -> Json<Video> {
     let new_video = create_video(&conn, &video, auth_user.id);
-    update_topic_resource_list(&conn, video.topic_id, new_video.id, ResourceType::Video);
+    add_to_topic_resource_list(&conn, video.topic_id, new_video.id, ResourceType::Video);
     new_video
 }
 

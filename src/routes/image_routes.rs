@@ -7,7 +7,7 @@ use rocket_contrib::json::Json;
 use db::models::resources::image::{NewImage, Image};
 use db::models::{Id, Ids};
 use db::querys::image_query::{create_image, delete_image, get_image, get_images, update_image};
-use db::querys::topic_query::update_topic_resource_list;
+use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::TigumPgConn;
 use db::models::resources::ResourceType;
 use db::models::user::User;
@@ -30,7 +30,7 @@ pub fn update_single_image(conn: TigumPgConn, id: i32, image: Json<NewImage>) ->
 #[post("/images/create", format = "application/json", data = "<image>")]
 pub fn create_single_image(conn: TigumPgConn, image: Json<NewImage>) -> Json<Id> {
     let new_image = create_image(&conn, &image);
-    update_topic_resource_list(
+    add_to_topic_resource_list(
         &conn,
         image.topic_id,
         new_image.id,

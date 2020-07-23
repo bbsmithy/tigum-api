@@ -12,7 +12,7 @@ use db::querys::article_snippets_query::{
     create_article_snippet, delete_article_snippet, get_article_snippet, get_article_snippets,
     update_article_snippet,
 };
-use db::querys::topic_query::update_topic_resource_list;
+use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::TigumPgConn;
 
 /////////////////////////////////
@@ -49,7 +49,7 @@ fn create_single_article_snippet(
     auth_user: User,
 ) -> Json<ArticleSnippet> {
     let new_article_snippet = create_article_snippet(&conn, &article_snippet, auth_user.id);
-    update_topic_resource_list(
+    add_to_topic_resource_list(
         &conn,
         article_snippet.topic_id,
         new_article_snippet.id,
@@ -69,7 +69,6 @@ fn article_snippets(
     ids: Json<Ids>,
     auth_user: User,
 ) -> Json<Vec<ArticleSnippet>> {
-    println!("{:?}", ids);
     get_article_snippets(&conn, ids, auth_user.id)
 }
 

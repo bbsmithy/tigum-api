@@ -12,7 +12,7 @@ use db::models::user::User;
 use db::querys::link_query::{
     create_link, delete_link, get_link, get_links, update_link,
 };
-use db::querys::topic_query::update_topic_resource_list;
+use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::TigumPgConn;
 
 //////////////////////////
@@ -37,7 +37,7 @@ pub fn update_single_link(
 #[post("/links/create", format = "application/json", data = "<link>")]
 pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>, auth_user: User) -> Json<Link> {
     let new_link = create_link(&conn, &link, auth_user.id);
-    update_topic_resource_list(
+    add_to_topic_resource_list(
         &conn,
         link.topic_id,
         new_link.id,
