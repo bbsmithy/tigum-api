@@ -42,7 +42,6 @@ pub fn update_article_snippet(
 }
 
 pub fn get_article_snippets(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> Json<Vec<ArticleSnippet>> {
-    println!("{:?}", ids);
     let query_result = conn
         .query(
             "SELECT * FROM article_snippets WHERE id = ANY($1) AND user_id = $2",

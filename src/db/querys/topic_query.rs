@@ -1,6 +1,7 @@
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
+use rocket_contrib::databases::postgres::Error;
 
 use models::resources::ResourceType;
 use models::topic::{NewTopic, Topic, TopicIds};
@@ -30,11 +31,11 @@ fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
     return topic;
 }
 
-pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> Result<String, String> {
+pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> Result<String, Error> {
     let q = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]);
     match q {
         Ok(result) => Ok(format!("{} rows deleted", result)),
-        Err(error) => Err(format!("DB error occured {}", error))
+        Err(error) => Err(error)
     }
 }
 
