@@ -1,5 +1,6 @@
 //Use Macros
 use rocket_contrib::json::Json;
+use rocket_contrib::databases::postgres::Error;
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
@@ -59,9 +60,8 @@ pub fn get_code(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<Code> {
     Json(code_response)
 }
 
-pub fn create_code(conn: &TigumPgConn, code: &Json<NewCode>, user_id: i32) -> Json<Id> {
-    let inserted_row = conn
-        .query(
+pub fn create_code(conn: &TigumPgConn, code: &Json<NewCode>, user_id: i32) -> Result<Code, Error> {
+    let inserted_row = conn.query(
             "INSERT INTO code (content, language, origin, topic_id, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING id",
             &[
                 &code.content,
@@ -70,13 +70,11 @@ pub fn create_code(conn: &TigumPgConn, code: &Json<NewCode>, user_id: i32) -> Js
                 &code.topic_id,
                 &user_id,
             ],
-        )
-        .unwrap();
-    let row = inserted_row.get(0);
-    println!("{:#?}", row);
-    let id: i32 = row.get(0);
-
-    let id_response = Id { id: id };
-
-    Json(id_response)
+        );
+    match inserted_row {
+        Ok(code_row) => {
+            Ok(row_to_code(code_row.get(0)))
+        },
+        Err(error) => Err(error)
+    }
 }

@@ -1,5 +1,6 @@
 //Use Macros
 use rocket_contrib::json::Json;
+use rocket_contrib::databases::postgres::Error;
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
@@ -55,16 +56,17 @@ pub fn get_note(conn: &TigumPgConn, note_id: i32) -> Json<Note> {
     Json(note_response)
 }
 
-pub fn create_note(conn: &TigumPgConn, note: &Json<NewNote>, user_id: i32) -> Json<Note> {
-    let inserted_rows = conn
-        .query(
-            "INSERT INTO notes (title, topic_id, user_id) VALUES ($1, $2, $3) RETURNING *",
-            &[&note.title, &note.topic_id, &user_id],
-        )
-        .unwrap();
-
-    let row = inserted_rows.get(0);
-    let note_response = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
-
-    Json(note_response)
+pub fn create_note(conn: &TigumPgConn, note: &Json<NewNote>, user_id: i32) -> Result<Note, Error> {
+    let query_result = conn.query(
+        "INSERT INTO notes (title, topic_id, user_id) VALUES ($1, $2, $3) RETURNING *",
+        &[&note.title, &note.topic_id, &user_id]
+    );
+    match query_result {
+        Ok(result_rows) => {
+            let row = result_rows.get(0);
+            let new_note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
+            Ok(new_note)
+        },
+        Err(error) => Err(error)
+    }
 }

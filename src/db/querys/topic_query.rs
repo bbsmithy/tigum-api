@@ -2,6 +2,7 @@ use crate::db::models;
 use crate::db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
 use rocket_contrib::databases::postgres::rows::Row;
+use rocket_contrib::databases::postgres::Error;
 use rocket::http::{Status};
 
 
@@ -38,8 +39,8 @@ fn row_to_topic(row: Row) -> Topic {
 }
 
 pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> ApiResponse {
-    let q = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]);
-    match q {
+    let query_result = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]);
+    match query_result {
         Ok(_result) => ApiResponse { 
             json: json!({ "msg": format!("Topic with id {} deleted", topic_id)}),
             status: Status::raw(200)
@@ -62,7 +63,7 @@ pub fn add_to_topic_resource_list(
     topic_id: i32,
     resource_id: i32,
     resource_type: ResourceType,
-) {
+) -> Result<u64, Error> {
     let query_result = match resource_type {
         ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_append(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Link => conn.execute("UPDATE topics SET links = array_append(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
@@ -71,6 +72,7 @@ pub fn add_to_topic_resource_list(
         ResourceType::Video => conn.execute("UPDATE topics SET videos = array_append(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Code => conn.execute("UPDATE topics SET code = array_append(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
     };
+    query_result
 }
 
 pub fn remove_from_topic_resource(
@@ -78,15 +80,25 @@ pub fn remove_from_topic_resource(
     topic_id: i32,
     resource_id: i32,
     resource_type: ResourceType 
-){
-    match resource_type {
-        ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_append(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
-        ResourceType::Link => conn.execute("UPDATE topics SET links = array_append(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
-        ResourceType::Image => conn.execute("UPDATE topics SET images = array_append(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
-        ResourceType::Note => conn.execute("UPDATE topics SET notes = array_append(notes, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
-        ResourceType::Video => conn.execute("UPDATE topics SET videos = array_append(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
-        ResourceType::Code => conn.execute("UPDATE topics SET code = array_append(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
+) -> ApiResponse {
+    let query_result = match resource_type {
+        ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_remove(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Link => conn.execute("UPDATE topics SET links = array_remove(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Image => conn.execute("UPDATE topics SET images = array_remove(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Note => conn.execute("UPDATE topics SET notes = array_remove(notes, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Video => conn.execute("UPDATE topics SET videos = array_remove(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Code => conn.execute("UPDATE topics SET code = array_remove(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
     };
+    match query_result {
+        Ok(rows_updated) => ApiResponse { 
+            json: json!({ "msg": format!("{} rows updated successfully", rows_updated)}),
+            status: Status::raw(200)
+        },
+        Err(_error) => ApiResponse { 
+            json: json!({ "error": format!("Could not add resource with id {} to resources", resource_id) }),
+            status: Status::raw(500)
+        }
+    }
 }
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {

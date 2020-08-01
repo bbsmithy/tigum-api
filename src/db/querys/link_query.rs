@@ -1,5 +1,7 @@
 //Use Macros
 use rocket_contrib::json::Json;
+use rocket_contrib::databases::postgres::Error;
+use rocket::http::Status;
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
@@ -68,9 +70,8 @@ pub fn get_link(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<Link> {
     Json(link_response)
 }
 
-pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>, user_id: i32) -> Json<Link> {
-    let inserted_row = conn
-        .query(
+pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>, user_id: i32) -> Result<Link, Error> {
+    let query_result = conn.query(
             "INSERT INTO links (title, topic_id, user_id, source) VALUES ($1, $2, $3, $4) RETURNING *",
             &[
                 &link.title,
@@ -78,11 +79,12 @@ pub fn create_link(conn: &TigumPgConn, link: &Json<NewLink>, user_id: i32) -> Js
                 &user_id,
                 &link.source
             ],
-        )
-        .unwrap();
-
-    let row = inserted_row.get(0);
-    let link_response = row_to_link(row);
-
-    Json(link_response)
+        );
+    match query_result {
+        Ok(new_link_rows) => {
+            let new_row = new_link_rows.get(0);
+            Ok(row_to_link(new_row))
+        }
+        Err(error) => Err(error)
+    }
 }
