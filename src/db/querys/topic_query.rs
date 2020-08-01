@@ -1,10 +1,16 @@
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
-use rocket_contrib::databases::postgres::Error;
+use rocket_contrib::databases::postgres::rows::Row;
+use rocket::http::{Status};
 
+
+// DB Models
 use models::resources::ResourceType;
 use models::topic::{NewTopic, Topic, TopicIds};
+
+// Api Response Struct
+use crate::db::api_response::ApiResponse;
 
 fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Topic> {
     let mut results: Vec<Topic> = vec![];
@@ -15,7 +21,7 @@ fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::R
     results
 }
 
-fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
+fn row_to_topic(row: Row) -> Topic {
     let topic = Topic::new(
         row.get(0),
         row.get(1),
@@ -31,13 +37,25 @@ fn row_to_topic(row: rocket_contrib::databases::postgres::rows::Row) -> Topic {
     return topic;
 }
 
-pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> Result<String, Error> {
+pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> ApiResponse {
     let q = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]);
     match q {
-        Ok(result) => Ok(format!("{} rows deleted", result)),
-        Err(error) => Err(error)
+        Ok(_result) => ApiResponse { 
+            json: json!({ "msg": format!("Topic with id {} deleted", topic_id)}),
+            status: Status::raw(200)
+        },
+        Err(_error) => ApiResponse { 
+            json: json!({ "error": format!("Could not delete topic with id {}", topic_id) }),
+            status: Status::raw(500)
+        }
     }
 }
+
+// RESEARCH FOREIGN KEY CONSTRAINTS FOR UPDATING OTHER TABLES WHEN TOPIC ROW IS DELETED
+// fn delete_topic_resources(conn: &TigumPgConn, topic_id: i32) -> ApiResponse {
+//     DELETE messages, usersmessages  FROM messages  INNER JOIN usersmessages  
+//     WHERE messages.messageid= usersmessages.messageid and messages.messageid = '1'
+// }
 
 pub fn add_to_topic_resource_list(
     conn: &TigumPgConn,
@@ -45,7 +63,7 @@ pub fn add_to_topic_resource_list(
     resource_id: i32,
     resource_type: ResourceType,
 ) {
-    match resource_type {
+    let query_result = match resource_type {
         ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_append(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Link => conn.execute("UPDATE topics SET links = array_append(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Image => conn.execute("UPDATE topics SET images = array_append(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),

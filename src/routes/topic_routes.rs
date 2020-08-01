@@ -1,8 +1,5 @@
 use crate::db;
-
-use db::querys::TigumPgConn;
 use rocket::Route;
-use std::error::Error;
 
 //Use Macros
 use rocket_contrib::json::Json;
@@ -10,6 +7,10 @@ use rocket_contrib::json::Json;
 // Database Models
 use db::models::topic::{NewTopic, Topic, TopicIds};
 use db::models::user::User;
+use db::querys::TigumPgConn;
+
+// Api Response Struct
+use db::api_response::ApiResponse;
 
 //Database Querys
 use db::querys::topic_query::{create_topic, delete_topic, get_topic, get_topics, update_topic};
@@ -19,12 +20,8 @@ use db::querys::topic_query::{create_topic, delete_topic, get_topic, get_topics,
 //////////////////////
 
 #[delete("/topics/<topic_id>")]
-fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> String {
-    let result = delete_topic(&conn, topic_id);
-    match result {
-        Ok(msg) => msg,
-        Err(error) => error.description().to_string()
-    }
+fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    delete_topic(&conn, topic_id)
 }
 
 #[put("/topics/<topic_id>", format = "application/json", data = "<topic>")]
