@@ -1,5 +1,6 @@
 //Use Macros
 use rocket_contrib::json::Json;
+use rocket_contrib::databases::postgres::Error;
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
@@ -58,9 +59,8 @@ pub fn get_video(conn: &TigumPgConn, id: i32, _user_id: i32) -> Json<Video> {
     Json(video_response)
 }
 
-pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>, user_id: i32) -> Json<Video> {
-    let inserted_row = conn
-        .query(
+pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>, user_id: i32) -> Result<Video, Error> {
+    let query_result = conn.query(
             "INSERT INTO videos (topic_id, user_id, title, iframe, origin, thumbnail_img) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
             &[
                 &video.topic_id,
@@ -70,10 +70,12 @@ pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>, user_id: i32) ->
                 &video.origin,
                 &video.thumbnail_img
             ],
-        )
-        .unwrap();
-    let row = inserted_row.get(0);
-    let video_response = row_to_video(row);
-
-    Json(video_response)
+        );
+    match query_result {
+        Ok(new_video_rows) => {
+            let new_row = new_video_rows.get(0);
+            Ok(row_to_video(new_row))
+        },
+        Err(error) => Err(error)
+    }
 }

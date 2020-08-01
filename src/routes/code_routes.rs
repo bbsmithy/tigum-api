@@ -2,14 +2,17 @@
 use crate::db;
 use rocket::Route;
 use rocket_contrib::json::Json;
+use rocket::http::{Status};
 
 use db::models::resources::code::{Code, NewCode};
 use db::models::resources::ResourceType;
-use db::models::{Id, Ids};
+use db::models::{Ids};
 use db::models::user::User;
 
+use db::api_response::ApiResponse;
+
 use db::querys::code_query::{create_code, delete_code, get_code, get_codes, update_code};
-use db::querys::topic_query::update_topic_resource_list;
+use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::TigumPgConn;
 
 /////////////////////
@@ -27,10 +30,31 @@ fn update_single_code(conn: TigumPgConn, id: i32, code: Json<NewCode>, auth_user
 }
 
 #[post("/code/create", format = "application/json", data = "<code>")]
-fn create_single_code(conn: TigumPgConn, code: Json<NewCode>, auth_user: User) -> Json<Id> {
-    let new_code = create_code(&conn, &code, auth_user.id);
-    update_topic_resource_list(&conn, code.topic_id, new_code.id, ResourceType::Code);
-    return new_code;
+fn create_single_code(conn: TigumPgConn, code: Json<NewCode>, auth_user: User) -> ApiResponse {
+    let create_code_query_result = create_code(&conn, &code, auth_user.id);
+    match create_code_query_result {
+        Ok(new_code) => {
+            let query_result = add_to_topic_resource_list(
+                &conn,
+                new_code.topic_id,
+                new_code.id,
+                ResourceType::Snippet,
+            );
+            match query_result {
+                Ok(_rows_updated) => ApiResponse { json: json!(new_code), status: Status::raw(200) },
+                Err(_error) => ApiResponse {
+                    json: json!({ "error": format!("Could not create snippet {}", new_code.topic_id )}),
+                    status: Status::raw(500)
+                }
+            }
+        },  
+        Err(_error) => ApiResponse {
+            json: json!({
+                "error": format!("Could not create snippet {}", code.topic_id )
+            }),
+            status: Status::raw(500)
+        }
+    }
 }
 
 #[get("/code/<id>")]
