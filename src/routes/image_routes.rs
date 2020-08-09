@@ -17,6 +17,10 @@ use db::models::user::User;
 //// IMAGE ROUTES ///////
 /////////////////////////
 
+/////////////////////////////////////
+//// WARNING!! NOT IN USE ATM ///////
+/////////////////////////////////////
+
 #[delete("/images/<id>")]
 pub fn delete_single_image(conn: TigumPgConn, id: i32, _auth_user: User) -> Json<String> {
     delete_image(&conn, id)

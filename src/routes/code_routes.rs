@@ -64,7 +64,6 @@ fn single_code(conn: TigumPgConn, id: i32, auth_user: User) -> Json<Code> {
 
 #[post("/code", format = "application/json", data = "<ids>")]
 fn code(conn: TigumPgConn, ids: Json<Ids>, auth_user: User) -> Json<Vec<Code>> {
-    println!("{:?}", ids);
     get_codes(&conn, ids, auth_user.id)
 }
 

@@ -1,9 +1,13 @@
 //Use Macros
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::json::{Json};
 use rocket_contrib::databases::postgres::Error;
+use rocket::http::Status;
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
+use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list};
+use crate::db::api_response::ApiResponse;
+use crate::db::models::resources::ResourceType;
 
 use models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use models::Ids;
@@ -19,11 +23,31 @@ fn row_to_article_snippet(row: rocket_contrib::databases::postgres::rows::Row) -
     }
 }
 
-pub fn delete_article_snippet(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<String> {
-    let update = conn
-        .execute("DELETE FROM article_snippets WHERE id = $1 AND user_id = $2", &[&id, &user_id])
-        .unwrap();
-    Json(format!("{} rows affected", update))
+pub fn delete_article_snippet(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
+    let query_result = conn.query("DELETE FROM article_snippets WHERE id = $1 AND user_id = $2 RETURNING topic_id", &[&id, &user_id]);
+    match query_result {
+        Ok(result) => {
+            let row_result = result.get(0);
+            let topic_id = row_result.get(0);
+            let remove_query = remove_from_topic_resource_list(&conn, topic_id, id, ResourceType::Snippet);
+            match remove_query {
+                Ok(_rows_removed) => ApiResponse {
+                    json: json!({ "msg": format!("Snippet with id {} deleted successfully", id) }),
+                    status: Status::raw(200)
+                },
+                Err(_error) => ApiResponse {
+                    json: json!({ "error": format!("Could not delete snippet {} from topic {}", id, topic_id) }),
+                    status: Status::raw(500)
+                }
+            }
+        },
+        Err(_error) => {
+            ApiResponse {
+                json: json!({"error": format!("Could not delete snippet {}", id) }),
+                status: Status::raw(500) 
+            }
+        }
+    }
 }
 
 pub fn update_article_snippet(
@@ -31,58 +55,108 @@ pub fn update_article_snippet(
     id: i32,
     article_snippet: Json<NewArticleSnippet>,
     user_id: i32
-) -> Json<ArticleSnippet> {
+) -> ApiResponse {
     let updated_rows = conn.query(
         "UPDATE article_snippets SET topic_id = $2, user_id = $3, content = $4, origin = $5 WHERE id = $1 AND user_id = $3 RETURNING *",
         &[&id, &article_snippet.topic_id, &user_id, &article_snippet.content, &article_snippet.origin],
-    ).unwrap();
-    let article_snippet_response = row_to_article_snippet(updated_rows.get(0));
-    Json(article_snippet_response)
+    );
+    match updated_rows {
+        Ok(rows) => {
+            ApiResponse {
+                json: json!(row_to_article_snippet(rows.get(0))),
+                status: Status::raw(200)
+            }
+        },
+        Err(_error) => {
+            ApiResponse {
+                json: json!({ "error": format!("Could not update article snippet with id {}", id)}),
+                status: Status::raw(500)
+            }
+        }
+    }
+   
 }
 
-pub fn get_article_snippets(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> Json<Vec<ArticleSnippet>> {
-    let query_result = conn
-        .query(
+pub fn get_article_snippets(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
+    let query_result = conn.query(
             "SELECT * FROM article_snippets WHERE id = ANY($1) AND user_id = $2",
             &[&ids.ids, &user_id],
-        )
-        .unwrap();
-    let mut results: Vec<ArticleSnippet> = vec![];
-    for row in query_result.iter() {
-        let article_snippet_response = row_to_article_snippet(row);
-        results.push(article_snippet_response);
+        );
+    match query_result {
+        Ok(rows) => {
+            let mut results: Vec<ArticleSnippet> = vec![];
+            for row in rows.iter() {
+                let article_snippet_response = row_to_article_snippet(row);
+                results.push(article_snippet_response);
+            }
+            ApiResponse {
+                json: json!(results),
+                status: Status::raw(200)
+            }
+        },
+        Err(_error) => {
+            ApiResponse {
+                json: json!({"error": format!("Could not retrieve snippets with ids {:?}", ids)}),
+                status: Status::raw(500)
+            }
+        }
     }
-    Json(results)
 }
 
-pub fn get_article_snippet(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<ArticleSnippet> {
-    let query_result = conn
-        .query("SELECT * FROM article_snippets WHERE id = $1 AND user_id = $2", &[&id, &user_id])
-        .unwrap();
-    let article_snippet_response = row_to_article_snippet(query_result.get(0));
-    Json(article_snippet_response)
+pub fn get_article_snippet(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
+    let query_result = conn.query("SELECT * FROM article_snippets WHERE id = $1 AND user_id = $2", &[&id, &user_id]);
+    match query_result {
+        Ok(rows) => {
+            let result_row = rows.get(0);
+            ApiResponse {
+                json: json!(row_to_article_snippet(result_row)),
+                status: Status::raw(200)
+            }
+        },
+        Err(_error) => {
+            ApiResponse {
+                json: json!({"error": format!("Could not retrieve snippet {}", id)}),
+                status: Status::raw(500)
+            }
+        }
+    }
 }
 
 pub fn create_article_snippet(
     conn: &TigumPgConn,
     article_snippet: &Json<NewArticleSnippet>,
     user_id: i32
-) -> Result<ArticleSnippet, Error> {
-    let inserted_row = conn.query(
-            "INSERT INTO article_snippets (content, origin, topic_id, user_id) VALUES ($1, $2, $3, $4) RETURNING *",
-            &[
-                &article_snippet.content,
-                &article_snippet.origin,
-                &article_snippet.topic_id,
-                &user_id,
-            ],
-        );
-    match inserted_row {
+) -> ApiResponse {
+    match conn.query(
+        "INSERT INTO article_snippets (content, origin, topic_id, user_id) VALUES ($1, $2, $3, $4) RETURNING *",
+        &[
+            &article_snippet.content,
+            &article_snippet.origin,
+            &article_snippet.topic_id,
+            &user_id,
+        ],
+    ) {
         Ok(row) => {
             let new_row = row.get(0);
-            let article_snippet = row_to_article_snippet(new_row);
-            Ok(article_snippet)
-        },
-        Err(error) => Err(error)
+            let new_article_snippet = row_to_article_snippet(new_row);
+            match add_to_topic_resource_list(
+                &conn,
+                new_article_snippet.topic_id,
+                new_article_snippet.id,
+                ResourceType::Snippet,
+            ) {
+                Ok(_rows_updated) => ApiResponse { json: json!(new_article_snippet), status: Status::raw(200) },
+                Err(_error) => ApiResponse {
+                    json: json!({ "error": "Could not create snippet" }),
+                    status: Status::raw(500)
+                }
+            }
+        },  
+        Err(_error) => ApiResponse {
+            json: json!({
+                "error": format!("Could not create snippet {}", article_snippet.topic_id )
+            }),
+            status: Status::raw(500)
+        }
     }
 }

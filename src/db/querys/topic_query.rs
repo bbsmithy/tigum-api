@@ -75,12 +75,12 @@ pub fn add_to_topic_resource_list(
     query_result
 }
 
-pub fn remove_from_topic_resource(
+pub fn remove_from_topic_resource_list(
     conn: &TigumPgConn,
     topic_id: i32,
     resource_id: i32,
     resource_type: ResourceType 
-) -> ApiResponse {
+) -> Result<u64, Error> {
     let query_result = match resource_type {
         ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_remove(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Link => conn.execute("UPDATE topics SET links = array_remove(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
@@ -89,16 +89,7 @@ pub fn remove_from_topic_resource(
         ResourceType::Video => conn.execute("UPDATE topics SET videos = array_remove(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Code => conn.execute("UPDATE topics SET code = array_remove(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
     };
-    match query_result {
-        Ok(rows_updated) => ApiResponse { 
-            json: json!({ "msg": format!("{} rows updated successfully", rows_updated)}),
-            status: Status::raw(200)
-        },
-        Err(_error) => ApiResponse { 
-            json: json!({ "error": format!("Could not add resource with id {} to resources", resource_id) }),
-            status: Status::raw(500)
-        }
-    }
+    query_result
 }
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Json<Topic> {

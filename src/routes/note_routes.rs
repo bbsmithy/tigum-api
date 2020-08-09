@@ -22,7 +22,7 @@ use db::querys::TigumPgConn;
 /////////////////////
 
 #[delete("/notes/<note_id>")]
-fn delete_single_note(conn: TigumPgConn, note_id: i32, auth_user: User) -> Json<String> {
+fn delete_single_note(conn: TigumPgConn, note_id: i32, auth_user: User) -> ApiResponse {
     delete_note(&conn, note_id, auth_user.id)
 }
 

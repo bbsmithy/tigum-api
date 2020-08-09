@@ -23,7 +23,7 @@ use db::querys::TigumPgConn;
 //////////////////////
 
 #[delete("/links/<id>")]
-pub fn delete_single_link(conn: TigumPgConn, id: i32, auth_user: User) -> Json<String> {
+pub fn delete_single_link(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
     delete_link(&conn, id, auth_user.id)
 }
 

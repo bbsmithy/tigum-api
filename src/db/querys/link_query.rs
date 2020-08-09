@@ -3,11 +3,12 @@ use rocket_contrib::json::Json;
 use rocket_contrib::databases::postgres::Error;
 use rocket::http::Status;
 
-use crate::db::models;
+use crate::db::models::resources::ResourceType;
 use crate::db::querys::TigumPgConn;
-
-use models::resources::link::{Link, NewLink};
-use models::Ids;
+use crate::db::querys::topic_query::remove_from_topic_resource_list;
+use crate::db::api_response::ApiResponse;
+use crate::db::models::resources::link::{Link, NewLink};
+use crate::db::models::Ids;
 
 fn row_to_link(row: rocket_contrib::databases::postgres::rows::Row) -> Link {
     Link {
@@ -20,14 +21,36 @@ fn row_to_link(row: rocket_contrib::databases::postgres::rows::Row) -> Link {
     }
 }
 
-pub fn delete_link(conn: &TigumPgConn, id: i32, user_id: i32) -> Json<String> {
-    let update = conn
-        .execute(
-            "DELETE FROM links WHERE id = $1 AND user_id = $2",
-            &[&id, &user_id],
-        )
-        .unwrap();
-    Json(format!("{} rows affected", update))
+pub fn delete_link(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
+    let update = conn.query("DELETE FROM links WHERE id = $1 AND user_id = $2 RETURNING topic_id", &[&id, &user_id]);
+    match update {
+        Ok(row) => {
+            let deleted_row = row.get(0);
+            let deleted_row_topic_id: i32 = deleted_row.get(0);
+            let remove_topic_result = remove_from_topic_resource_list(conn, deleted_row_topic_id, id, ResourceType::Link);
+            match remove_topic_result {
+                Ok(_rows_removed) => {
+                    ApiResponse {
+                        json: json!({ "msg": format!("Successfully deleted link with id {}", id) }),
+                        status: Status::raw(200)
+                    }
+                },
+                Err(_err) => {
+                    ApiResponse {
+                        json: json!({ "error": format!("Failed to deleted row with id: {}", id) }),
+                        status: Status::raw(500)
+                    }
+                }
+            }
+                
+        },  
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Failed to deleted row with id: {}", id) }),
+                status: Status::raw(500)
+            }
+        }
+    }
 }
 
 pub fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>, user_id: i32) -> Json<Link> {
@@ -44,9 +67,7 @@ pub fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>, user_id: i3
 }
 
 pub fn get_links(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> Json<Vec<Link>> {
-    println!("{:?}", ids);
-    let query_result = conn
-        .query(
+    let query_result = conn.query(
             "SELECT * FROM links WHERE id = ANY($1) AND user_id = $2",
             &[&ids.ids, &user_id],
         )
