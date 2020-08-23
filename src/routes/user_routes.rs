@@ -1,7 +1,6 @@
 use crate::db;
 use rocket::http::Status;
 use rocket::http::{Cookie, Cookies};
-use rocket::response::status;
 use rocket::Route;
 use std::format;
 
@@ -11,6 +10,7 @@ use rocket_contrib::json::Json;
 
 // Models
 use db::models::user::{AuthUser, CreateUser, LoginUser, User};
+use db::api_response::ApiResponse;
 
 // Util
 use crate::util::auth::{encode_jwt, hash_password, verify_password};
@@ -22,12 +22,19 @@ use db::querys::user_query::{create_user, get_user};
 //// USER ROUTES ////////
 /////////////////////////
 
-fn create_cookie<'a>(jwt_value: String) -> Cookie<'a> {
+fn create_cookie<'a>(jwt_value: String) -> Result<Cookie<'a>, String> {
     let cookie_string = format!("__silly_devkeep={}; Path=/", jwt_value);
-    let mut jwt_cookie = Cookie::parse(cookie_string).unwrap();
-    jwt_cookie.make_permanent();
-    // jwt_cookie.set_secure(true);
-    jwt_cookie
+    let jwt_cookie_result = Cookie::parse(cookie_string);
+    match jwt_cookie_result {
+        Ok(mut jwt_cookie) => {
+            jwt_cookie.make_permanent();
+            Ok(jwt_cookie)
+        },
+        Err(_err) => {
+            Err("Error making cookie".to_string())
+        }
+    }
+    
 }
 
 fn expire_cookie<'a>() -> Cookie<'a> {
@@ -54,35 +61,49 @@ pub fn user_signup(
     mut cookies: Cookies,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
-) -> Result<Json<User>, status::Custom<String>> {
+) -> ApiResponse {
     if new_user.password.is_empty() {
-        return Err(status::Custom(
-            Status {
-                code: 400,
-                reason: "Bad Request",
-            },
-            "Password must not be empty".to_string(),
-        ));
+        return ApiResponse {
+            json: json!({ "error": "Bad request password empty" }),
+            status: Status::raw(400)
+        }
     }
-    //TODO: Handle user exists
-    hash_password(&new_user.password)
-        .map_err(|_err| {
-            status::Custom(
-                Status {
-                    code: 500,
-                    reason: "Internal server error",
+    match hash_password(&new_user.password) {
+        Ok(hashed_password) => {
+            match create_user(&conn, new_user, hashed_password) {
+                Ok(user) => {
+                    // Encode JWT token with user
+                    let jwt_value = encode_jwt(&user);
+                    let create_cookie_result = create_cookie(jwt_value);
+                    match create_cookie_result {
+                        Ok(jwt_cookie) => {
+                            cookies.add(jwt_cookie);
+                            ApiResponse {
+                                json: json!(user),
+                                status: Status::raw(200)
+                            }
+                        },
+                        Err(_err) => ApiResponse {
+                            json: json!({ "error": "Interal server error" }),
+                            status: Status::raw(500)
+                        }
+                    }
                 },
-                "Internal server error".to_string(),
-            )
-        })
-        .and_then(|hashed_password| create_user(&conn, new_user, hashed_password))
-        .map(|user| {
-            // Encode JWT token with user
-            let jwt_value = encode_jwt(&user);
-            let jwt_cookie = create_cookie(jwt_value);
-            cookies.add(jwt_cookie);
-            Json(user)
-        })
+                Err(_err) => {
+                    ApiResponse {
+                        json: json!({ "error": "Internal server error" }),
+                        status: Status::raw(500)
+                    }
+                }
+            }
+        }
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": "Internal server error" }),
+                status: Status::raw(500)
+            }
+        }
+    }
 }
 
 #[post("/user/login", format = "application/json", data = "<login>")]
@@ -90,37 +111,50 @@ pub fn user_login(
     mut cookies: Cookies,
     conn: TigumPgConn,
     login: Json<LoginUser>,
-) -> Result<Json<User>, status::Custom<String>> {
+) -> ApiResponse {
     // Check if email exists and return User
-    let auth_user = get_user(&conn, &login.email);
-    // Check if login.password matches
-    let is_correct = verify_password(&login.password, &auth_user.password_hash);
-    match is_correct {
-        Ok(is_correct) => {
-            if is_correct {
-                let public_user = AuthUser::to_public_user(auth_user);
-                // Encode JWT token with user
-                let jwt_value = encode_jwt(&public_user);
-                let jwt_cookie = create_cookie(jwt_value);
-                cookies.add(jwt_cookie);
-                Ok(Json(public_user))
-            } else {
-                Err(status::Custom(
-                    Status {
-                        code: 400,
-                        reason: "Incorrect email or password",
-                    },
-                    "Incorrect email or password".to_string(),
-                ))
+    match get_user(&conn, &login.email) {
+        Ok(auth_user) => {
+            match verify_password(&login.password, &auth_user.password_hash) {
+                Ok(is_correct) => {
+                    if is_correct {
+                        let public_user = AuthUser::to_public_user(auth_user);
+                        // Encode JWT token with user
+                        let jwt_value = encode_jwt(&public_user);
+                        let jwt_cookie_result = create_cookie(jwt_value);
+                        match jwt_cookie_result {
+                            Ok(jwt_cookie) => {
+                                cookies.add(jwt_cookie);
+                                ApiResponse {
+                                    json: json!(public_user),
+                                    status: Status::raw(200)
+                                }
+                            },
+                            Err(_err) => {
+                                ApiResponse {
+                                    json: json!({ "error": "Internal server error" }),
+                                    status: Status::raw(200)
+                                }
+                            }
+                        }
+                        
+                    } else {
+                        ApiResponse {
+                            json: json!({"error": "Incorrect email or password"}),
+                            status: Status::raw(403)
+                        }
+                    }
+                }
+                Err(_checking_err) => ApiResponse {
+                    json: json!({"error": "Incorrect email or password"}),
+                    status: Status::raw(403)
+                },
             }
+        },
+        Err(_err) => ApiResponse {
+            json: json!({"error": "Incorrect email or password"}),
+            status: Status::raw(403)
         }
-        Err(_is_correct) => Err(status::Custom(
-            Status {
-                code: 400,
-                reason: "Incorrect email or password",
-            },
-            "Incorrect email or password".to_string(),
-        )),
     }
 }
 

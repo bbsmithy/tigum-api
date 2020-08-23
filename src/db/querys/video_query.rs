@@ -1,6 +1,5 @@
 //Use Macros
 use rocket_contrib::json::Json;
-use rocket_contrib::databases::postgres::Error;
 use rocket::http::Status;
 
 use crate::db::models;
@@ -42,7 +41,7 @@ pub fn delete_video(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
                 }
             }
         },
-        Err(err) => ApiResponse {
+        Err(_err) => ApiResponse {
             json: json!({ "error": format!("Successfully deleted video with id: {}", id) }),
             status: Status::raw(200)
         }
