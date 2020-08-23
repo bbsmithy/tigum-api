@@ -1,20 +1,17 @@
 use crate::db;
 use rocket::Route;
-use rocket::http::Status;
 
 //Use Macros
 use rocket_contrib::json::Json;
 
 // Models
 use db::models::resources::note::{NewNote, Note, NoteIds};
-use db::models::resources::ResourceType;
 use db::models::user::User;
 
 use db::api_response::ApiResponse;
 
 // Querys
 use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note};
-use db::querys::topic_query::add_to_topic_resource_list;
 use db::querys::TigumPgConn;
 
 /////////////////////

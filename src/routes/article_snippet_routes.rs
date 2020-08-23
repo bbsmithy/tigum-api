@@ -2,12 +2,10 @@
 use crate::db;
 use rocket::Route;
 use rocket_contrib::json::Json;
-use rocket::http::{Status};
 
 use db::api_response::ApiResponse;
 
 use db::models::resources::article_snippets::{NewArticleSnippet};
-use db::models::resources::ResourceType;
 use db::models::user::User;
 use db::models::Ids;
 
@@ -15,7 +13,6 @@ use db::querys::article_snippets_query::{
     create_article_snippet, delete_article_snippet, get_article_snippet, get_article_snippets,
     update_article_snippet,
 };
-use db::querys::topic_query::{add_to_topic_resource_list, remove_from_topic_resource_list};
 use db::querys::TigumPgConn;
 
 /////////////////////////////////
