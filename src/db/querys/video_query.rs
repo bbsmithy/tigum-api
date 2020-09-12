@@ -48,35 +48,66 @@ pub fn delete_video(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
     }
 }
 
-pub fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>, user_id: i32) -> Json<Video> {
-    let updated_rows = conn.query(
+pub fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>, user_id: i32) -> ApiResponse {
+    let query_result = conn.query(
         "UPDATE videos SET topic_id = $2, user_id = $3, title = $4, iframe = $5, origin = $6, thumbnail_img = $7 WHERE id = $1 RETURNING *",
         &[&id, &video.topic_id, &user_id, &video.title, &video.iframe, &video.origin, &video.thumbnail_img],
-    ).unwrap();
-
-    let video_response = row_to_video(updated_rows.get(0));
-
-    Json(video_response)
-}
-
-pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> Json<Vec<Video>> {
-    let query_result = conn
-        .query("SELECT * FROM videos WHERE id = ANY($1) AND user_id = $2", &[&ids.ids, &user_id])
-        .unwrap();
-    let mut results: Vec<Video> = vec![];
-    for row in query_result.iter() {
-        let video_response = row_to_video(row);
-        results.push(video_response);
+    );
+    match query_result {
+        Ok(updated_rows) => {
+            let updated_video = row_to_video(updated_rows.get(0));
+            ApiResponse {
+                json: json!(updated_video),
+                status: Status::raw(200)
+            }
+       },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({"error": format!("Could not update video with id {}", id)}),
+                status: Status::raw(200)
+            }
+        }
     }
-    Json(results)
 }
 
-pub fn get_video(conn: &TigumPgConn, id: i32, _user_id: i32) -> Json<Video> {
-    let query_result = conn
-        .query("SELECT * FROM videos WHERE id = $1", &[&id])
-        .unwrap();
-    let video_response = row_to_video(query_result.get(0));
-    Json(video_response)
+pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
+    let query_result = conn.query("SELECT * FROM videos WHERE id = ANY($1) AND user_id = $2", &[&ids.ids, &user_id]);
+    match query_result {
+        Ok(rows) => {
+            let mut results: Vec<Video> = vec![];
+            for row in rows.iter() {
+                let video_response = row_to_video(row);
+                results.push(video_response);
+            }
+            ApiResponse {
+                json: json!(results),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => ApiResponse {
+            json: json!({ "error": format!("Could not get videos with ids {:?}", ids.ids) }),
+            status: Status::raw(200)
+        }
+    }   
+}
+
+pub fn get_video(conn: &TigumPgConn, id: i32, _user_id: i32) -> ApiResponse {
+    let query_result = conn.query("SELECT * FROM videos WHERE id = $1", &[&id]);
+    match query_result {
+        Ok(rows) => {
+            let video_response = row_to_video(rows.get(0));
+            ApiResponse {
+                json: json!(video_response),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": "Could not create video" }),
+                status: Status::raw(200)
+            }
+        }
+    }
 }
 
 pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>, user_id: i32) -> ApiResponse {
