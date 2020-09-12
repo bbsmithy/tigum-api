@@ -4,6 +4,7 @@ use crate::db::models::user::{CreateUser, User, AuthUser};
 use crate::db::querys::TigumPgConn;
 use rocket::http::Status;
 use rocket::response::status;
+use rocket_contrib::databases::postgres::Error;
 
 fn row_to_user(row: rocket_contrib::databases::postgres::rows::Row) -> User {
     User {
@@ -22,15 +23,19 @@ fn row_to_auth_user(row: rocket_contrib::databases::postgres::rows::Row) -> Auth
     }
 }
 
-pub fn get_user(conn: &TigumPgConn, email: &String) -> AuthUser {
+pub fn get_user(conn: &TigumPgConn, email: &String) -> Result<AuthUser, Error> {
     let user_password_hash = conn
         .query(
             "SELECT * FROM users WHERE email = $1",
             &[&email],
-        )
-        .unwrap();
-    let user_row = user_password_hash.get(0);
-    row_to_auth_user(user_row)
+        );
+    match user_password_hash {
+       Ok(result) => {
+            let user_row = result.get(0);
+            Ok(row_to_auth_user(user_row))
+        },
+        Err(err) => Err(err)
+    }
 }
 
 pub fn create_user(

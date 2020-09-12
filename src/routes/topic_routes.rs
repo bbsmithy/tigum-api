@@ -29,22 +29,22 @@ fn update_single_topic(
     conn: TigumPgConn,
     topic_id: i32,
     topic: Json<Topic>,
-) -> Json<Topic> {
+) -> ApiResponse {
     update_topic(&conn, topic_id, topic)
 }
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User) -> Json<Topic> {
+fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User) -> ApiResponse {
     create_topic(&conn, topic, auth_user.id)
 }
 
 #[get("/topics/<topic_id>")]
-fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> Json<Topic> {
+fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
     get_topic(&conn, topic_id, auth_user.id)
 }
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
-fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> Json<Vec<Topic>> {
+fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> ApiResponse {
     get_topics(&conn, topic_ids, auth_user.id)
 }
 

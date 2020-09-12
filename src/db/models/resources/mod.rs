@@ -1,5 +1,5 @@
 pub mod article_snippets;
-pub mod code;
+pub mod question;
 pub mod link;
 pub mod image;
 pub mod note;
