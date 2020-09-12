@@ -6,7 +6,7 @@ use crate::db::models;
 use crate::db::querys::TigumPgConn;
 
 use models::resources::question::{Code, NewCode};
-use models::{Id, Ids};
+use models::{Ids};
 
 fn row_to_question(row: rocket_contrib::databases::postgres::rows::Row) -> Code {
     Code {
