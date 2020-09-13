@@ -19,7 +19,7 @@ SELECT 'video' result_type, topic_id, title, id as resource_id FROM videos
 WHERE title LIKE $1 AND user_id = $2
 UNION
 
-SELECT 'links' result_type, topic_id, title, id as resource_id FROM links
+SELECT 'link' result_type, topic_id, title, id as resource_id FROM links
 WHERE title LIKE $1 AND user_id = $2
 UNION
 
