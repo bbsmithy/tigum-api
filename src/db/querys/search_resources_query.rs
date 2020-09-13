@@ -23,7 +23,7 @@ SELECT 'link' result_type, topic_id, title, id as resource_id FROM links
 WHERE title LIKE $1 AND user_id = $2
 UNION
 
-SELECT 'article_snippet' result_type, topic_id, content, id as resource_id FROM article_snippets
+SELECT 'snippet' result_type, topic_id, content, id as resource_id FROM article_snippets
 WHERE content LIKE $1 AND user_id = $2
 ";
 
