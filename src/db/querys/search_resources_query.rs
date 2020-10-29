@@ -1,6 +1,4 @@
 use crate::db;
-use rocket_contrib::json::Json;
-use rocket_contrib::databases::postgres::Error;
 use rocket_contrib::databases::postgres::rows::Row;
 use rocket::http::Status;
 

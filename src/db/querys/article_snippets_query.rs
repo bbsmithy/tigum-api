@@ -128,8 +128,9 @@ pub fn create_article_snippet(
     user_id: i32
 ) -> ApiResponse {
     match conn.query(
-        "INSERT INTO article_snippets (content, origin, topic_id, user_id) VALUES ($1, $2, $3, $4) RETURNING *",
+        "INSERT INTO article_snippets (title, content, origin, topic_id, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
         &[
+            &article_snippet.title,
             &article_snippet.content,
             &article_snippet.origin,
             &article_snippet.topic_id,
