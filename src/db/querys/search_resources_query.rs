@@ -7,21 +7,21 @@ use db::querys::TigumPgConn;
 use db::api_response::ApiResponse;
 
 const FIND_BY_TITLE_QUERY_STRING: &str = "
-SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id FROM topics WHERE title LIKE $1 AND user_id = $2
+SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id, 'none' as misc FROM topics WHERE title LIKE $1 AND user_id = $2
 UNION
 
-SELECT 'note' result_type, topic_id, title, id as resource_id FROM notes WHERE title LIKE $1 AND user_id = $2
+SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc FROM notes WHERE title LIKE $1 AND user_id = $2
 UNION
 
-SELECT 'video' result_type, topic_id, title, id as resource_id FROM videos
+SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc FROM videos
 WHERE title LIKE $1 AND user_id = $2
 UNION
 
-SELECT 'link' result_type, topic_id, title, id as resource_id FROM links
+SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc FROM links
 WHERE title LIKE $1 AND user_id = $2
 UNION
 
-SELECT 'snippet' result_type, topic_id, content, id as resource_id FROM article_snippets
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc FROM article_snippets
 WHERE content LIKE $1 AND user_id = $2
 ";
 
@@ -31,7 +31,8 @@ fn row_to_resource_result(row: Row) -> ResourceResult {
         result_type: row.get(0),
         topic_id: row.get(1),
         title: row.get(2),
-        resource_id: row.get(3)
+        resource_id: row.get(3),
+        misc: row.get(4)
     }
 }
 
