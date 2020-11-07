@@ -7,22 +7,22 @@ use db::querys::TigumPgConn;
 use db::api_response::ApiResponse;
 
 const FIND_BY_TITLE_QUERY_STRING: &str = "
-SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id, 'none' as misc FROM topics WHERE title LIKE $1 AND user_id = $2
+SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id, 'none' as misc FROM topics WHERE lower(title) LIKE $1 AND user_id = $2
 UNION
 
-SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc FROM notes WHERE title LIKE $1 AND user_id = $2
+SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc FROM notes WHERE lower(title) LIKE $1 AND user_id = $2
 UNION
 
 SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc FROM videos
-WHERE title LIKE $1 AND user_id = $2
+WHERE lower(title) LIKE $1 AND user_id = $2
 UNION
 
 SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc FROM links
-WHERE title LIKE $1 AND user_id = $2
+WHERE lower(title) LIKE $1 AND user_id = $2
 UNION
 
 SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc FROM article_snippets
-WHERE content LIKE $1 AND user_id = $2
+WHERE lower(content) LIKE $1 AND user_id = $2
 ";
 
 
@@ -37,7 +37,7 @@ fn row_to_resource_result(row: Row) -> ResourceResult {
 }
 
 pub fn find_by_title(conn: &TigumPgConn, title: String, user_id: i32) -> ApiResponse {
-    let like_title = format!("{}%", title);
+    let like_title = format!("%{}%", title.to_lowercase());
     let result_query = conn.query(FIND_BY_TITLE_QUERY_STRING, &[&like_title, &user_id]);
     match result_query {
         Ok(rows) => {
