@@ -25,6 +25,22 @@ SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, ori
 WHERE lower(content) LIKE $1 AND user_id = $2
 ";
 
+const FIND_BY_TOPIC_ID: &str = "
+SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc FROM videos
+WHERE topic_id = $1 AND user_id = $2
+UNION
+
+SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc FROM links
+WHERE topic_id = $1 AND user_id = $2
+UNION
+
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc FROM article_snippets
+WHERE topic_id = $1 AND user_id = $2
+UNION
+
+SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc FROM notes WHERE topic_id = $1 AND user_id = $2
+";
+
 
 fn row_to_resource_result(row: Row) -> ResourceResult {
     ResourceResult {
@@ -39,6 +55,15 @@ fn row_to_resource_result(row: Row) -> ResourceResult {
 pub fn find_by_title(conn: &TigumPgConn, title: String, user_id: i32) -> ApiResponse {
     let like_title = format!("%{}%", title.to_lowercase());
     let result_query = conn.query(FIND_BY_TITLE_QUERY_STRING, &[&like_title, &user_id]);
+    return_search_results(result_query)
+}
+
+pub fn find_by_topic_id(conn: &TigumPgConn, topic_id: i32, user_id: i32) -> ApiResponse {
+    let result_query = conn.query(FIND_BY_TOPIC_ID, &[&topic_id, &user_id]);
+    return_search_results(result_query)
+}
+
+fn return_search_results(result_query: Result<rocket_contrib::databases::postgres::rows::Rows, rocket_contrib::databases::postgres::Error>) -> ApiResponse {
     match result_query {
         Ok(rows) => {
             let mut resource_results: Vec<ResourceResult> = vec![];
