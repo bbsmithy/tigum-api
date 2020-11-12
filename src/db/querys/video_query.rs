@@ -71,7 +71,7 @@ pub fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>, user_id:
 }
 
 pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
-    let query_result = conn.query("SELECT * FROM videos WHERE id = ANY($1) AND user_id = $2", &[&ids.ids, &user_id]);
+    let query_result = conn.query("SELECT * FROM videos WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created DESC", &[&ids.ids, &user_id]);
     match query_result {
         Ok(rows) => {
             let mut results: Vec<Video> = vec![];

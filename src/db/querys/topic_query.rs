@@ -118,10 +118,10 @@ pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> Ap
 
 pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user_id: i32) -> ApiResponse {
     if topic_ids.ids.len() == 0 {
-        let query_result = conn.query("SELECT * FROM topics WHERE user_id = $1", &[&user_id]);
+        let query_result = conn.query("SELECT * FROM topics WHERE user_id = $1 ORDER BY date_created DESC", &[&user_id]);
         get_topics_response(query_result, &topic_ids.ids)
     } else {
-        let query_result = conn.query("SELECT * FROM topics WHERE id = ANY($1) AND user_id = $2", &[&topic_ids.ids, &user_id]);
+        let query_result = conn.query("SELECT * FROM topics WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created DESC", &[&topic_ids.ids, &user_id]);
         get_topics_response(query_result, &topic_ids.ids)
     }
 }

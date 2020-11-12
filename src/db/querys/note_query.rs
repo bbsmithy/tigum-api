@@ -18,7 +18,9 @@ fn row_to_note(row: rocket_contrib::databases::postgres::rows::Row) -> Note {
 fn parse_note_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Note> {
     let mut results: Vec<Note> = vec![];
     for row in query_result.iter() {
+       
         let note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
+        println!("{:?}", note.date_created);
         results.push(note);
     }
     results
@@ -78,7 +80,7 @@ pub fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, user_id: 
 }
 
 pub fn get_notes(conn: &TigumPgConn, note_ids: Json<NoteIds>, user_id: i32) -> ApiResponse {
-    let query_result = conn.query("SELECT * FROM notes WHERE id = ANY($1) AND user_id = $2", &[&note_ids.ids, &user_id]);
+    let query_result = conn.query("SELECT * FROM notes WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created ASC", &[&note_ids.ids, &user_id]);
     match query_result {
         Ok(rows) => {
             let results = parse_note_result(rows);
