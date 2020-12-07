@@ -9,6 +9,7 @@ use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_top
 use crate::db::api_response::ApiResponse;
 use crate::db::models::resources::ResourceType;
 
+use models::user::User;
 use models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use models::Ids;
 
@@ -67,7 +68,8 @@ pub fn update_article_snippet(
                 status: Status::raw(200)
             }
         },
-        Err(_error) => {
+        Err(error) => {
+            println!("{}", error);
             ApiResponse {
                 json: json!({ "error": format!("Could not update article snippet with id {}", id)}),
                 status: Status::raw(500)
@@ -153,11 +155,14 @@ pub fn create_article_snippet(
                 }
             }
         },  
-        Err(_error) => ApiResponse {
-            json: json!({
-                "error": format!("Could not create snippet {}", article_snippet.topic_id )
-            }),
-            status: Status::raw(500)
+        Err(error) => {
+            println!("{}", error);
+            ApiResponse {
+                json: json!({
+                    "error": format!("Could not create snippet {}", article_snippet.topic_id )
+                }),
+                status: Status::raw(500)
+            }
         }
     }
 }
