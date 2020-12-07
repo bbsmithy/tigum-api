@@ -20,6 +20,7 @@ fn row_to_article_snippet(row: rocket_contrib::databases::postgres::rows::Row) -
         user_id: row.get(5),
         content: row.get(1),
         origin: row.get(2),
+        title: row.get(6),
         date_created: row.get(3),
     }
 }

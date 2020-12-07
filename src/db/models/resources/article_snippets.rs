@@ -17,6 +17,7 @@ pub struct ArticleSnippet {
     pub content: String,
     pub origin: String,
     pub date_created: NaiveDateTime,
+    pub title: String,
     pub topic_id: i32,
     pub user_id: i32,
 }
