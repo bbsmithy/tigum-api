@@ -57,8 +57,8 @@ pub fn update_article_snippet(
     user_id: i32
 ) -> ApiResponse {
     let updated_rows = conn.query(
-        "UPDATE article_snippets SET topic_id = $2, user_id = $3, content = $4, origin = $5 WHERE id = $1 AND user_id = $3 RETURNING *",
-        &[&id, &article_snippet.topic_id, &user_id, &article_snippet.content, &article_snippet.origin],
+        "UPDATE article_snippets SET topic_id = $2, user_id = $3, content = $4, origin = $5, title = $6 WHERE id = $1 AND user_id = $3 RETURNING *",
+        &[&id, &article_snippet.topic_id, &user_id, &article_snippet.content, &article_snippet.origin, &article_snippet.title],
     );
     match updated_rows {
         Ok(rows) => {
