@@ -1,4 +1,5 @@
 use crate::db;
+use crate::util;
 use rocket::http::Status;
 use rocket::http::{Cookie, Cookies};
 use rocket::Route;
@@ -13,7 +14,8 @@ use db::models::user::{AuthUser, CreateUser, LoginUser, User};
 use db::api_response::ApiResponse;
 
 // Util
-use crate::util::auth::{encode_jwt, hash_password, verify_password};
+use util::auth::{encode_jwt, hash_string, verify_password};
+use util::evervault::send_evervault_verify_email;
 
 // Querys
 use db::querys::user_query::{create_user, get_user};
@@ -67,28 +69,25 @@ pub fn user_signup(
             status: Status::raw(400)
         }
     }
-    match hash_password(&new_user.password) {
+    match hash_string(&new_user.password) {
         Ok(hashed_password) => {
-            match create_user(&conn, new_user, hashed_password) {
-                Ok(user) => {
-                    // Encode JWT token with user
-                    let jwt_value = encode_jwt(&user);
-                    let create_cookie_result = create_cookie(jwt_value);
-                    match create_cookie_result {
-                        Ok(jwt_cookie) => {
-                            cookies.add(jwt_cookie);
-                            ApiResponse {
-                                json: json!(user),
-                                status: Status::raw(200)
-                            }
-                        },
-                        Err(_err) => ApiResponse {
-                            json: json!({ "error": "Interal server error" }),
-                            status: Status::raw(500)
-                        }
+            match hash_string(&new_user.email) {
+                Ok(hashed_email) => {
+                    ApiResponse {
+                        json: json!({ "data": format!("{}, {}", hashed_password, hashed_email) }),
+                        status: Status::raw(200)
                     }
+
+                    // create_user_with_ps_email(
+                    //     cookies,
+                    //     conn,
+                    //     new_user,
+                    //     hashed_password,
+                    //     hashed_email
+                    // )
                 },
-                Err(_err) => {
+                Err (err) => {
+                    println!("Error {}", err);
                     ApiResponse {
                         json: json!({ "error": "Internal server error" }),
                         status: Status::raw(500)
@@ -96,6 +95,42 @@ pub fn user_signup(
                 }
             }
         }
+        Err(err) => {
+            println!("Error {}", err);
+            ApiResponse {
+                json: json!({ "error": "Internal server error" }),
+                status: Status::raw(500)
+            }
+        }
+    }
+}
+
+fn create_user_with_ps_email(
+    mut cookies: Cookies,
+    conn: TigumPgConn,
+    new_user: Json<CreateUser>,
+    hashed_password: String,
+    hashed_email: String
+) -> ApiResponse {
+    match create_user(&conn, new_user, hashed_email, hashed_password) {
+        Ok(user) => {
+            // Encode JWT token with user
+            let jwt_value = encode_jwt(&user);
+            let create_cookie_result = create_cookie(jwt_value);
+            match create_cookie_result {
+                Ok(jwt_cookie) => {
+                    cookies.add(jwt_cookie);
+                    ApiResponse {
+                        json: json!(user),
+                        status: Status::raw(200)
+                    }
+                },
+                Err(_err) => ApiResponse {
+                    json: json!({ "error": "Interal server error" }),
+                    status: Status::raw(500)
+                }
+            }
+        },
         Err(_err) => {
             ApiResponse {
                 json: json!({ "error": "Internal server error" }),

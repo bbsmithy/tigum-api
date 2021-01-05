@@ -18,7 +18,6 @@ use db::querys::TigumPgConn;
 
 // Request Routes
 use routes::article_snippet_routes::get_article_snippet_routes;
-use routes::question_routes::get_question_routes;
 use routes::search_resource_routes::get_search_resource_routes;
 use routes::link_routes::link_routes;
 use routes::note_routes::get_note_routes;
@@ -55,11 +54,15 @@ fn create_routes() -> Vec<rocket::Route> {
 
 fn main() {
     // TODO refactor to use multiple mounts
-    let cors_fairing = cors::CorsFairing::new();
-    let routes = create_routes();
-    rocket::ignite()
-        .mount("/", routes)
-        .attach(TigumPgConn::fairing())
-        .attach(cors_fairing)
-        .launch(); 
+
+    let client = util::http::HttpClient::new("https://896f1cc889e030efcf4d5fff7fdb58f0.m.pipedream.net");
+    client.get();
+
+    // let cors_fairing = cors::CorsFairing::new();
+    // let routes = create_routes();
+    // rocket::ignite()
+    //     .mount("/", routes)
+    //     .attach(TigumPgConn::fairing())
+    //     .attach(cors_fairing)
+    //     .launch(); 
 }

@@ -6,7 +6,7 @@ use std::default::Default;
 use crate::db::models::user::User;
 use serde_json::to_string;
 
-pub fn hash_password(plain: &String) -> Result<String, bcrypt::BcryptError> {
+pub fn hash_string(plain: &String) -> Result<String, bcrypt::BcryptError> {
     hash(plain, 10)
 }
 

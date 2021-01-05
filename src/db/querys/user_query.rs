@@ -42,12 +42,12 @@ pub fn create_user(
     conn: &TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
+    hashed_email: String
 ) -> Result<User, status::Custom<String>> {
     let user_result = conn.query(
         "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING *",
-        &[&new_user.name, &new_user.email, &hashed_password],
+        &[&new_user.name, &hashed_email, &hashed_password],
     );
-
     match user_result {
         Ok(user_result) => {
             let user_row = user_result.get(0);
@@ -59,7 +59,7 @@ pub fn create_user(
                     code: 500,
                     reason: "Could not create user",
                 },
-                "Hello".to_string(),
+                "Could not create user".to_string(),
             ))
         }
     }
