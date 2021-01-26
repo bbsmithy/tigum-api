@@ -6,7 +6,7 @@ use rocket::http::Status;
 use rocket::response::status;
 use rocket_contrib::databases::postgres::Error;
 
-fn row_to_user(row: rocket_contrib::databases::postgres::rows::Row) -> User {
+fn row_to_user(row: rocket_contrib::databases::postgres::Row) -> User {
     User {
         id: row.get(0),
         name: row.get(1),
@@ -14,7 +14,7 @@ fn row_to_user(row: rocket_contrib::databases::postgres::rows::Row) -> User {
     }
 }
 
-fn row_to_auth_user(row: rocket_contrib::databases::postgres::rows::Row) -> AuthUser {
+fn row_to_auth_user(row: rocket_contrib::databases::postgres::Row) -> AuthUser {
     AuthUser {
         id: row.get(0),
         name: row.get(1),

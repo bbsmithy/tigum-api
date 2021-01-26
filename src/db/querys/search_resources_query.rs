@@ -1,5 +1,5 @@
 use crate::db;
-use rocket_contrib::databases::postgres::rows::Row;
+use rocket_contrib::databases::postgres::Row;
 use rocket::http::Status;
 
 use db::models::search::resources::ResourceResult;
@@ -42,7 +42,7 @@ SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc FR
 ";
 
 
-fn row_to_resource_result(row: Row) -> ResourceResult {
+fn row_to_resource_result(row: &Row) -> ResourceResult {
     ResourceResult {
         result_type: row.get(0),
         topic_id: row.get(1),
@@ -52,18 +52,22 @@ fn row_to_resource_result(row: Row) -> ResourceResult {
     }
 }
 
-pub fn find_by_title(conn: &TigumPgConn, title: String, user_id: i32) -> ApiResponse {
+pub async fn find_by_title(conn: &TigumPgConn, title: String, user_id: i32) -> ApiResponse {
     let like_title = format!("%{}%", title.to_lowercase());
-    let result_query = conn.query(FIND_BY_TITLE_QUERY_STRING, &[&like_title, &user_id]);
+    let result_query = conn.run(move |c|
+        c.query(FIND_BY_TITLE_QUERY_STRING, &[&like_title, &user_id])
+    ).await;
     return_search_results(result_query)
 }
 
-pub fn find_by_topic_id(conn: &TigumPgConn, topic_id: i32, user_id: i32) -> ApiResponse {
-    let result_query = conn.query(FIND_BY_TOPIC_ID, &[&topic_id, &user_id]);
+pub async fn find_by_topic_id(conn: &TigumPgConn, topic_id: i32, user_id: i32) -> ApiResponse {
+    let result_query = conn.run(move |c|
+        c.query(FIND_BY_TOPIC_ID, &[&topic_id, &user_id])
+    ).await;
     return_search_results(result_query)
 }
 
-fn return_search_results(result_query: Result<rocket_contrib::databases::postgres::rows::Rows, rocket_contrib::databases::postgres::Error>) -> ApiResponse {
+fn return_search_results(result_query: Result<Vec<rocket_contrib::databases::postgres::Row>, rocket_contrib::databases::postgres::Error>) -> ApiResponse {
     match result_query {
         Ok(rows) => {
             let mut resource_results: Vec<ResourceResult> = vec![];

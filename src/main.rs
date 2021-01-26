@@ -52,17 +52,19 @@ fn create_routes() -> Vec<rocket::Route> {
     app_routes
 }
 
-fn main() {
+#[rocket::main]
+async fn main() {
     // TODO refactor to use multiple mounts
 
-    let client = util::http::HttpClient::new("https://896f1cc889e030efcf4d5fff7fdb58f0.m.pipedream.net");
-    client.get();
+    // let client = util::http::HttpClient::new("https://896f1cc889e030efcf4d5fff7fdb58f0.m.pipedream.net");
+    // client.get();
 
-    // let cors_fairing = cors::CorsFairing::new();
-    // let routes = create_routes();
-    // rocket::ignite()
-    //     .mount("/", routes)
-    //     .attach(TigumPgConn::fairing())
-    //     .attach(cors_fairing)
-    //     .launch(); 
+    let cors_fairing = cors::CorsFairing::new();
+    let routes = create_routes();
+    rocket::ignite()
+        .mount("/", routes)
+        .attach(TigumPgConn::fairing())
+        .attach(cors_fairing)
+        .launch()
+        .await;
 }

@@ -17,16 +17,17 @@ impl CorsFairing {
     }
 }
 
+#[rocket::async_trait]
 impl Fairing for CorsFairing {
-    fn on_request(&self, request: &mut Request, _data: &Data) {
-        if request.method() == Method::Options {
+    async fn on_request(&self, req: &mut Request<'_>, data: &mut Data) {
+        if req.method() == Method::Options {
             let uri = Origin::parse("/").unwrap();
-            request.set_uri(uri);
+            req.set_uri(uri);
         }
     }
 
-    fn on_response(&self, request: &Request, response: &mut Response) {
-        let found_origin = request.headers().get_one("Origin");
+    async fn on_response<'r>(&self, req: &'r Request<'_>, res: &mut Response<'r>) {
+        let found_origin = req.headers().get_one("Origin");
         let allowed_origin = match found_origin {
             Some(origin) => {
                 let string_origin = String::from(origin);
@@ -38,27 +39,27 @@ impl Fairing for CorsFairing {
             }
             None => "none".to_string(),
         };
-        let jwt_set_cookie_header = response.headers().get_one("Set-Cookie");
+        let jwt_set_cookie_header = res.headers().get_one("Set-Cookie");
         match jwt_set_cookie_header {
             Some(jwt_set_cookie_header) => { 
                 let fixed_cookie = format!("{}; SameSite=None; Secure", jwt_set_cookie_header);
-                response.remove_header("Set-Cookie");
-                response.set_header(Header::new("Set-Cookie", fixed_cookie));
+                res.remove_header("Set-Cookie");
+                res.set_header(Header::new("Set-Cookie", fixed_cookie));
             },
-            None => println!("{}", "No Set-Cookie header in response")
+            None => println!("{}", "No Set-Cookie header in res")
         }
         let allowed_origin_header = Header::new("Access-Control-Allow-Origin", allowed_origin);
         // Add CORS headers to allow all origins to all outgoing requests
-        response.set_header(allowed_origin_header);
-        response.set_header(Header::new(
+        res.set_header(allowed_origin_header);
+        res.set_header(Header::new(
             "Access-Control-Allow-Methods",
             "GET, POST, DELETE, PUT",
         ));
-        response.set_header(rocket::http::Header::new(
+        res.set_header(rocket::http::Header::new(
             "Access-Control-Allow-Headers",
             "Content-Type,X-User-ID",
         ));
-        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        res.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
 
     fn info(&self) -> Info {

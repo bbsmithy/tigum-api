@@ -1,7 +1,7 @@
 use crate::util::auth::decode_jwt;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
-use rocket::Outcome;
+use rocket::outcome::Outcome;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
@@ -61,10 +61,11 @@ impl User {
     }
 }
 
+#[rocket::async_trait]
 impl<'a, 'r> FromRequest<'a, 'r> for User {
     type Error = UserIdError;
 
-    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+    async fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let cookies = request.cookies();
         let jwt_value = cookies.get("__silly_devkeep");
 

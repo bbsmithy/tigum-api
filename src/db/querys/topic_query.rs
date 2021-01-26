@@ -1,7 +1,7 @@
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
-use rocket_contrib::databases::postgres::rows::Row;
+use rocket_contrib::databases::postgres::row::Row;
 use rocket_contrib::databases::postgres::Error;
 use rocket::http::{Status};
 
@@ -13,11 +13,11 @@ use models::topic::{NewTopic, Topic, TopicIds};
 // Api Response Struct
 use crate::db::api_response::ApiResponse;
 
-type QueryResult = std::result::Result<rocket_contrib::databases::postgres::rows::Rows, rocket_contrib::databases::postgres::Error>;
+type QueryResult = std::result::Result<rocket_contrib::databases::postgres::row::Row, rocket_contrib::databases::postgres::Error>;
 
-fn parse_topic_result(query_result: rocket_contrib::databases::postgres::rows::Rows) -> Vec<Topic> {
+fn parse_topic_result(query_result: rocket_contrib::databases::postgres::row::Row) -> Vec<Topic> {
     let mut results: Vec<Topic> = vec![];
-    for row in query_result.iter() {
+    for row in query_result {
         let topic = row_to_topic(row);
         results.push(topic);
     }
@@ -40,8 +40,10 @@ fn row_to_topic(row: Row) -> Topic {
     return topic;
 }
 
-pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> ApiResponse {
-    let query_result = conn.execute("DELETE FROM topics WHERE id = $1", &[&topic_id]);
+pub async fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> ApiResponse {
+    let query_result = conn.run(move |c|
+        c.execute("DELETE FROM topics WHERE id = $1", &[&topic_id])
+    ).await;
     match query_result {
         Ok(_result) => ApiResponse { 
             json: json!({ "msg": format!("Topic with id {} deleted", topic_id)}),
@@ -77,15 +79,22 @@ pub fn add_to_topic_resource_list(
     query_result
 }
 
-pub fn remove_from_topic_resource_list(
+pub async fn remove_from_topic_resource_list(
     conn: &TigumPgConn,
     topic_id: i32,
     resource_id: i32,
     resource_type: ResourceType 
 ) -> Result<u64, Error> {
     let query_result = match resource_type {
-        ResourceType::Snippet => conn.execute("UPDATE topics SET article_snippets = array_remove(article_snippets, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
-        ResourceType::Link => conn.execute("UPDATE topics SET links = array_remove(links, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
+        ResourceType::Snippet => {
+            conn.run(|c|
+                c.execute(
+                    "UPDATE topics SET article_snippets = array_remove(article_snippets, $1) WHERE id = ($2)",
+                    &[&resource_id, &topic_id]
+                )
+            ).await
+        },
+        ResourceType::Link => conn.execute(),
         ResourceType::Image => conn.execute("UPDATE topics SET images = array_remove(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Note => conn.execute("UPDATE topics SET notes = array_remove(notes, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
         ResourceType::Video => conn.execute("UPDATE topics SET videos = array_remove(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id]),
@@ -95,10 +104,12 @@ pub fn remove_from_topic_resource_list(
 }
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> ApiResponse {
-    let query_result = conn.query(
+    let query_result = conn.run(move |c|
+        c.query(
             "UPDATE topics SET title = ($2), notes = ($3), videos = ($4) WHERE id = ($1) RETURNING *",
             &[&topic_id, &topic.title, &topic.notes, &topic.videos],
-        );
+        )
+    );
     match query_result {
         Ok(rows) => {
             let updated_topic = row_to_topic(rows.get(0));

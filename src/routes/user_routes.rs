@@ -1,7 +1,7 @@
 use crate::db;
 use crate::util;
 use rocket::http::Status;
-use rocket::http::{Cookie, Cookies};
+use rocket::http::{Cookie, CookieJar};
 use rocket::Route;
 use std::format;
 
@@ -51,7 +51,7 @@ pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
 }
 
 #[post("/user/logout", format = "application/json")]
-pub fn logout(mut cookies: Cookies, _conn: TigumPgConn) -> String {
+pub fn logout(mut cookies: &CookieJar<'_>, _conn: TigumPgConn) -> String {
     let expired_cookie = expire_cookie();
     cookies.remove(expired_cookie);
     "OK".to_string()
@@ -59,7 +59,7 @@ pub fn logout(mut cookies: Cookies, _conn: TigumPgConn) -> String {
 
 #[post("/user/signup", format = "application/json", data = "<new_user>")]
 pub fn user_signup(
-    mut cookies: Cookies,
+    mut cookies: &CookieJar<'_>,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
 ) -> ApiResponse {
@@ -106,7 +106,7 @@ pub fn user_signup(
 }
 
 fn create_user_with_ps_email(
-    mut cookies: Cookies,
+    mut cookies: &CookieJar<'_>,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
@@ -142,7 +142,7 @@ fn create_user_with_ps_email(
 
 #[post("/user/login", format = "application/json", data = "<login>")]
 pub fn user_login(
-    mut cookies: Cookies,
+    mut cookies: &CookieJar<'_>,
     conn: TigumPgConn,
     login: Json<LoginUser>,
 ) -> ApiResponse {

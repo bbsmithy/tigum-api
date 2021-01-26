@@ -36,7 +36,7 @@ pub fn update_single_link(
 
 #[post("/links/create", format = "application/json", data = "<link>")]
 pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>, auth_user: User) -> ApiResponse {
-    create_link(&conn, &link, auth_user.id)
+    create_link(&conn, link, auth_user.id)
 }
 
 #[get("/links/<id>")]

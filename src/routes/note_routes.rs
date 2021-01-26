@@ -30,7 +30,7 @@ fn update_single_note(conn: TigumPgConn, note_id: i32, note: Json<Note>, auth_us
 
 #[post("/notes/create-note", format = "application/json", data = "<note>")]
 fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, auth_user: User) -> ApiResponse {
-    create_note(&conn, &note, auth_user.id)
+    create_note(&conn, note, auth_user.id)
 }
 
 #[get("/notes/<note_id>")]

@@ -12,7 +12,7 @@ use models::resources::video::{NewVideo, Video};
 use models::resources::ResourceType;
 use models::Ids;
 
-fn row_to_video(row: rocket_contrib::databases::postgres::rows::Row) -> Video {
+fn row_to_video(row: rocket_contrib::databases::postgres::Row) -> Video {
     Video {
         id: row.get(0),
         topic_id: row.get(6),

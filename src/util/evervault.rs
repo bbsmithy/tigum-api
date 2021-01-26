@@ -12,14 +12,14 @@ pub async fn send_evervault_verify_email() {
 
 }
 
-#[cfg(test)]
-mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     // Note this useful idiom: importing names from outer (for mod tests) scope.
+//     use super::*;
 
-    #[test]
-    fn test_email_verify() {
-        let send_email = send_evervault_verify_email();
-    }
-}
+//     #[test]
+//     fn test_email_verify() {
+//         let send_email = send_evervault_verify_email();
+//     }
+// }
 
