@@ -8,13 +8,13 @@ use db::api_response::ApiResponse;
 use db::querys::search_resources_query::{find_by_title, find_by_topic_id};
 
 #[get("/search/<title>", format = "application/json")]
-pub fn find_resource_with_title(conn: TigumPgConn, title: String, auth_user: User) -> ApiResponse {
-    find_by_title(&conn, title.to_string(), auth_user.id)
+async fn find_resource_with_title(conn: TigumPgConn, title: String, auth_user: User) -> ApiResponse {
+    find_by_title(&conn, title.to_string(), auth_user.id).await
 }
 
 #[get("/searchByTopic/<topic_id>", format = "application/json")]
-pub fn find_resource_with_topic_id(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
-    find_by_topic_id(&conn, topic_id, auth_user.id)
+async fn find_resource_with_topic_id(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
+    find_by_topic_id(&conn, topic_id, auth_user.id).await
 }
 
 

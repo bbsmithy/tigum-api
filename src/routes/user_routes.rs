@@ -141,13 +141,13 @@ fn create_user_with_ps_email(
 }
 
 #[post("/user/login", format = "application/json", data = "<login>")]
-pub fn user_login(
+pub async fn user_login(
     mut cookies: &CookieJar<'_>,
     conn: TigumPgConn,
     login: Json<LoginUser>,
 ) -> ApiResponse {
     // Check if email exists and return User
-    match get_user(&conn, &login.email) {
+    match get_user(&conn, login.email).await {
         Ok(auth_user) => {
             match verify_password(&login.password, &auth_user.password_hash) {
                 Ok(is_correct) => {

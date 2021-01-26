@@ -29,7 +29,7 @@ pub async fn delete_link(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiRespon
             let deleted_row = row.get(0);
             if let Some(row) = deleted_row {
                 let deleted_row_topic_id: i32 = row.get(0);
-                let remove_topic_result = remove_from_topic_resource_list(conn, deleted_row_topic_id, id, ResourceType::Link);
+                let remove_topic_result = remove_from_topic_resource_list(conn, deleted_row_topic_id, id, ResourceType::Link).await;
                 match remove_topic_result {
                     Ok(_rows_removed) => {
                         ApiResponse {
@@ -174,7 +174,7 @@ pub async fn create_link(conn: &TigumPgConn, link: Json<NewLink>, user_id: i32) 
                     topic_id,
                     new_link.id,
                     ResourceType::Link,
-                );
+                ).await;
                 match query_result {
                     Ok(_rows_updated) => ApiResponse { json: json!(new_link), status: Status::raw(200) },
                     Err(_error) => ApiResponse {

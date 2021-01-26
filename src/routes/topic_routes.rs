@@ -20,32 +20,32 @@ use db::querys::topic_query::{create_topic, delete_topic, get_topic, get_topics,
 //////////////////////
 
 #[delete("/topics/<topic_id>")]
-fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
-    delete_topic(&conn, topic_id)
+async fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    delete_topic(&conn, topic_id).await
 }
 
 #[put("/topics/<topic_id>", format = "application/json", data = "<topic>")]
-fn update_single_topic(
+async fn update_single_topic(
     conn: TigumPgConn,
     topic_id: i32,
     topic: Json<Topic>,
 ) -> ApiResponse {
-    update_topic(&conn, topic_id, topic)
+    update_topic(&conn, topic_id, topic).await
 }
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User) -> ApiResponse {
-    create_topic(&conn, topic, auth_user.id)
+async fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User) -> ApiResponse {
+    create_topic(&conn, topic, auth_user.id).await
 }
 
 #[get("/topics/<topic_id>")]
-fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
-    get_topic(&conn, topic_id, auth_user.id)
+async fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
+    get_topic(&conn, topic_id, auth_user.id).await
 }
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
-fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> ApiResponse {
-    get_topics(&conn, topic_ids, auth_user.id)
+async fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> ApiResponse {
+    get_topics(&conn, topic_ids, auth_user.id).await
 }
 
 pub fn get_topic_routes() -> Vec<Route> {

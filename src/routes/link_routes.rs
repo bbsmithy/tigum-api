@@ -20,33 +20,33 @@ use db::querys::TigumPgConn;
 //////////////////////
 
 #[delete("/links/<id>")]
-pub fn delete_single_link(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-    delete_link(&conn, id, auth_user.id)
+pub async fn delete_single_link(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+    delete_link(&conn, id, auth_user.id).await
 }
 
 #[put("/links/<id>", format = "application/json", data = "<link>")]
-pub fn update_single_link(
+pub async fn update_single_link(
     conn: TigumPgConn,
     id: i32,
     link: Json<NewLink>,
     auth_user: User
 ) -> ApiResponse {
-    update_link(&conn, id, link, auth_user.id)
+    update_link(&conn, id, link, auth_user.id).await
 }
 
 #[post("/links/create", format = "application/json", data = "<link>")]
-pub fn create_single_link(conn: TigumPgConn, link: Json<NewLink>, auth_user: User) -> ApiResponse {
-    create_link(&conn, link, auth_user.id)
+pub async fn create_single_link(conn: TigumPgConn, link: Json<NewLink>, auth_user: User) -> ApiResponse {
+    create_link(&conn, link, auth_user.id).await
 }
 
 #[get("/links/<id>")]
-pub fn single_link(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-    get_link(&conn, id, auth_user.id)
+pub async fn single_link(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+    get_link(&conn, id, auth_user.id).await
 }
 
 #[post("/links", format = "application/json", data = "<ids>")]
-pub fn links(conn: TigumPgConn, ids: Json<Ids>, auth_user: User) -> ApiResponse {
-    get_links(&conn, ids, auth_user.id)
+pub async fn links(conn: TigumPgConn, ids: Json<Ids>, auth_user: User) -> ApiResponse {
+    get_links(&conn, ids, auth_user.id).await
 }
 
 pub fn link_routes() -> Vec<Route> {

@@ -31,7 +31,7 @@ pub async fn delete_article_snippet(conn: &TigumPgConn, id: i32, user_id: i32) -
             let row_result = result.get(0);
             if let Some(row) = row_result {
                 let topic_id = row.get(0);
-                let remove_query = remove_from_topic_resource_list(&conn, topic_id, id, ResourceType::Snippet);
+                let remove_query = remove_from_topic_resource_list(&conn, topic_id, id, ResourceType::Snippet).await;
                 match remove_query {
                     Ok(_rows_removed) => ApiResponse {
                         json: json!({ "msg": format!("Snippet with id {} deleted successfully", id) }),
@@ -175,7 +175,7 @@ pub async fn create_article_snippet(
                     new_article_snippet.topic_id,
                     new_article_snippet.id,
                     ResourceType::Snippet,
-                ) {
+                ).await {
                     Ok(_rows_updated) => ApiResponse { json: json!(new_article_snippet), status: Status::raw(200) },
                     Err(_error) => ApiResponse {
                         json: json!({ "error": "Could not create snippet" }),

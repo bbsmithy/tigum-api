@@ -34,7 +34,7 @@ pub async fn delete_note(conn: &TigumPgConn, note_id: i32, user_id: i32) -> ApiR
             let result_row = row.get(0);
             if let Some(row) = result_row {
                 let topic_id = row.get(0);
-                let remove_from_topic_result = remove_from_topic_resource_list(conn, topic_id, note_id, ResourceType::Note);
+                let remove_from_topic_result = remove_from_topic_resource_list(conn, topic_id, note_id, ResourceType::Note).await;
                 match remove_from_topic_result {
                     Ok(_rows_removed) => {
                         ApiResponse {
@@ -158,7 +158,7 @@ pub async fn create_note(conn: &TigumPgConn, note: Json<NewNote>, user_id: i32) 
             let result = result_rows.get(0);
             if let Some(row) = result {
                 let new_note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
-                let add_to_topic_result = add_to_topic_resource_list(&conn, topic_id, new_note.id, ResourceType::Note);
+                let add_to_topic_result = add_to_topic_resource_list(&conn, topic_id, new_note.id, ResourceType::Note).await;
                 match add_to_topic_result {
                     Ok(_rows_updated) => {
                         ApiResponse { 

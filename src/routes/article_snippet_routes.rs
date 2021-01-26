@@ -20,8 +20,8 @@ use db::querys::TigumPgConn;
 /////////////////////////////////
 
 #[delete("/article_snippets/<id>")]
-fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-   delete_article_snippet(&conn, id, auth_user.id)
+async fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+   delete_article_snippet(&conn, id, auth_user.id).await
 }
 
 #[put(
@@ -29,13 +29,13 @@ fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) ->
     format = "application/json",
     data = "<article_snippet>"
 )]
-fn update_single_article_snippet(
+async fn update_single_article_snippet(
     conn: TigumPgConn,
     id: i32,
     article_snippet: Json<NewArticleSnippet>,
     auth_user: User,
 ) -> ApiResponse {
-    update_article_snippet(&conn, id, article_snippet, auth_user.id)
+    update_article_snippet(&conn, id, article_snippet, auth_user.id).await
 }
 
 #[post(
@@ -52,17 +52,17 @@ async fn create_single_article_snippet(
 }
 
 #[get("/article_snippets/<id>")]
-fn single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-    get_article_snippet(&conn, id, auth_user.id)
+async fn single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+    get_article_snippet(&conn, id, auth_user.id).await
 }
 
 #[post("/article_snippets", format = "application/json", data = "<ids>")]
-fn article_snippets(
+async fn article_snippets(
     conn: TigumPgConn,
     ids: Json<Ids>,
     auth_user: User,
 ) -> ApiResponse {
-    get_article_snippets(&conn, ids, auth_user.id)
+    get_article_snippets(&conn, ids, auth_user.id).await
 }
 
 pub fn get_article_snippet_routes() -> Vec<Route> {
