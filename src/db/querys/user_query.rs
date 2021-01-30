@@ -21,7 +21,7 @@ fn row_to_auth_user(row: &rocket_contrib::databases::postgres::Row) -> AuthUser 
     }
 }
 
-pub async fn get_user(conn: &TigumPgConn, email: dyn<'static String>) -> Result<AuthUser, String> {
+pub async fn get_user(conn: &TigumPgConn, email: String) -> Result<AuthUser, String> {
     let user_email = email;
     let user_password_hash = conn.run(move |c|
         c.query(

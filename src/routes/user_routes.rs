@@ -147,7 +147,7 @@ pub async fn user_login(
     login: Json<LoginUser>,
 ) -> ApiResponse {
     // Check if email exists and return User
-    match get_user(&conn, login.email).await {
+    match get_user(&conn, login.email.clone()).await {
         Ok(auth_user) => {
             match verify_password(&login.password, &auth_user.password_hash) {
                 Ok(is_correct) => {
