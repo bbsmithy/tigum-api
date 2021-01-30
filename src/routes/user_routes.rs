@@ -105,14 +105,14 @@ pub fn user_signup(
     }
 }
 
-fn create_user_with_ps_email(
+async fn create_user_with_ps_email(
     mut cookies: &CookieJar<'_>,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
     hashed_email: String
 ) -> ApiResponse {
-    match create_user(&conn, new_user, hashed_email, hashed_password) {
+    match create_user(&conn, new_user, hashed_email, hashed_password).await {
         Ok(user) => {
             // Encode JWT token with user
             let jwt_value = encode_jwt(&user);

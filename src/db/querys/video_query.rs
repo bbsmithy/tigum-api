@@ -12,7 +12,7 @@ use models::resources::video::{NewVideo, Video};
 use models::resources::ResourceType;
 use models::Ids;
 
-fn row_to_video(row: rocket_contrib::databases::postgres::Row) -> Video {
+fn row_to_video(row: &rocket_contrib::databases::postgres::Row) -> Video {
     Video {
         id: row.get(0),
         topic_id: row.get(6),
@@ -25,53 +25,71 @@ fn row_to_video(row: rocket_contrib::databases::postgres::Row) -> Video {
     }
 }
 
-pub fn delete_video(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
-    let query_result = conn.query("DELETE FROM videos WHERE id = $1 AND user_id = $2 RETURNING topic_id", &[&id, &user_id]);
+pub async fn delete_video(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
+    let query_result = conn.run(move |c|
+        c.query("DELETE FROM videos WHERE id = $1 AND user_id = $2 RETURNING topic_id", &[&id, &user_id])
+    ).await;
     match query_result {
         Ok(rows_removed) => {
-            let topic_id = rows_removed.get(0).get(0);
-            match remove_from_topic_resource_list(conn, topic_id, id, ResourceType::Video) {
-                Ok(_removed_row_count)=> ApiResponse {
-                    json: json!({ "msg": format!("Successfully deleted video with id: {}", id) }),
-                    status: Status::raw(200)
-                },
-                Err(_error) => ApiResponse {
-                    json: json!({ "error": format!("Successfully deleted video with id: {}", id) }),
-                    status: Status::raw(200)
+            if let Some(topic_row) = rows_removed.get(0) {
+                let topic_id = topic_row.get(0);
+                match remove_from_topic_resource_list(conn, topic_id, id, ResourceType::Video).await {
+                    Ok(_removed_row_count)=> ApiResponse {
+                        json: json!({ "msg": format!("Successfully deleted video with id: {}", id) }),
+                        status: Status::raw(200)
+                    },
+                    Err(_error) => ApiResponse {
+                        json: json!({ "error": format!("Successfully deleted video with id: {}", id) }),
+                        status: Status::raw(200)
+                    }
+                }
+            } else {
+                ApiResponse {
+                    json: json!({ "error": format!("Failed to delete video with id: {}", id) }),
+                    status: Status::raw(500)
                 }
             }
         },
         Err(_err) => ApiResponse {
-            json: json!({ "error": format!("Successfully deleted video with id: {}", id) }),
-            status: Status::raw(200)
+            json: json!({ "error": format!("Failed to delete video with id: {}", id) }),
+            status: Status::raw(500)
         }
     }
 }
 
-pub fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>, user_id: i32) -> ApiResponse {
-    let query_result = conn.query(
-        "UPDATE videos SET topic_id = $2, user_id = $3, title = $4, iframe = $5, origin = $6, thumbnail_img = $7 WHERE id = $1 RETURNING *",
+pub async fn update_video(conn: &TigumPgConn, id: i32, video: Json<NewVideo>, user_id: i32) -> ApiResponse {
+    let query_result = conn.run(move |c|
+        c.query("UPDATE videos SET topic_id = $2, user_id = $3, title = $4, iframe = $5, origin = $6, thumbnail_img = $7 WHERE id = $1 RETURNING *",
         &[&id, &video.topic_id, &user_id, &video.title, &video.iframe, &video.origin, &video.thumbnail_img],
-    );
+    )).await;
     match query_result {
         Ok(updated_rows) => {
-            let updated_video = row_to_video(updated_rows.get(0));
-            ApiResponse {
-                json: json!(updated_video),
-                status: Status::raw(200)
+            if let Some(video_row) = updated_rows.get(0) {
+                let updated_video = row_to_video(video_row);
+                ApiResponse {
+                    json: json!(updated_video),
+                    status: Status::raw(200)
+                }
+            } else {
+                ApiResponse {
+                    json: json!({"error": format!("Could not update video with id {}", id)}),
+                    status: Status::raw(500)
+                }
             }
        },
         Err(_err) => {
             ApiResponse {
                 json: json!({"error": format!("Could not update video with id {}", id)}),
-                status: Status::raw(200)
+                status: Status::raw(500)
             }
         }
     }
 }
 
-pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
-    let query_result = conn.query("SELECT * FROM videos WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created DESC", &[&ids.ids, &user_id]);
+pub async fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
+    let query_result = conn.run(move |c|
+        c.query("SELECT * FROM videos WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created DESC", &[&ids.ids, &user_id])
+    ).await;
     match query_result {
         Ok(rows) => {
             let mut results: Vec<Video> = vec![];
@@ -85,34 +103,43 @@ pub fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiRespon
             }
         },
         Err(_err) => ApiResponse {
-            json: json!({ "error": format!("Could not get videos with ids {:?}", ids.ids) }),
+            json: json!({ "error": format!("Could not get videos") }),
             status: Status::raw(200)
         }
     }   
 }
 
-pub fn get_video(conn: &TigumPgConn, id: i32, _user_id: i32) -> ApiResponse {
-    let query_result = conn.query("SELECT * FROM videos WHERE id = $1", &[&id]);
+pub async fn get_video(conn: &TigumPgConn, id: i32, _user_id: i32) -> ApiResponse {
+    let query_result = conn.run(move |c|
+        c.query("SELECT * FROM videos WHERE id = $1", &[&id])
+    ).await;
     match query_result {
         Ok(rows) => {
-            let video_response = row_to_video(rows.get(0));
-            ApiResponse {
-                json: json!(video_response),
-                status: Status::raw(200)
+            if let Some(row) = rows.get(0) {
+                let video_response = row_to_video(row);
+                ApiResponse {
+                    json: json!(video_response),
+                    status: Status::raw(200)
+                }
+            } else {
+                ApiResponse {
+                    json: json!({ "error": "Could not find video response" }),
+                    status: Status::raw(500)
+                }
             }
         },
         Err(_err) => {
             ApiResponse {
                 json: json!({ "error": "Could not create video" }),
-                status: Status::raw(200)
+                status: Status::raw(500)
             }
         }
     }
 }
 
-pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>, user_id: i32) -> ApiResponse {
-    let query_result = conn.query(
-            "INSERT INTO videos (topic_id, user_id, title, iframe, origin, thumbnail_img) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+pub async fn create_video(conn: &TigumPgConn, video: Json<NewVideo>, user_id: i32) -> ApiResponse {
+    let query_result = conn.run(move |c|
+        c.query("INSERT INTO videos (topic_id, user_id, title, iframe, origin, thumbnail_img) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
             &[
                 &video.topic_id,
                 &user_id,
@@ -120,24 +147,30 @@ pub fn create_video(conn: &TigumPgConn, video: &Json<NewVideo>, user_id: i32) ->
                 &video.iframe,
                 &video.origin,
                 &video.thumbnail_img
-            ],
-        );
+            ])
+        ).await;
     match query_result {
         Ok(new_video_rows) => {
-            let new_row = new_video_rows.get(0);
-            let new_video = row_to_video(new_row);
-            let query_result = add_to_topic_resource_list(&conn, new_video.topic_id, new_video.id, ResourceType::Video);
-            match query_result {
-                Ok(_rows_updated) => ApiResponse { json: json!(new_video), status: Status::raw(200) },
-                Err(_error) => ApiResponse {
-                    json: json!({ "error": format!("Could not create video {}", new_video.topic_id )}),
+            if let Some(new_row) = new_video_rows.get(0) {
+                let new_video = row_to_video(new_row);
+                let query_result = add_to_topic_resource_list(&conn, new_video.topic_id, new_video.id, ResourceType::Video).await;
+                match query_result {
+                    Ok(_rows_updated) => ApiResponse { json: json!(new_video), status: Status::raw(200) },
+                    Err(_error) => ApiResponse {
+                        json: json!({ "error": format!("Could not create video {}", new_video.topic_id )}),
+                        status: Status::raw(500)
+                    }
+                }
+            } else {
+                ApiResponse {
+                    json: json!({ "error": format!("Could not create video") }),
                     status: Status::raw(500)
                 }
             }
         },  
         Err(_error) => ApiResponse {
             json: json!({
-                "error": format!("Could not create video {}", video.topic_id )
+                "error": format!("Could not create video")
             }),
             status: Status::raw(500)
         }
