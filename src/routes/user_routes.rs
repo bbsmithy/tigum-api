@@ -58,7 +58,7 @@ pub fn logout(mut cookies: &CookieJar<'_>, _conn: TigumPgConn) -> String {
 }
 
 #[post("/user/signup", format = "application/json", data = "<new_user>")]
-pub fn user_signup(
+pub async fn user_signup(
     mut cookies: &CookieJar<'_>,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
@@ -77,14 +77,6 @@ pub fn user_signup(
                         json: json!({ "data": format!("{}, {}", hashed_password, hashed_email) }),
                         status: Status::raw(200)
                     }
-
-                    // create_user_with_ps_email(
-                    //     cookies,
-                    //     conn,
-                    //     new_user,
-                    //     hashed_password,
-                    //     hashed_email
-                    // )
                 },
                 Err (err) => {
                     println!("Error {}", err);

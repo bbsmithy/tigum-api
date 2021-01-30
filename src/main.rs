@@ -52,12 +52,14 @@ fn create_routes() -> Vec<rocket::Route> {
     app_routes
 }
 
-#[rocket::main]
-async fn main() {
+#[launch]
+async fn rocket() -> _ {
     // TODO refactor to use multiple mounts
 
     // let client = util::http::HttpClient::new("https://896f1cc889e030efcf4d5fff7fdb58f0.m.pipedream.net");
     // client.get();
+
+    util::evervault::send_evervault_verify_email();
 
     let cors_fairing = cors::CorsFairing::new();
     let routes = create_routes();
@@ -65,6 +67,4 @@ async fn main() {
         .mount("/", routes)
         .attach(TigumPgConn::fairing())
         .attach(cors_fairing)
-        .launch()
-        .await;
 }
