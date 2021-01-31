@@ -14,7 +14,7 @@ use db::models::user::{AuthUser, CreateUser, LoginUser, User};
 use db::api_response::ApiResponse;
 
 // Util
-use util::auth::{encode_jwt, hash_string, verify_password};
+use util::auth::{encode_jwt, hash_string, verify_hash, create_known_hash};
 use util::evervault::send_evervault_verify_email;
 
 // Querys
@@ -71,21 +71,14 @@ pub async fn user_signup(
     }
     match hash_string(&new_user.password) {
         Ok(hashed_password) => {
-            match hash_string(&new_user.email) {
-                Ok(hashed_email) => {
-                    ApiResponse {
-                        json: json!({ "data": format!("{}, {}", hashed_password, hashed_email) }),
-                        status: Status::raw(200)
-                    }
-                },
-                Err (err) => {
-                    println!("Error {}", err);
-                    ApiResponse {
-                        json: json!({ "error": "Internal server error" }),
-                        status: Status::raw(500)
-                    }
-                }
-            }
+            let hashed_email = create_known_hash(new_user.email.clone());
+            create_user_with_ps_email(
+                cookies,
+                conn,
+                new_user,
+                hashed_password,
+                hashed_email
+            ).await
         }
         Err(err) => {
             println!("Error {}", err);
@@ -102,16 +95,19 @@ async fn create_user_with_ps_email(
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
-    hashed_email: String
+    hashed_email: u64
 ) -> ApiResponse {
-    match create_user(&conn, new_user, hashed_email, hashed_password).await {
+    let new_user_email = new_user.email.clone();
+    match create_user(&conn, new_user, hashed_password, hashed_email).await {
         Ok(user) => {
+            println!("Created user: {:?}", user);
             // Encode JWT token with user
             let jwt_value = encode_jwt(&user);
             let create_cookie_result = create_cookie(jwt_value);
             match create_cookie_result {
                 Ok(jwt_cookie) => {
                     cookies.add(jwt_cookie);
+                    send_evervault_verify_email(new_user_email).await;
                     ApiResponse {
                         json: json!(user),
                         status: Status::raw(200)
@@ -123,7 +119,8 @@ async fn create_user_with_ps_email(
                 }
             }
         },
-        Err(_err) => {
+        Err(err) => {
+            println!("Error creating user: {:?}", err);
             ApiResponse {
                 json: json!({ "error": "Internal server error" }),
                 status: Status::raw(500)
@@ -138,10 +135,10 @@ pub async fn user_login(
     conn: TigumPgConn,
     login: Json<LoginUser>,
 ) -> ApiResponse {
-    // Check if email exists and return User
-    match get_user(&conn, login.email.clone()).await {
+    let hashed_email = create_known_hash(login.email.clone());
+    match get_user(&conn, hashed_email).await {
         Ok(auth_user) => {
-            match verify_password(&login.password, &auth_user.password_hash) {
+            match verify_hash(&login.password, &auth_user.password_hash) {
                 Ok(is_correct) => {
                     if is_correct {
                         let public_user = AuthUser::to_public_user(auth_user);
@@ -163,8 +160,8 @@ pub async fn user_login(
                                 }
                             }
                         }
-                        
                     } else {
+                        println!("failed verify password");
                         ApiResponse {
                             json: json!({"error": "Incorrect email or password"}),
                             status: Status::raw(403)
@@ -177,11 +174,14 @@ pub async fn user_login(
                 },
             }
         },
-        Err(_err) => ApiResponse {
-            json: json!({"error": "Incorrect email or password"}),
-            status: Status::raw(403)
+        Err(_err) => {
+            println!("No luck");
+            ApiResponse {
+                json: json!({"error": "Incorrect email or password"}),
+                status: Status::raw(403)
+            }
         }
-    }
+    } 
 }
 
 pub fn get_user_routes() -> Vec<Route> {

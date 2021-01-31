@@ -14,7 +14,10 @@ mod db;
 mod routes;
 mod util;
 
+
+
 use db::querys::TigumPgConn;
+use util::auth::create_known_hash;
 
 // Request Routes
 use routes::article_snippet_routes::get_article_snippet_routes;
@@ -54,12 +57,10 @@ fn create_routes() -> Vec<rocket::Route> {
 
 #[launch]
 async fn rocket() -> _ {
-    // TODO refactor to use multiple mounts
+    let hash_email: u64 = create_known_hash("briansmith.work578@gmail.com".to_string());
+    let hash_email_2: u64 = create_known_hash("briansmith.work578@gmail.com".to_string());
 
-    // let client = util::http::HttpClient::new("https://896f1cc889e030efcf4d5fff7fdb58f0.m.pipedream.net");
-    // client.get();
-
-    util::evervault::send_evervault_verify_email();
+    println!("{}, {}", hash_email, hash_email_2);
 
     let cors_fairing = cors::CorsFairing::new();
     let routes = create_routes();

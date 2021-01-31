@@ -2,15 +2,32 @@ use bcrypt::{hash, verify};
 use crypto;
 use jwt::{Claims, Header, Token};
 use std::default::Default;
-
 use crate::db::models::user::User;
 use serde_json::to_string;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
+#[derive(Hash)]
+pub struct EmailHash {
+    hash_key: String,
+    email: String
+}
+
+pub fn create_known_hash(email: String) -> u64 {
+    let email_hash = EmailHash {
+        hash_key: "5612hsgdLK".to_string(),
+        email: email
+    };
+    let mut s = DefaultHasher::new();
+    email_hash.hash(&mut s);
+    s.finish()
+}
 
 pub fn hash_string(plain: &String) -> Result<String, bcrypt::BcryptError> {
     hash(plain, 10)
 }
 
-pub fn verify_password(plain: &String, hash_string: &str) -> Result<bool, bcrypt::BcryptError> {
+pub fn verify_hash(plain: &String, hash_string: &str) -> Result<bool, bcrypt::BcryptError> {
     Ok(verify(plain, hash_string)?)
 }
 

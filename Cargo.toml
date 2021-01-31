@@ -5,7 +5,7 @@ authors = ["bbsmithy <briansmith.work578@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-reqwest = { version = "0.11.0", features = ["blocking"] }
+reqwest = { version = "0.11.0", features = ["json"] }
 rocket = { git = "https://github.com/SergioBenitez/Rocket.git" }
 jwt = "0.4.0"
 rust-crypto = "^0.2"

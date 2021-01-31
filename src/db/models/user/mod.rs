@@ -19,6 +19,7 @@ pub struct UserId {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateUser {
     pub name: String,
+    pub email_encrypted: String,
     pub email: String,
     pub password: String,
 }
@@ -34,6 +35,7 @@ pub struct AuthUser {
     pub id: i32,
     pub name: String,
     pub email: String,
+    pub email_hash: i64,
     pub password_hash: String,
 }
 
@@ -43,21 +45,23 @@ impl AuthUser {
             id: auth_user.id,
             name: auth_user.name,
             email: auth_user.email,
+            email_hash: auth_user.email_hash
         };
         user
     }
 }
 
-#[derive(Serialize, Deserialize, RustcEncodable)]
+#[derive(Serialize, Deserialize, RustcEncodable, Debug)]
 pub struct User {
     pub id: i32,
     pub name: String,
     pub email: String,
+    pub email_hash: i64
 }
 
 impl User {
-    pub fn new(id: i32, name: String, email: String) -> User {
-        User { id, name, email }
+    pub fn new(id: i32, name: String, email: String, email_hash: i64) -> User {
+        User { id, name, email, email_hash }
     }
 }
 
