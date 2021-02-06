@@ -14,10 +14,8 @@ mod db;
 mod routes;
 mod util;
 
-
-
+// DB Connection Fairing
 use db::querys::TigumPgConn;
-use util::auth::create_known_hash;
 
 // Request Routes
 use routes::article_snippet_routes::get_article_snippet_routes;
@@ -57,11 +55,6 @@ fn create_routes() -> Vec<rocket::Route> {
 
 #[launch]
 async fn rocket() -> _ {
-    let hash_email: u64 = create_known_hash("briansmith.work578@gmail.com".to_string());
-    let hash_email_2: u64 = create_known_hash("briansmith.work578@gmail.com".to_string());
-
-    println!("{}, {}", hash_email, hash_email_2);
-
     let cors_fairing = cors::CorsFairing::new();
     let routes = create_routes();
     rocket::ignite()

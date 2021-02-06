@@ -1,8 +1,11 @@
 use rocket_contrib::json::Json;
 use crate::db::models::user::{CreateUser, User, AuthUser};
 use crate::db::querys::TigumPgConn;
+use crate::db::api_response::ApiResponse;
 use rocket::http::Status;
 use rocket::response::status;
+
+
 
 fn row_to_user(row: &rocket_contrib::databases::postgres::Row) -> User {
     User {
@@ -43,17 +46,38 @@ pub async fn get_user(conn: &TigumPgConn, email_hash: u64) -> Result<AuthUser, S
     }
 }
 
+pub async fn update_password(conn: &TigumPgConn, email_hash: i64, password_hash: String) -> ApiResponse {
+    let user_password_update = conn.run(move |c|
+        c.query(
+            "UPDATE users SET password_hash = ($2) WHERE email_hash = ($1) RETURNING *",
+            &[&email_hash, &password_hash]
+        )
+    ).await;
+    if let Ok(_res) = user_password_update {
+        ApiResponse {
+            json: json!({ "msg": "Updated password" }),
+            status: Status::raw(200)
+        }
+    } else {
+        ApiResponse {
+            json: json!({ "error": "Failed to update password" }),
+            status: Status::raw(500)
+        }
+    }
+}
+
 pub async fn create_user(
     conn: &TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
-    hashed_email: u64
+    hashed_email: u64,
+    verify_hash: String
 ) -> Result<User, status::Custom<String>> {
     let hashed_email_i = hashed_email as i64;
     let user_result = conn.run(move |c|
         c.query(
-            "INSERT INTO users (name, email, email_hash, password_hash) VALUES ($1, $2, $3, $4) RETURNING *",
-            &[&new_user.name, &new_user.email_encrypted, &hashed_email_i, &hashed_password],
+            "INSERT INTO users (name, email, email_hash, password_hash, verify_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+            &[&new_user.name, &new_user.email_encrypted, &hashed_email_i, &hashed_password, &verify_hash],
         )
     ).await;
     match user_result {
@@ -80,5 +104,34 @@ pub async fn create_user(
                 "Could not create user".to_string(),
             ))
         }
+    }
+}
+
+pub async fn verify_user_with_email(conn: &TigumPgConn, email_hash: i64) -> bool {
+    let check_for_user = conn.run(move |c|
+        c.query(
+            "SELECT * FROM users WHERE email_hash = $1",
+            &[&email_hash]
+        )
+    ).await;
+    if let Ok(user) = check_for_user {
+        println!("{:?}", user);
+        true
+    } else {
+        false
+    }
+}
+
+pub async fn set_user_as_verified(conn: &TigumPgConn, email_hash: i64) -> bool {
+    let check_for_user = conn.run(move |c|
+        c.query(
+            "SELECT * FROM users WHERE email_hash = $1",
+            &[&email_hash]
+        )
+    ).await;
+    if let Ok(user) = check_for_user {
+        true
+    } else {
+        false
     }
 }

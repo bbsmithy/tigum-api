@@ -30,6 +30,19 @@ pub struct LoginUser {
     pub password: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePassword {
+    pub new_password: String,
+    pub email_hash: i64
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct VerifyUser {
+    pub email_hash: i64,
+    pub verify_hash: String
+}
+
+
 #[derive(Serialize, Deserialize, RustcEncodable)]
 pub struct AuthUser {
     pub id: i32,

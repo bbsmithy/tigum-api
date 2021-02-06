@@ -6,6 +6,10 @@ use crate::db::models::user::User;
 use serde_json::to_string;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use sha2::{Sha256, Sha512, Digest};
+
+const HASH_KEY_STRING: &str = "9KlI12SBL";
+const HASH_KEY_NUMBER: &str = "5612hsgdLK";
 
 #[derive(Hash)]
 pub struct EmailHash {
@@ -13,14 +17,32 @@ pub struct EmailHash {
     email: String
 }
 
-pub fn create_known_hash(email: String) -> u64 {
+pub fn create_known_hash_email(email: String) -> u64 {
     let email_hash = EmailHash {
-        hash_key: "5612hsgdLK".to_string(),
+        hash_key: HASH_KEY_NUMBER.to_string(),
         email: email
     };
     let mut s = DefaultHasher::new();
     email_hash.hash(&mut s);
     s.finish()
+}
+
+pub fn create_known_hash_string(val: u64) -> String {
+
+    let email_hash_string = format!("{}", val);
+
+    // create a Sha256 object
+    let mut hasher = Sha256::new();
+
+    // write input message
+    hasher.update(format!("{}{}", email_hash_string, HASH_KEY_STRING));
+
+    // read hash digest and consume hasher
+    let byte_array_result = hasher.finalize();
+    let hash_string_result: String = format!("{:x}", byte_array_result);
+
+    hash_string_result
+
 }
 
 pub fn hash_string(plain: &String) -> Result<String, bcrypt::BcryptError> {

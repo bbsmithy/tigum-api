@@ -10,15 +10,27 @@ use db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
 
 // Models
-use db::models::user::{AuthUser, CreateUser, LoginUser, User};
+use db::models::user::{AuthUser, CreateUser, LoginUser, User, UpdatePassword, VerifyUser};
 use db::api_response::ApiResponse;
 
 // Util
-use util::auth::{encode_jwt, hash_string, verify_hash, create_known_hash};
+use util::auth::{
+    encode_jwt,
+    hash_string,
+    verify_hash,
+    create_known_hash_email,
+    create_known_hash_string
+};
 use util::evervault::send_evervault_verify_email;
 
 // Querys
-use db::querys::user_query::{create_user, get_user};
+use db::querys::user_query::{
+    create_user,
+    get_user,
+    update_password,
+    verify_user_with_email,
+    set_user_as_verified
+};
 
 /////////////////////////
 //// USER ROUTES ////////
@@ -71,13 +83,15 @@ pub async fn user_signup(
     }
     match hash_string(&new_user.password) {
         Ok(hashed_password) => {
-            let hashed_email = create_known_hash(new_user.email.clone());
+            let hashed_email = create_known_hash_email(new_user.email.clone());
+            let verify_hash = create_known_hash_string(hashed_email);
             create_user_with_ps_email(
                 cookies,
                 conn,
                 new_user,
                 hashed_password,
-                hashed_email
+                hashed_email,
+                verify_hash
             ).await
         }
         Err(err) => {
@@ -95,10 +109,11 @@ async fn create_user_with_ps_email(
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
-    hashed_email: u64
+    hashed_email: u64,
+    verify_hash: String
 ) -> ApiResponse {
     let new_user_email = new_user.email.clone();
-    match create_user(&conn, new_user, hashed_password, hashed_email).await {
+    match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash).await {
         Ok(user) => {
             println!("Created user: {:?}", user);
             // Encode JWT token with user
@@ -135,7 +150,7 @@ pub async fn user_login(
     conn: TigumPgConn,
     login: Json<LoginUser>,
 ) -> ApiResponse {
-    let hashed_email = create_known_hash(login.email.clone());
+    let hashed_email = create_known_hash_email(login.email.clone());
     match get_user(&conn, hashed_email).await {
         Ok(auth_user) => {
             match verify_hash(&login.password, &auth_user.password_hash) {
@@ -161,7 +176,6 @@ pub async fn user_login(
                             }
                         }
                     } else {
-                        println!("failed verify password");
                         ApiResponse {
                             json: json!({"error": "Incorrect email or password"}),
                             status: Status::raw(403)
@@ -184,6 +198,54 @@ pub async fn user_login(
     } 
 }
 
+
+#[post("/user/update-password", format = "application/json", data = "<password>")]
+pub async fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>) -> ApiResponse {
+    let email_hash = password.email_hash as u64;
+    if let Ok(_user) = get_user(&conn, email_hash).await {
+        if let Ok(password_hash) = hash_string(&password.new_password) {
+            update_password(&conn, password.email_hash, password_hash).await
+        } else {
+            ApiResponse {
+                json: json!({ "error": "Failed to update password" }),
+                status: Status::raw(500)
+            }
+        }
+    } else {
+        ApiResponse {
+            json: json!({ "error": "Failed to update password" }),
+            status: Status::raw(500)
+        }
+    }
+}
+
+#[post("/user/verify", format = "application/json", data = "<verify>")]
+pub async fn verify_user(conn: TigumPgConn, verify: Json<VerifyUser>) -> ApiResponse {
+
+    // Run query
+    let verified = verify_user_with_email(&conn, verify.email_hash).await;
+    if verified {
+        // set_user_as_verified(&conn)
+        ApiResponse {
+            json: json!({ "msg": "User verified" }),
+            status: Status::raw(200)
+        }
+    } else {
+        ApiResponse {
+            json: json!({ "error": "Could not verify user" }),
+            status: Status::raw(500)
+        }
+    }
+}
+
+
 pub fn get_user_routes() -> Vec<Route> {
-    routes![user_signup, user_login, check_login, logout]
+    routes![
+        user_signup,
+        user_login,
+        check_login,
+        logout,
+        update_user_password,
+        verify_user
+    ]
 }
