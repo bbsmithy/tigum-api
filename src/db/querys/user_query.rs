@@ -76,7 +76,7 @@ pub async fn create_user(
     let hashed_email_i = hashed_email as i64;
     let user_result = conn.run(move |c|
         c.query(
-            "INSERT INTO users (name, email, email_hash, password_hash, verify_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+            "INSERT INTO users (name, email, email_hash, password_hash, verify_hash, verified) VALUES ($1, $2, $3, $4, $5, false) RETURNING *",
             &[&new_user.name, &new_user.email_encrypted, &hashed_email_i, &hashed_password, &verify_hash],
         )
     ).await;
@@ -107,29 +107,29 @@ pub async fn create_user(
     }
 }
 
-pub async fn verify_user_with_email(conn: &TigumPgConn, email_hash: i64) -> bool {
+pub async fn verify_user_with_hash(conn: &TigumPgConn, hash: String) -> bool {
+    let copied_hash = hash.clone();
     let check_for_user = conn.run(move |c|
         c.query(
-            "SELECT * FROM users WHERE email_hash = $1",
-            &[&email_hash]
+            "SELECT * FROM users WHERE verify_hash = $1",
+            &[&hash]
         )
     ).await;
-    if let Ok(user) = check_for_user {
-        println!("{:?}", user);
-        true
+    if let Ok(_user) = check_for_user {
+        set_user_as_verified(conn, copied_hash).await
     } else {
         false
     }
 }
 
-pub async fn set_user_as_verified(conn: &TigumPgConn, email_hash: i64) -> bool {
+pub async fn set_user_as_verified(conn: &TigumPgConn, hash: String) -> bool {
     let check_for_user = conn.run(move |c|
         c.query(
-            "SELECT * FROM users WHERE email_hash = $1",
-            &[&email_hash]
+            "UPDATE users SET verified = true WHERE verify_hash = ($1)",
+            &[&hash]
         )
     ).await;
-    if let Ok(user) = check_for_user {
+    if let Ok(_user) = check_for_user {
         true
     } else {
         false

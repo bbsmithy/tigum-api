@@ -28,8 +28,7 @@ use db::querys::user_query::{
     create_user,
     get_user,
     update_password,
-    verify_user_with_email,
-    set_user_as_verified
+    verify_user_with_hash
 };
 
 /////////////////////////
@@ -223,11 +222,10 @@ pub async fn update_user_password(conn: TigumPgConn, password: Json<UpdatePasswo
 
 #[post("/user/verify", format = "application/json", data = "<verify>")]
 pub async fn verify_user(conn: TigumPgConn, verify: Json<VerifyUser>) -> ApiResponse {
-
+    let hash = verify.verify_hash.clone();
     // Run query
-    let verified = verify_user_with_email(&conn, verify.email_hash).await;
+    let verified = verify_user_with_hash(&conn, hash).await;
     if verified {
-        // set_user_as_verified(&conn)
         ApiResponse {
             json: json!({ "msg": "User verified" }),
             status: Status::raw(200)

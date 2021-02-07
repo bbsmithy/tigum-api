@@ -38,7 +38,6 @@ pub struct UpdatePassword {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VerifyUser {
-    pub email_hash: i64,
     pub verify_hash: String
 }
 
