@@ -113,6 +113,8 @@ async fn create_user_with_ps_email(
     verify_hash: String
 ) -> ApiResponse {
     let new_user_email = new_user.email.clone();
+    let new_user_verify_hash = verify_hash.clone();
+    let new_user_name = new_user.name.clone();
     match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash).await {
         Ok(user) => {
             println!("Created user: {:?}", user);
@@ -122,7 +124,7 @@ async fn create_user_with_ps_email(
             match create_cookie_result {
                 Ok(jwt_cookie) => {
                     cookies.add(jwt_cookie);
-                    send_evervault_verify_email(new_user_email).await;
+                    send_evervault_verify_email(new_user_email, new_user_verify_hash, new_user_name).await;
                     ApiResponse {
                         json: json!(user),
                         status: Status::raw(200)
