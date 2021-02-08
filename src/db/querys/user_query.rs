@@ -115,8 +115,12 @@ pub async fn verify_user_with_hash(conn: &TigumPgConn, hash: String) -> bool {
             &[&hash]
         )
     ).await;
-    if let Ok(_user) = check_for_user {
-        set_user_as_verified(conn, copied_hash).await
+    if let Ok(user_rows) = check_for_user {
+        if user_rows.len() > 0 {
+            set_user_as_verified(conn, copied_hash).await
+        } else {
+            false
+        }
     } else {
         false
     }
