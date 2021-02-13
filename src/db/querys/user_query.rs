@@ -22,7 +22,8 @@ fn row_to_auth_user(row: &rocket_contrib::databases::postgres::Row) -> AuthUser 
         name: row.get(1),
         email: row.get(2),
         password_hash: row.get(3),
-        email_hash: row.get(4)
+        email_hash: row.get(4),
+        verified: row.get(6)
     }
 }
 

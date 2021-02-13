@@ -116,7 +116,6 @@ async fn create_user_with_ps_email(
     let new_user_name = new_user.name.clone();
     match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash).await {
         Ok(user) => {
-            println!("Created user: {:?}", user);
             // Encode JWT token with user
             let jwt_value = encode_jwt(&user);
             let create_cookie_result = create_cookie(jwt_value);
@@ -154,39 +153,46 @@ pub async fn user_login(
     let hashed_email = create_known_hash_email(login.email.clone());
     match get_user(&conn, hashed_email).await {
         Ok(auth_user) => {
-            match verify_hash(&login.password, &auth_user.password_hash) {
-                Ok(is_correct) => {
-                    if is_correct {
-                        let public_user = AuthUser::to_public_user(auth_user);
-                        // Encode JWT token with user
-                        let jwt_value = encode_jwt(&public_user);
-                        let jwt_cookie_result = create_cookie(jwt_value);
-                        match jwt_cookie_result {
-                            Ok(jwt_cookie) => {
-                                cookies.add(jwt_cookie);
-                                ApiResponse {
-                                    json: json!(public_user),
-                                    status: Status::raw(200)
-                                }
-                            },
-                            Err(_err) => {
-                                ApiResponse {
-                                    json: json!({ "error": "Internal server error" }),
-                                    status: Status::raw(200)
+            if auth_user.verified {
+                match verify_hash(&login.password, &auth_user.password_hash) {
+                    Ok(is_correct) => {
+                        if is_correct {
+                            let public_user = AuthUser::to_public_user(auth_user);
+                            // Encode JWT token with user
+                            let jwt_value = encode_jwt(&public_user);
+                            let jwt_cookie_result = create_cookie(jwt_value);
+                            match jwt_cookie_result {
+                                Ok(jwt_cookie) => {
+                                    cookies.add(jwt_cookie);
+                                    ApiResponse {
+                                        json: json!(public_user),
+                                        status: Status::raw(200)
+                                    }
+                                },
+                                Err(_err) => {
+                                    ApiResponse {
+                                        json: json!({ "error": "Internal server error" }),
+                                        status: Status::raw(200)
+                                    }
                                 }
                             }
-                        }
-                    } else {
-                        ApiResponse {
-                            json: json!({"error": "Incorrect email or password"}),
-                            status: Status::raw(403)
+                        } else {
+                            ApiResponse {
+                                json: json!({"error": "Incorrect email or password"}),
+                                status: Status::raw(403)
+                            }
                         }
                     }
+                    Err(_checking_err) => ApiResponse {
+                        json: json!({"error": "Incorrect email or password"}),
+                        status: Status::raw(403)
+                    },
                 }
-                Err(_checking_err) => ApiResponse {
-                    json: json!({"error": "Incorrect email or password"}),
+            } else {
+                ApiResponse {
+                    json: json!({"error": "User not verified yet"}),
                     status: Status::raw(403)
-                },
+                }
             }
         },
         Err(_err) => {

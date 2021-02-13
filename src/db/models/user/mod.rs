@@ -42,13 +42,14 @@ pub struct VerifyUser {
 }
 
 
-#[derive(Serialize, Deserialize, RustcEncodable)]
+#[derive(Serialize, Deserialize, RustcEncodable, Debug)]
 pub struct AuthUser {
     pub id: i32,
     pub name: String,
     pub email: String,
     pub email_hash: i64,
     pub password_hash: String,
+    pub verified: bool
 }
 
 impl AuthUser {
@@ -99,8 +100,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
                         Outcome::Failure((Status::new(401, "Unauthorized"), UserIdError::BadCount))
                     }
                 }
-                // PARSE DATA AND CREATE USER
-                // USER WILL BE ACCESSIBLE IN REQUEST GAURD auth_user
             }
             _ => Outcome::Failure((Status::new(401, "Unauthorized"), UserIdError::BadCount)),
         }
