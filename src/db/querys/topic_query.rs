@@ -281,3 +281,12 @@ pub async fn create_topic(conn: &TigumPgConn, topic: Json<NewTopic>, user_id: i3
         }
     }
 }
+
+pub async fn update_topic_mod_date(conn: &TigumPgConn, topic_id: i32) -> Result<Vec<Row>, Error> {
+    conn.run(move |c|
+        c.query(
+            "UPDATE topics SET date_updated = CURRENT_TIMESTAMP WHERE id = $1",
+            &[&topic_id],
+        )
+    ).await
+}

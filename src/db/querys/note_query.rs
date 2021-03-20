@@ -4,7 +4,7 @@ use rocket::http::Status;
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
-use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list};
+use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::models::resources::ResourceType;
 use crate::db::api_response::ApiResponse;
 
@@ -76,9 +76,21 @@ pub async fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, use
         Ok(rows) => {
             if let Some(row) = rows.get(0) {
                 let updated_note = row_to_note(row);
-                ApiResponse {
-                    json: json!(updated_note),
-                    status: Status::raw(200)
+                match update_topic_mod_date(conn, updated_note.topic_id).await {
+                    Ok(rows) => {
+                        println!("ROWS: {:?}", rows);
+                        ApiResponse {
+                            json: json!(updated_note),
+                            status: Status::raw(200)
+                        }
+                    },
+                    Err(err) => {
+                        println!("{:?}", err);
+                        ApiResponse {
+                            json: json!({"error": format!("Could not update note")}),
+                            status: Status::raw(500)
+                        }
+                    }
                 }
             } else {
                 ApiResponse {
