@@ -7,38 +7,33 @@ use db::querys::TigumPgConn;
 use db::api_response::ApiResponse;
 
 const FIND_BY_TITLE_QUERY_STRING: &str = "
-SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id, 'none' as misc FROM topics WHERE lower(title) LIKE $1 AND user_id = $2
-UNION
-
-SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc FROM notes WHERE lower(title) LIKE $1 AND user_id = $2
-UNION
-
-SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc FROM videos
+SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id, 'none' as misc, date_updated FROM topics WHERE lower(title) LIKE $1 AND user_id = $2
+UNION ALL
+SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, date_updated FROM notes WHERE lower(title) LIKE $1 AND user_id = $2
+UNION ALL
+SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, date_updated FROM videos
 WHERE lower(title) LIKE $1 AND user_id = $2
-UNION
-
-SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc FROM links
+UNION ALL
+SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, date_updated FROM links
 WHERE lower(title) LIKE $1 AND user_id = $2
-UNION
-
-SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc FROM article_snippets
+UNION ALL
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, date_updated FROM article_snippets
 WHERE lower(content) LIKE $1 AND user_id = $2
+ORDER BY date_updated DESC
 ";
 
 const FIND_BY_TOPIC_ID: &str = "
-SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc FROM videos
+SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, date_updated FROM videos
 WHERE topic_id = $1 AND user_id = $2
-UNION
-
-SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc FROM links
+UNION ALL
+SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, date_updated FROM links
 WHERE topic_id = $1 AND user_id = $2
-UNION
-
-SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc FROM article_snippets
+UNION ALL
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, date_updated FROM article_snippets
 WHERE topic_id = $1 AND user_id = $2
-UNION
-
-SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc FROM notes WHERE topic_id = $1 AND user_id = $2
+UNION ALL
+SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, date_updated FROM notes WHERE topic_id = $1 AND user_id = $2
+ORDER BY date_updated DESC
 ";
 
 
@@ -80,7 +75,8 @@ fn return_search_results(result_query: Result<Vec<rocket_contrib::databases::pos
                 status: Status::raw(200)
             }
         },
-        Err(_err) => {
+        Err(err) => {
+            println!("query error: {:?}", err);
             ApiResponse {
                 json: json!({ "error": "Query failed" }),
                 status: Status::raw(500)

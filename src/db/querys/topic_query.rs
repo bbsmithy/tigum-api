@@ -184,7 +184,7 @@ pub async fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>)
 pub async fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user_id: i32) -> ApiResponse {
     if topic_ids.ids.len() == 0 {
         let query_result = conn.run(move |c|
-            c.query("SELECT * FROM topics WHERE user_id = $1 ORDER BY date_created DESC", &[&user_id])
+            c.query("SELECT * FROM topics WHERE user_id = $1 ORDER BY date_updated DESC", &[&user_id])
         ).await;
         match query_result {
             Ok(rows) => {

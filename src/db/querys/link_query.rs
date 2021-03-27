@@ -4,7 +4,7 @@ use rocket::http::Status;
 use crate::db::models::resources::ResourceType;
 use crate::db::querys::TigumPgConn;
 use crate::db::querys::topic_query::remove_from_topic_resource_list;
-use crate::db::querys::topic_query::add_to_topic_resource_list;
+use crate::db::querys::topic_query::{add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::api_response::ApiResponse;
 use crate::db::models::resources::link::{Link, NewLink};
 use crate::db::models::Ids;
@@ -72,10 +72,7 @@ pub async fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>, user_
             let updated_row = rows.get(0);
             if let Some(row) = updated_row {
                 let updated_link = row_to_link(row);
-                ApiResponse {
-                    json: json!(updated_link),
-                    status: Status::raw(200)
-                }
+                update_topic_from_link(&conn, updated_link).await
             } else {
                 ApiResponse {
                     json: json!({ "error": format!("Failed to update link") }),
@@ -176,7 +173,7 @@ pub async fn create_link(conn: &TigumPgConn, link: Json<NewLink>, user_id: i32) 
                     ResourceType::Link,
                 ).await;
                 match query_result {
-                    Ok(_rows_updated) => ApiResponse { json: json!(new_link), status: Status::raw(200) },
+                    Ok(_rows_updated) => update_topic_from_link(&conn, new_link).await,
                     Err(_error) => ApiResponse {
                         json: json!({ "error": format!("Could not create snippet {}", new_link.topic_id )}),
                         status: Status::raw(500)
@@ -194,6 +191,23 @@ pub async fn create_link(conn: &TigumPgConn, link: Json<NewLink>, user_id: i32) 
                 "error": format!("Could not create link")
             }),
             status: Status::raw(500)
+        }
+    }
+}
+
+async fn update_topic_from_link(conn: &TigumPgConn, link: Link) -> ApiResponse {
+    match update_topic_mod_date(conn, link.topic_id).await {
+        Ok(_rows) => {
+            ApiResponse {
+                json: json!(link),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({"error": format!("Could not update note")}),
+                status: Status::raw(500)
+            }
         }
     }
 }

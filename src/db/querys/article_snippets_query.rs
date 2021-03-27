@@ -3,7 +3,11 @@ use rocket_contrib::json::{Json};
 use rocket::http::Status;
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
-use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list};
+use crate::db::querys::topic_query::{
+    remove_from_topic_resource_list,
+    add_to_topic_resource_list,
+    update_topic_mod_date
+};
 use crate::db::api_response::ApiResponse;
 use crate::db::models::resources::ResourceType;
 use models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
@@ -73,10 +77,7 @@ pub async fn update_article_snippet(
     match updated_rows {
         Ok(rows) => {
             if let Some(row) = rows.get(0) {
-                ApiResponse {
-                    json: json!(row_to_article_snippet(row)),
-                    status: Status::raw(200)
-                }
+                update_topic_from_article_snippets(&conn, row_to_article_snippet(row)).await
             } else {
                 ApiResponse {
                     json: json!({ "error": format!("Could not find update {}", id)}),
@@ -84,7 +85,7 @@ pub async fn update_article_snippet(
                 }
             }
         },
-        Err(error) => {
+        Err(_err) => {
             ApiResponse {
                 json: json!({ "error": format!("Could not update article snippet with id {}", id)}),
                 status: Status::raw(500)
@@ -97,7 +98,7 @@ pub async fn update_article_snippet(
 pub async fn get_article_snippets(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
     let query_result = conn.run(move |c|
         c.query(
-            "SELECT * FROM article_snippets WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created DESC",
+            "SELECT * FROM article_snippets WHERE id = ANY($1) AND user_id = $2 ORDER BY date_updated DESC",
             &[&ids.ids, &user_id],
         )
     ).await;
@@ -176,7 +177,7 @@ pub async fn create_article_snippet(
                     new_article_snippet.id,
                     ResourceType::Snippet,
                 ).await {
-                    Ok(_rows_updated) => ApiResponse { json: json!(new_article_snippet), status: Status::raw(200) },
+                    Ok(_rows_updated) => update_topic_from_article_snippets(&conn, new_article_snippet).await,
                     Err(_error) => ApiResponse {
                         json: json!({ "error": "Could not create snippet" }),
                         status: Status::raw(500)
@@ -200,3 +201,22 @@ pub async fn create_article_snippet(
         }
     }
 }
+
+async fn update_topic_from_article_snippets(conn: &TigumPgConn, article_snippet: ArticleSnippet) -> ApiResponse {
+    match update_topic_mod_date(conn, article_snippet.topic_id).await {
+        Ok(_rows) => {
+            ApiResponse {
+                json: json!(article_snippet),
+                status: Status::raw(200)
+            }
+        },
+        Err(err) => {
+            println!("{:?}", err);
+            ApiResponse {
+                json: json!({"error": format!("Could not update note")}),
+                status: Status::raw(500)
+            }
+        }
+    }
+}
+

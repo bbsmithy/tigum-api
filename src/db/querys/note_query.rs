@@ -1,12 +1,15 @@
 //Use Macros
 use rocket_contrib::json::Json;
 use rocket::http::Status;
+use rocket_contrib::databases::postgres::Error;
+
 
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
 use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::models::resources::ResourceType;
 use crate::db::api_response::ApiResponse;
+
 
 use models::resources::note::{NewNote, Note, NoteIds};
 
@@ -77,8 +80,7 @@ pub async fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, use
             if let Some(row) = rows.get(0) {
                 let updated_note = row_to_note(row);
                 match update_topic_mod_date(conn, updated_note.topic_id).await {
-                    Ok(rows) => {
-                        println!("ROWS: {:?}", rows);
+                    Ok(_rows) => {
                         ApiResponse {
                             json: json!(updated_note),
                             status: Status::raw(200)
@@ -110,7 +112,7 @@ pub async fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, use
 
 pub async fn get_notes(conn: &TigumPgConn, note_ids: Json<NoteIds>, user_id: i32) -> ApiResponse {
     let query_result = conn.run(move |c|
-        c.query("SELECT * FROM notes WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created ASC", &[&note_ids.ids, &user_id])
+        c.query("SELECT * FROM notes WHERE id = ANY($1) AND user_id = $2 ORDER BY date_updated ASC", &[&note_ids.ids, &user_id])
     ).await;
     match query_result {
         Ok(rows) => {
@@ -172,11 +174,20 @@ pub async fn create_note(conn: &TigumPgConn, note: Json<NewNote>, user_id: i32) 
                 let new_note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
                 let add_to_topic_result = add_to_topic_resource_list(&conn, topic_id, new_note.id, ResourceType::Note).await;
                 match add_to_topic_result {
-                    Ok(_rows_updated) => {
-                        ApiResponse { 
-                            json: json!(new_note), 
-                            status: Status::raw(200),
-                        } 
+                    Ok(_rows_updated) => match update_topic_mod_date(conn, new_note.topic_id).await {
+                        Ok(_rows) => {
+                            ApiResponse {
+                                json: json!(new_note),
+                                status: Status::raw(200)
+                            }
+                        },
+                        Err(err) => {
+                            println!("{:?}", err);
+                            ApiResponse {
+                                json: json!({"error": format!("Could not update note")}),
+                                status: Status::raw(500)
+                            }
+                        }
                     },
                     Err(_error) => ApiResponse {
                         json: json!({ "error": format!("Could not add note to topic resource list")}),
@@ -197,6 +208,29 @@ pub async fn create_note(conn: &TigumPgConn, note: Json<NewNote>, user_id: i32) 
                 "error": format!("Could not create note")
             }),
             status: Status::raw(500)
+        }
+    }
+}
+
+pub async fn update_note_mod_date(conn: &TigumPgConn, note_id: i32) -> ApiResponse {
+    let note_mod_date_updated_result = conn.run(move |c|
+        c.query(
+            "UPDATE notes SET date_updated = CURRENT_TIMESTAMP WHERE id = $1",
+            &[&note_id],
+        )
+    ).await;
+    match note_mod_date_updated_result {
+        Ok(_mod_row) => {
+            ApiResponse {
+                status: Status::raw(200),
+                json: json!({ "res": format!("success") })
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                status: Status::raw(500),
+                json: json!({ "error": format!("Could not update note") })
+            }
         }
     }
 }

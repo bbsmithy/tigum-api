@@ -14,3 +14,6 @@ pub enum ResourceType {
     Link,
     Code,
 }
+
+
+pub struct Resource<T>(T);

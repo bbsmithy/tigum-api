@@ -11,12 +11,18 @@ use db::models::user::User;
 use db::api_response::ApiResponse;
 
 // Querys
-use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note};
+use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note, update_note_mod_date};
 use db::querys::TigumPgConn;
 
 /////////////////////
 //// NOTE ROUTES ////
 /////////////////////
+
+
+#[put("/notes/updated-note/<note_id>")]
+async fn update_note_mod(conn: TigumPgConn, note_id: i32) -> ApiResponse {
+    update_note_mod_date(&conn, note_id).await
+}
 
 #[delete("/notes/<note_id>")]
 async fn delete_single_note(conn: TigumPgConn, note_id: i32, auth_user: User) -> ApiResponse {
@@ -49,6 +55,7 @@ pub fn get_note_routes() -> Vec<Route> {
         single_note,
         create_single_note,
         update_single_note,
-        delete_single_note
+        delete_single_note,
+        update_note_mod
     ]
 }
