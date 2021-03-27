@@ -36,6 +36,7 @@ fn row_to_topic(row: &Row) -> Topic {
         row.get(7),
         row.get(8),
         row.get(10),
+        row.get(11)
     );
     return topic;
 }

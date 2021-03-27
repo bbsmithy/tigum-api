@@ -1,7 +1,6 @@
 //Use Macros
 use rocket_contrib::json::Json;
 use rocket::http::Status;
-use rocket_contrib::databases::postgres::Error;
 
 
 use crate::db::models;
@@ -15,14 +14,13 @@ use models::resources::note::{NewNote, Note, NoteIds};
 
 
 fn row_to_note(row: &rocket_contrib::databases::postgres::Row) -> Note {
-    Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4))
+    Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5))
 }
 
 fn parse_note_result(query_result: Vec<rocket_contrib::databases::postgres::Row>) -> Vec<Note> {
     let mut results: Vec<Note> = vec![];
     for row in query_result.iter() {
-        let note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
-        println!("{:?}", note.date_created);
+        let note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5));
         results.push(note);
     }
     results
@@ -171,7 +169,7 @@ pub async fn create_note(conn: &TigumPgConn, note: Json<NewNote>, user_id: i32) 
         Ok(result_rows) => {
             let result = result_rows.get(0);
             if let Some(row) = result {
-                let new_note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4));
+                let new_note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5));
                 let add_to_topic_result = add_to_topic_resource_list(&conn, topic_id, new_note.id, ResourceType::Note).await;
                 match add_to_topic_result {
                     Ok(_rows_updated) => match update_topic_mod_date(conn, new_note.topic_id).await {
@@ -182,7 +180,6 @@ pub async fn create_note(conn: &TigumPgConn, note: Json<NewNote>, user_id: i32) 
                             }
                         },
                         Err(err) => {
-                            println!("{:?}", err);
                             ApiResponse {
                                 json: json!({"error": format!("Could not update note")}),
                                 status: Status::raw(500)

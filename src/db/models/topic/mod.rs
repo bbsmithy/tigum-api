@@ -18,6 +18,7 @@ pub struct Topic {
     pub links: Vec<i32>,
     pub excercises: Vec<i32>,
     pub images: Vec<i32>,
+    pub date_updated: NaiveDateTime,
 }
 
 impl Topic {
@@ -32,6 +33,7 @@ impl Topic {
         links: Vec<i32>,
         excercises: Vec<i32>,
         images: Vec<i32>,
+        date_updated: NaiveDateTime,
     ) -> Topic {
         Topic {
             id: id,
@@ -44,6 +46,7 @@ impl Topic {
             links: links,
             excercises: excercises,
             images: images,
+            date_updated: date_updated
         }
     }
 }

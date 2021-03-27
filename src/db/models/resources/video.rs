@@ -22,4 +22,5 @@ pub struct Video {
     pub origin: String,
     pub date_created: NaiveDateTime,
     pub thumbnail_img: String,
+    pub date_updated: NaiveDateTime
 }

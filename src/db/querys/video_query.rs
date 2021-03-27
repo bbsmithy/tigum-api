@@ -26,6 +26,7 @@ fn row_to_video(row: &rocket_contrib::databases::postgres::Row) -> Video {
         origin: row.get(3),
         date_created: row.get(4),
         thumbnail_img: row.get(5),
+        date_updated: row.get(8)
     }
 }
 
@@ -95,6 +96,7 @@ pub async fn get_videos(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> Api
         Ok(rows) => {
             let mut results: Vec<Video> = vec![];
             for row in rows.iter() {
+                println!("{:?}", row);
                 let video_response = row_to_video(row);
                 results.push(video_response);
             }

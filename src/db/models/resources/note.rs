@@ -16,6 +16,7 @@ pub struct Note {
     pub date_created: NaiveDateTime,
     pub topic_id: i32,
     pub user_id: i32,
+    pub date_updated: NaiveDateTime
 }
 
 #[derive(Serialize, Deserialize)]
@@ -35,6 +36,7 @@ impl Note {
         date_created: NaiveDateTime,
         topic_id: i32,
         user_id: i32,
+        date_updated: NaiveDateTime
     ) -> Note {
         Note {
             id: id,
@@ -42,6 +44,7 @@ impl Note {
             date_created: date_created,
             topic_id: topic_id,
             user_id: user_id,
+            date_updated: date_updated
         }
     }
 }
