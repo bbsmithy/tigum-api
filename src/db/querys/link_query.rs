@@ -92,7 +92,7 @@ pub async fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>, user_
 pub async fn get_links(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
     let query_result = conn.run(move |c|
         c.query(
-            "SELECT * FROM links WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created ASC",
+            "SELECT * FROM links WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created DESC",
             &[&ids.ids, &user_id],
         )
     ).await;
