@@ -85,7 +85,6 @@ pub async fn user_signup(
             let hashed_email = create_known_hash_email(new_user.email.clone());
             let verify_hash = create_known_hash_string(hashed_email);
             create_user_with_ps_email(
-                cookies,
                 conn,
                 new_user,
                 hashed_password,
@@ -104,7 +103,6 @@ pub async fn user_signup(
 }
 
 async fn create_user_with_ps_email(
-    mut cookies: &CookieJar<'_>,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
@@ -117,21 +115,10 @@ async fn create_user_with_ps_email(
     match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash).await {
         Ok(user) => {
             // Encode JWT token with user
-            let jwt_value = encode_jwt(&user);
-            let create_cookie_result = create_cookie(jwt_value);
-            match create_cookie_result {
-                Ok(jwt_cookie) => {
-                    cookies.add(jwt_cookie);
-                    send_evervault_verify_email(new_user_email, new_user_verify_hash, new_user_name).await;
-                    ApiResponse {
-                        json: json!(user),
-                        status: Status::raw(200)
-                    }
-                },
-                Err(_err) => ApiResponse {
-                    json: json!({ "error": "Interal server error" }),
-                    status: Status::raw(500)
-                }
+            send_evervault_verify_email(new_user_email, new_user_verify_hash, new_user_name).await;
+            ApiResponse {
+                json: json!(user),
+                status: Status::raw(200)
             }
         },
         Err(err) => {
