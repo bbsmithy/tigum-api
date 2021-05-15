@@ -7,44 +7,47 @@ use db::querys::TigumPgConn;
 use db::api_response::ApiResponse;
 
 const FIND_BY_TITLE_QUERY_STRING: &str = "
-SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id, 'none' as misc, date_updated FROM topics WHERE lower(title) LIKE $1 AND user_id = $2
+SELECT 'topic' result_type, id as topic_id, title, 0 as resource_id, 'none' as misc, 'none' as misc2, date_updated FROM topics WHERE lower(title) LIKE $1 AND user_id = $2
 UNION ALL
-SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, date_updated FROM notes WHERE lower(title) LIKE $1 AND user_id = $2
+SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, 'none' as misc2, date_updated FROM notes WHERE lower(title) LIKE $1 AND user_id = $2
 UNION ALL
-SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, date_updated FROM videos
+SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, date_updated FROM videos
 WHERE lower(title) LIKE $1 AND user_id = $2
 UNION ALL
-SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, date_updated FROM links
+SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, 'none' as misc2, date_updated FROM links
 WHERE lower(title) LIKE $1 AND user_id = $2
 UNION ALL
-SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, date_updated FROM article_snippets
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, 'none' as misc2, date_updated FROM article_snippets
 WHERE lower(content) LIKE $1 AND user_id = $2
 ORDER BY date_updated DESC
 ";
 
 const FIND_BY_TOPIC_ID: &str = "
-SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, date_updated FROM videos
+SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, date_updated FROM videos
 WHERE topic_id = $1 AND user_id = $2
 UNION ALL
-SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, date_updated FROM links
+SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, 'none' as misc2, date_updated FROM links
 WHERE topic_id = $1 AND user_id = $2
 UNION ALL
-SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, date_updated FROM article_snippets
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, 'none' as misc2, date_updated FROM article_snippets
 WHERE topic_id = $1 AND user_id = $2
 UNION ALL
-SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, date_updated FROM notes WHERE topic_id = $1 AND user_id = $2
+SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, 'none' as misc2, date_updated FROM notes WHERE topic_id = $1 AND user_id = $2
 ORDER BY date_updated DESC
 ";
 
 
 fn row_to_resource_result(row: &Row) -> ResourceResult {
-    ResourceResult {
-        result_type: row.get(0),
+    let result_type = row.get(0);
+    let base_result = ResourceResult {
+        result_type: result_type,
         topic_id: row.get(1),
         title: row.get(2),
         resource_id: row.get(3),
-        misc: row.get(4)
-    }
+        misc: row.get(4),
+        misc2: row.get(5)
+    };
+    base_result
 }
 
 pub async fn find_by_title(conn: &TigumPgConn, title: String, user_id: i32) -> ApiResponse {
@@ -68,6 +71,7 @@ fn return_search_results(result_query: Result<Vec<rocket_contrib::databases::pos
             let mut resource_results: Vec<ResourceResult> = vec![];
             for row in rows.iter() {
                 let resource_result_row = row_to_resource_result(row);
+                println!("{:?}", row);
                 resource_results.push(resource_result_row)
             };
             ApiResponse {
