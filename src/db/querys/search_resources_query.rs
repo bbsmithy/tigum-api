@@ -17,7 +17,7 @@ UNION ALL
 SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, 'none' as misc2, date_updated FROM links
 WHERE lower(title) LIKE $1 AND user_id = $2
 UNION ALL
-SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, 'none' as misc2, date_updated FROM article_snippets
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, date_updated FROM article_snippets
 WHERE lower(content) LIKE $1 AND user_id = $2
 ORDER BY date_updated DESC
 ";
@@ -29,7 +29,7 @@ UNION ALL
 SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, 'none' as misc2, date_updated FROM links
 WHERE topic_id = $1 AND user_id = $2
 UNION ALL
-SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, 'none' as misc2, date_updated FROM article_snippets
+SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, date_updated FROM article_snippets
 WHERE topic_id = $1 AND user_id = $2
 UNION ALL
 SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, 'none' as misc2, date_updated FROM notes WHERE topic_id = $1 AND user_id = $2
