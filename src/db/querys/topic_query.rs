@@ -5,41 +5,13 @@ use rocket_contrib::databases::postgres::row::Row;
 use rocket_contrib::databases::postgres::Error;
 use rocket::http::{Status};
 
-
 // DB Models
 use models::resources::ResourceType;
 use models::topic::{NewTopic, Topic, TopicIds};
+use crate::db::parsing_util::{row_to_topic, parse_topic_result};
 
 // Api Response Struct
 use crate::db::api_response::ApiResponse;
-
-type QueryResult = std::result::Result<Vec<rocket_contrib::databases::postgres::row::Row>, rocket_contrib::databases::postgres::Error>;
-
-fn parse_topic_result(query_result: Vec<rocket_contrib::databases::postgres::row::Row>) -> Vec<Topic> {
-    let mut results: Vec<Topic> = vec![];
-    for row in query_result {
-        let topic = row_to_topic(&row);
-        results.push(topic);
-    }
-    results
-}
-
-fn row_to_topic(row: &Row) -> Topic {
-    let topic = Topic::new(
-        row.get(0),
-        row.get(1),
-        row.get(2),
-        row.get(3),
-        row.get(4),
-        row.get(5),
-        row.get(6),
-        row.get(7),
-        row.get(8),
-        row.get(10),
-        row.get(11)
-    );
-    return topic;
-}
 
 pub async fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> ApiResponse {
     let query_result = conn.run(move |c|

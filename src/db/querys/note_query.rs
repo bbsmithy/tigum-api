@@ -1,30 +1,12 @@
 //Use Macros
 use rocket_contrib::json::Json;
 use rocket::http::Status;
-
-
-use crate::db::models;
 use crate::db::querys::TigumPgConn;
 use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::models::resources::ResourceType;
 use crate::db::api_response::ApiResponse;
+use crate::db::parsing_util::{row_to_note, parse_note_result};
 
-
-use models::resources::note::{NewNote, Note, NoteIds};
-
-
-fn row_to_note(row: &rocket_contrib::databases::postgres::Row) -> Note {
-    Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5))
-}
-
-fn parse_note_result(query_result: Vec<rocket_contrib::databases::postgres::Row>) -> Vec<Note> {
-    let mut results: Vec<Note> = vec![];
-    for row in query_result.iter() {
-        let note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5));
-        results.push(note);
-    }
-    results
-}
 
 pub async fn delete_note(conn: &TigumPgConn, note_id: i32, user_id: i32) -> ApiResponse {
     let result = conn.run(move |c|
