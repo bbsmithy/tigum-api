@@ -6,7 +6,8 @@ use crate::db::parsing_util::{
     parse_topic_result, 
     parse_note_result,
     parse_article_snippet_result,
-    parse_link_result
+    parse_link_result,
+    parse_video_result
 };
 
 
@@ -88,7 +89,7 @@ pub async fn get_public_videos_in_topic(conn: &TigumPgConn, topic_id: i32) -> Ap
     if let Ok(result) = public_notes {
         ApiResponse {
             status: Status::raw(200),
-            json: json!({ "videos": parse_note_result(result) })
+            json: json!({ "videos": parse_video_result(result) })
         }
     } else {
         ApiResponse {

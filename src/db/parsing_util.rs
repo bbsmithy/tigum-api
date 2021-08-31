@@ -3,6 +3,7 @@ use crate::db::models::topic::{NewTopic, Topic, TopicIds};
 use crate::db::models::resources::note::{Note};
 use crate::db::models::resources::article_snippets::ArticleSnippet;
 use crate::db::models::resources::link::Link;
+use crate::db::models::resources::video::Video;
 use rocket_contrib::databases::postgres::row::Row;
 
 
@@ -94,3 +95,27 @@ pub fn parse_link_result(query_result: Vec<rocket_contrib::databases::postgres::
     }
     results
 }
+
+pub fn row_to_video(row: &rocket_contrib::databases::postgres::Row) -> Video {
+    Video {
+        id: row.get(0),
+        topic_id: row.get(6),
+        user_id: row.get(7),
+        title: row.get(1),
+        iframe: row.get(2),
+        origin: row.get(3),
+        date_created: row.get(4),
+        thumbnail_img: row.get(5),
+        date_updated: row.get(8)
+    }
+}
+
+pub fn parse_video_result(query_result: Vec<rocket_contrib::databases::postgres::Row>) -> Vec<Video> {
+    let mut results: Vec<Video> = vec![];
+    for row in query_result.iter() {
+        let link = row_to_video(&row);
+        results.push(link);
+    }
+    results
+}
+

@@ -10,25 +10,10 @@ use crate::db::querys::topic_query::{
     remove_from_topic_resource_list, 
     update_topic_mod_date
 };
-
-
+use crate::db::parsing_util::row_to_video;
 use models::resources::video::{NewVideo, Video};
 use models::resources::ResourceType;
 use models::Ids;
-
-fn row_to_video(row: &rocket_contrib::databases::postgres::Row) -> Video {
-    Video {
-        id: row.get(0),
-        topic_id: row.get(6),
-        user_id: row.get(7),
-        title: row.get(1),
-        iframe: row.get(2),
-        origin: row.get(3),
-        date_created: row.get(4),
-        thumbnail_img: row.get(5),
-        date_updated: row.get(8)
-    }
-}
 
 pub async fn delete_video(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
     let query_result = conn.run(move |c|
