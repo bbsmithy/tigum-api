@@ -13,17 +13,7 @@ use crate::db::models::resources::ResourceType;
 use models::resources::article_snippets::{ArticleSnippet, NewArticleSnippet};
 use models::Ids;
 
-fn row_to_article_snippet(row: &rocket_contrib::databases::postgres::Row) -> ArticleSnippet {
-    ArticleSnippet {
-        id: row.get(0),
-        topic_id: row.get(4),
-        user_id: row.get(5),
-        content: row.get(1),
-        origin: row.get(2),
-        title: row.get(6),
-        date_created: row.get(3),
-    }
-}
+use crate::db::parsing_util::row_to_article_snippet;
 
 
 pub async fn delete_article_snippet(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {

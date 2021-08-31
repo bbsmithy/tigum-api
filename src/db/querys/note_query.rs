@@ -4,6 +4,7 @@ use rocket::http::Status;
 use crate::db::querys::TigumPgConn;
 use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::models::resources::ResourceType;
+use crate::db::models::resources::note::{Note, NewNote, NoteIds};
 use crate::db::api_response::ApiResponse;
 use crate::db::parsing_util::{row_to_note, parse_note_result};
 
