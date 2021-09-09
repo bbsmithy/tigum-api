@@ -57,12 +57,11 @@ fn create_routes() -> Vec<rocket::Route> {
     app_routes
 }
 
-#[launch]
-async fn rocket() -> _ {
+fn main() {
     let cors_fairing = cors::CorsFairing::new();
     let routes = create_routes();
     rocket::ignite()
         .mount("/", routes)
         .attach(TigumPgConn::fairing())
-        .attach(cors_fairing)
+        .attach(cors_fairing).launch();
 }

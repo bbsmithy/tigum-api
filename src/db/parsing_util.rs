@@ -4,10 +4,10 @@ use crate::db::models::resources::note::{Note};
 use crate::db::models::resources::article_snippets::ArticleSnippet;
 use crate::db::models::resources::link::Link;
 use crate::db::models::resources::video::Video;
-use rocket_contrib::databases::postgres::row::Row;
+use rocket_contrib::databases::diesel::row::Row;
 
 
-pub fn row_to_user(row: &rocket_contrib::databases::postgres::Row) -> User {
+pub fn row_to_user(row: Row) -> User {
     User {
         id: row.get(0),
         name: row.get(1),

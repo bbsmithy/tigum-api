@@ -1,7 +1,7 @@
 use crate::db;
 use crate::util;
 use rocket::http::Status;
-use rocket::http::{Cookie, CookieJar};
+use rocket::http::{Cookie, Cookies};
 use rocket::Route;
 use std::format;
 
@@ -62,15 +62,15 @@ pub fn check_login(_conn: TigumPgConn, auth_user: User) -> Json<User> {
 }
 
 #[post("/user/logout", format = "application/json")]
-pub fn logout(mut cookies: &CookieJar<'_>, _conn: TigumPgConn) -> String {
+pub fn logout(mut cookies: Cookies, _conn: TigumPgConn) -> String {
     let expired_cookie = expire_cookie();
     cookies.remove(expired_cookie);
     "OK".to_string()
 }
 
 #[post("/user/signup", format = "application/json", data = "<new_user>")]
-pub async fn user_signup(
-    mut cookies: &CookieJar<'_>,
+pub fn user_signup(
+    cookies: Cookies,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
 ) -> ApiResponse {
@@ -90,7 +90,7 @@ pub async fn user_signup(
                 hashed_password,
                 hashed_email,
                 verify_hash
-            ).await
+            )
         }
         Err(err) => {
             println!("Error {}", err);
@@ -102,7 +102,7 @@ pub async fn user_signup(
     }
 }
 
-async fn create_user_with_ps_email(
+fn create_user_with_ps_email(
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
     hashed_password: String,
@@ -112,112 +112,126 @@ async fn create_user_with_ps_email(
     let new_user_email = new_user.email.clone();
     let new_user_verify_hash = verify_hash.clone();
     let new_user_name = new_user.name.clone();
-    match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash).await {
-        Ok(user) => {
-            // Encode JWT token with user
-            send_evervault_verify_email(new_user_email, new_user_verify_hash, new_user_name).await;
-            ApiResponse {
-                json: json!(user),
-                status: Status::raw(200)
-            }
-        },
-        Err(err) => {
-            println!("Error creating user: {:?}", err);
-            ApiResponse {
-                json: json!({ "error": "Internal server error" }),
-                status: Status::raw(500)
-            }
-        }
+
+    ApiResponse {
+        json: json!("All good"),
+        status: Status::raw(200)
     }
+
+    // match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash) {
+    //     Ok(user) => {
+    //         // Encode JWT token with user
+    //         send_evervault_verify_email(new_user_email, new_user_verify_hash, new_user_name);
+    //         ApiResponse {
+    //             json: json!(user),
+    //             status: Status::raw(200)
+    //         }
+    //     },
+    //     Err(err) => {
+    //         println!("Error creating user: {:?}", err);
+    //         ApiResponse {
+    //             json: json!({ "error": "Internal server error" }),
+    //             status: Status::raw(500)
+    //         }
+    //     }
+    // }
 }
 
 #[post("/user/login", format = "application/json", data = "<login>")]
-pub async fn user_login(
-    mut cookies: &CookieJar<'_>,
+pub fn user_login(
+    cookies: Cookies,
     conn: TigumPgConn,
     login: Json<LoginUser>,
 ) -> ApiResponse {
     let hashed_email = create_known_hash_email(login.email.clone());
-    match get_user(&conn, hashed_email).await {
-        Ok(auth_user) => {
-            if auth_user.verified {
-                match verify_hash(&login.password, &auth_user.password_hash) {
-                    Ok(is_correct) => {
-                        if is_correct {
-                            let public_user = AuthUser::to_public_user(auth_user);
-                            // Encode JWT token with user
-                            let jwt_value = encode_jwt(&public_user);
-                            let jwt_cookie_result = create_cookie(jwt_value);
-                            match jwt_cookie_result {
-                                Ok(jwt_cookie) => {
-                                    cookies.add(jwt_cookie);
-                                    ApiResponse {
-                                        json: json!(public_user),
-                                        status: Status::raw(200)
-                                    }
-                                },
-                                Err(_err) => {
-                                    ApiResponse {
-                                        json: json!({ "error": "Internal server error" }),
-                                        status: Status::raw(200)
-                                    }
-                                }
-                            }
-                        } else {
-                            ApiResponse {
-                                json: json!({"error": "Incorrect email or password"}),
-                                status: Status::raw(403)
-                            }
-                        }
-                    }
-                    Err(_checking_err) => ApiResponse {
-                        json: json!({"error": "Incorrect email or password"}),
-                        status: Status::raw(403)
-                    },
-                }
-            } else {
-                ApiResponse {
-                    json: json!({"error": "User not verified yet"}),
-                    status: Status::raw(403)
-                }
-            }
-        },
-        Err(_err) => {
-            println!("No luck");
-            ApiResponse {
-                json: json!({"error": "Incorrect email or password"}),
-                status: Status::raw(403)
-            }
-        }
-    } 
+    ApiResponse {
+        json: json!("All good"),
+        status: Status::raw(200)
+    }
+    // match get_user(&conn, hashed_email) {
+    //     Ok(auth_user) => {
+    //         if auth_user.verified {
+    //             match verify_hash(&login.password, &auth_user.password_hash) {
+    //                 Ok(is_correct) => {
+    //                     if is_correct {
+    //                         let public_user = AuthUser::to_public_user(auth_user);
+    //                         // Encode JWT token with user
+    //                         let jwt_value = encode_jwt(&public_user);
+    //                         let jwt_cookie_result = create_cookie(jwt_value);
+    //                         match jwt_cookie_result {
+    //                             Ok(jwt_cookie) => {
+    //                                 cookies.add(jwt_cookie);
+    //                                 ApiResponse {
+    //                                     json: json!(public_user),
+    //                                     status: Status::raw(200)
+    //                                 }
+    //                             },
+    //                             Err(_err) => {
+    //                                 ApiResponse {
+    //                                     json: json!({ "error": "Internal server error" }),
+    //                                     status: Status::raw(200)
+    //                                 }
+    //                             }
+    //                         }
+    //                     } else {
+    //                         ApiResponse {
+    //                             json: json!({"error": "Incorrect email or password"}),
+    //                             status: Status::raw(403)
+    //                         }
+    //                     }
+    //                 }
+    //                 Err(_checking_err) => ApiResponse {
+    //                     json: json!({"error": "Incorrect email or password"}),
+    //                     status: Status::raw(403)
+    //                 },
+    //             }
+    //         } else {
+    //             ApiResponse {
+    //                 json: json!({"error": "User not verified yet"}),
+    //                 status: Status::raw(403)
+    //             }
+    //         }
+    //     },
+    //     Err(_err) => {
+    //         println!("No luck");
+    //         ApiResponse {
+    //             json: json!({"error": "Incorrect email or password"}),
+    //             status: Status::raw(403)
+    //         }
+    //     }
+    // } 
 }
 
 
 #[post("/user/update-password", format = "application/json", data = "<password>")]
-pub async fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>) -> ApiResponse {
+pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>) -> ApiResponse {
     let email_hash = password.email_hash as u64;
-    if let Ok(_user) = get_user(&conn, email_hash).await {
-        if let Ok(password_hash) = hash_string(&password.new_password) {
-            update_password(&conn, password.email_hash, password_hash).await
-        } else {
-            ApiResponse {
-                json: json!({ "error": "Failed to update password" }),
-                status: Status::raw(500)
-            }
-        }
-    } else {
-        ApiResponse {
-            json: json!({ "error": "Failed to update password" }),
-            status: Status::raw(500)
-        }
+    ApiResponse {
+        json: json!("All good"),
+        status: Status::raw(200)
     }
+    // if let Ok(_user) = get_user(&conn, email_hash) {
+    //     if let Ok(password_hash) = hash_string(&password.new_password) {
+    //         update_password(&conn, password.email_hash, password_hash)
+    //     } else {
+    //         ApiResponse {
+    //             json: json!({ "error": "Failed to update password" }),
+    //             status: Status::raw(500)
+    //         }
+    //     }
+    // } else {
+    //     ApiResponse {
+    //         json: json!({ "error": "Failed to update password" }),
+    //         status: Status::raw(500)
+    //     }
+    // }
 }
 
 #[post("/user/verify", format = "application/json", data = "<verify>")]
-pub async fn verify_user(conn: TigumPgConn, verify: Json<VerifyUser>) -> ApiResponse {
+pub fn verify_user(conn: TigumPgConn, verify: Json<VerifyUser>) -> ApiResponse {
     let hash = verify.verify_hash.clone();
     // Run query
-    let verified = verify_user_with_hash(&conn, hash).await;
+    let verified = verify_user_with_hash(&conn, hash);
     if verified {
         ApiResponse {
             json: json!({ "msg": "User verified" }),

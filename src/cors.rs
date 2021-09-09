@@ -16,17 +16,16 @@ impl CorsFairing {
         }
     }
 }
-
-#[rocket::async_trait]
 impl Fairing for CorsFairing {
-    async fn on_request(&self, req: &mut Request<'_>, data: &mut Data) {
+
+    fn on_request(&self, req: &mut Request, data: &Data) {
         if req.method() == Method::Options {
             let uri = Origin::parse("/").unwrap();
             req.set_uri(uri);
         }
     }
 
-    async fn on_response<'r>(&self, req: &'r Request<'_>, res: &mut Response<'r>) {
+    fn on_response(&self, req: &Request, res: &mut Response) {
         let found_origin = req.headers().get_one("Origin");
         let allowed_origin = match found_origin {
             Some(origin) => {

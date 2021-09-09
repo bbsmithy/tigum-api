@@ -10,4 +10,4 @@ pub mod search_resources_query;
 pub mod public_query;
 
 #[database("tigum_db")]
-pub struct TigumPgConn(databases::postgres::Client);
+pub struct TigumPgConn(databases::diesel::PgConnection);

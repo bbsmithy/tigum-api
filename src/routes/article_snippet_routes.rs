@@ -20,8 +20,8 @@ use db::querys::TigumPgConn;
 /////////////////////////////////
 
 #[delete("/article_snippets/<id>")]
-async fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-   delete_article_snippet(&conn, id, auth_user.id).await
+fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+   delete_article_snippet(&conn, id, auth_user.id)
 }
 
 #[put(
@@ -29,13 +29,13 @@ async fn delete_single_article_snippet(conn: TigumPgConn, id: i32, auth_user: Us
     format = "application/json",
     data = "<article_snippet>"
 )]
-async fn update_single_article_snippet(
+fn update_single_article_snippet(
     conn: TigumPgConn,
     id: i32,
     article_snippet: Json<NewArticleSnippet>,
     auth_user: User,
 ) -> ApiResponse {
-    update_article_snippet(&conn, id, article_snippet, auth_user.id).await
+    update_article_snippet(&conn, id, article_snippet, auth_user.id)
 }
 
 #[post(
@@ -43,26 +43,26 @@ async fn update_single_article_snippet(
     format = "application/json",
     data = "<article_snippet>"
 )]
-async fn create_single_article_snippet(
+fn create_single_article_snippet(
     conn: TigumPgConn,
     article_snippet: Json<NewArticleSnippet>,
     auth_user: User,
 ) -> ApiResponse {
-    create_article_snippet(&conn, article_snippet, auth_user.id).await
+    create_article_snippet(&conn, article_snippet, auth_user.id)
 }
 
 #[get("/article_snippets/<id>")]
-async fn single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-    get_article_snippet(&conn, id, auth_user.id).await
+fn single_article_snippet(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+    get_article_snippet(&conn, id, auth_user.id)
 }
 
 #[post("/article_snippets", format = "application/json", data = "<ids>")]
-async fn article_snippets(
+fn article_snippets(
     conn: TigumPgConn,
     ids: Json<Ids>,
     auth_user: User,
 ) -> ApiResponse {
-    get_article_snippets(&conn, ids, auth_user.id).await
+    get_article_snippets(&conn, ids, auth_user.id)
 }
 
 pub fn get_article_snippet_routes() -> Vec<Route> {

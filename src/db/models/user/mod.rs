@@ -78,11 +78,10 @@ impl User {
     }
 }
 
-#[rocket::async_trait]
 impl<'a, 'r> FromRequest<'a, 'r> for User {
     type Error = UserIdError;
 
-    async fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let cookies = request.cookies();
         let jwt_value = cookies.get("__silly_devkeep");
 

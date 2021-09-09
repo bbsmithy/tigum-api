@@ -14,28 +14,28 @@ use db::querys::public_query;
 ///////////////////////
 
 #[get("/profile/<user_name>", format = "application/json")]
-async fn get_profile(conn: TigumPgConn, user_name: String) -> ApiResponse {
-    public_query::get_public_topics_for_user(&conn, user_name).await
+fn get_profile(conn: TigumPgConn, user_name: String) -> ApiResponse {
+    public_query::get_public_topics_for_user(&conn, user_name)
 }
 
 #[get("/profile/notes/<topic_id>", format = "application/json")]
-async fn get_notes(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
-    public_query::get_public_notes_in_topic(&conn, topic_id).await
+fn get_notes(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    public_query::get_public_notes_in_topic(&conn, topic_id)
 }
 
 #[get("/profile/videos/<topic_id>", format = "application/json")]
-async fn get_videos(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
-    public_query::get_public_videos_in_topic(&conn, topic_id).await
+fn get_videos(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    public_query::get_public_videos_in_topic(&conn, topic_id)
 }
 
 #[get("/profile/snippets/<topic_id>", format = "application/json")]
-async fn get_snippets(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
-    public_query::get_public_snippets_in_topic(&conn, topic_id).await
+fn get_snippets(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    public_query::get_public_snippets_in_topic(&conn, topic_id)
 }
 
 #[get("/profile/links/<topic_id>", format = "application/json")]
-async fn get_links(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
-    public_query::get_public_links_in_topic(&conn, topic_id).await
+fn get_links(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    public_query::get_public_links_in_topic(&conn, topic_id)
 }
 
 pub fn get_public_routes() -> Vec<Route> {

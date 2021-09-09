@@ -20,7 +20,7 @@ use db::querys::topic_query::{
     get_topic,
     get_topics,
     update_topic,
-    update_topic_mod_date
+    // update_topic_mod_date
 };
 
 //////////////////////
@@ -28,53 +28,57 @@ use db::querys::topic_query::{
 //////////////////////
 
 #[delete("/topics/<topic_id>")]
-async fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
-    delete_topic(&conn, topic_id).await
+fn delete_single_topic(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    delete_topic(&conn, topic_id)
 }
 
 #[put("/topics/<topic_id>", format = "application/json", data = "<topic>")]
-async fn update_single_topic(
+fn update_single_topic(
     conn: TigumPgConn,
     topic_id: i32,
     topic: Json<Topic>,
 ) -> ApiResponse {
-    update_topic(&conn, topic_id, topic).await
+    update_topic(&conn, topic_id, topic)
 }
 
 #[put("/topics/update-mod-date/<topic_id>", format = "application/json")]
-async fn update_mod_date(
+fn update_mod_date(
     conn: TigumPgConn,
     topic_id: i32
 ) -> ApiResponse {
-    match update_topic_mod_date(&conn, topic_id).await {
-        Ok(_rows) => {
-            ApiResponse {
-                json: json!({"msg": "Success"}),
-                status: Status::raw(200)
-            }
-        },
-        Err(err) => {
-            ApiResponse {
-                json: json!({"error": format!("Could not update topic mod date")}),
-                status: Status::raw(500)
-            }
-        }
+    ApiResponse {
+        json: json!("All good"),
+        status: Status::raw(200)
     }
+    // match update_topic_mod_date(&conn, topic_id) {
+    //     Ok(_rows) => {
+    //         ApiResponse {
+    //             json: json!({"msg": "Success"}),
+    //             status: Status::raw(200)
+    //         }
+    //     },
+    //     Err(err) => {
+    //         ApiResponse {
+    //             json: json!({"error": format!("Could not update topic mod date")}),
+    //             status: Status::raw(500)
+    //         }
+    //     }
+    // }
 }
 
 #[post("/topics/create-topic", format = "application/json", data = "<topic>")]
-async fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User) -> ApiResponse {
-    create_topic(&conn, topic, auth_user.id).await
+fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User) -> ApiResponse {
+    create_topic(&conn, topic, auth_user.id)
 }
 
 #[get("/topics/<topic_id>")]
-async fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
-    get_topic(&conn, topic_id, auth_user.id).await
+fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
+    get_topic(&conn, topic_id, auth_user.id)
 }
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
-async fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> ApiResponse {
-    get_topics(&conn, topic_ids, auth_user.id).await
+fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> ApiResponse {
+    get_topics(&conn, topic_ids, auth_user.id)
 }
 
 pub fn get_topic_routes() -> Vec<Route> {

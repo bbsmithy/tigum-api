@@ -17,37 +17,37 @@ use db::querys::TigumPgConn;
 /////////////////////////
 
 #[delete("/videos/<id>")]
-pub async fn delete_single_video(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-    delete_video(&conn, id, auth_user.id).await
+pub fn delete_single_video(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+    delete_video(&conn, id, auth_user.id)
 }
 
 #[put("/videos/<id>", format = "application/json", data = "<video>")]
-pub async fn update_single_video(
+pub fn update_single_video(
     conn: TigumPgConn,
     id: i32,
     video: Json<NewVideo>,
     auth_user: User,
 ) -> ApiResponse {
-    update_video(&conn, id, video, auth_user.id).await
+    update_video(&conn, id, video, auth_user.id)
 }
 
 #[post("/videos/create", format = "application/json", data = "<video>")]
-pub async fn create_single_video(
+pub fn create_single_video(
     conn: TigumPgConn,
     video: Json<NewVideo>,
     auth_user: User,
 ) -> ApiResponse {
-    create_video(&conn, video, auth_user.id).await
+    create_video(&conn, video, auth_user.id)
 }
 
 #[get("/videos/<id>")]
-pub async fn single_video(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
-    get_video(&conn, id, auth_user.id).await
+pub fn single_video(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
+    get_video(&conn, id, auth_user.id)
 }
 
 #[post("/videos", format = "application/json", data = "<ids>")]
-pub async fn videos(conn: TigumPgConn, ids: Json<Ids>, auth_user: User) -> ApiResponse {
-    get_videos(&conn, ids, auth_user.id).await
+pub fn videos(conn: TigumPgConn, ids: Json<Ids>, auth_user: User) -> ApiResponse {
+    get_videos(&conn, ids, auth_user.id)
 }
 
 pub fn video_routes() -> Vec<Route> {
