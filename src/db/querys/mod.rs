@@ -1,4 +1,5 @@
-use rocket_contrib::databases;
+use diesel::pg::PgConnection;
+use rocket_contrib::databases::database;
 
 pub mod article_snippets_query;
 pub mod link_query;
@@ -9,5 +10,6 @@ pub mod video_query;
 pub mod search_resources_query;
 pub mod public_query;
 
+
 #[database("tigum_db")]
-pub struct TigumPgConn(databases::diesel::PgConnection);
+pub struct TigumPgConn(PgConnection);

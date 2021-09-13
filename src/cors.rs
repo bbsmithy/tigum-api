@@ -47,7 +47,7 @@ impl Fairing for CorsFairing {
             },
             None => println!("{}", "No Set-Cookie header in res")
         }
-        let allowed_origin_header = Header::new("Access-Control-Allow-Origin", allowed_origin);
+        let allowed_origin_header = Header::new("Access-Control-Allow-Origin", "*");
         // Add CORS headers to allow all origins to all outgoing requests
         res.set_header(allowed_origin_header);
         res.set_header(Header::new(

@@ -1,12 +1,22 @@
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
+use diesel::{QueryDsl, QueryResult};
+use diesel::dsl::Select;
+use diesel::ExpressionMethods;
 use rocket_contrib::json::Json;
 use rocket::http::{Status};
 
 // DB Models
 use models::resources::ResourceType;
-use models::topic::{NewTopic, Topic, TopicIds};
+use models::topic::{NewTopic, TopicIds};
 // use crate::db::parsing_util::{row_to_topic, parse_topic_result};
+use rocket_contrib::databases::diesel;
+
+// DB Schema
+use crate::schema::topics::dsl::topics;
+use crate::diesel::RunQueryDsl;
+
+use crate::models::Topic;
 
 // Api Response Struct
 use crate::db::api_response::ApiResponse;
@@ -126,6 +136,7 @@ pub fn delete_topic(conn: &TigumPgConn, topic_id: i32) -> ApiResponse {
 // }
 
 pub fn update_topic(conn: &TigumPgConn, topic_id: i32, topic: Json<Topic>) -> ApiResponse {
+    
     ApiResponse {
         json: json!("All good"),
         status: Status::raw(200)
@@ -206,28 +217,37 @@ pub fn get_topics(conn: &TigumPgConn, topic_ids: Json<TopicIds>, user_id: i32) -
     // }
 }
 
-pub fn get_topic(conn: &TigumPgConn, topic_id: i32, user_id: i32) -> ApiResponse {
+pub fn get_topic(conn: TigumPgConn, topic_id: i32, user_id: i32) -> ApiResponse {
+    use crate::schema::topics::dsl::*;
+
+    let results = topics.filter(id.eq(topic_id)).first::<Topic>(&*conn);
+
+    print!("{:?}", results);
+    
     ApiResponse {
         json: json!("All good"),
         status: Status::raw(200)
     }
+    
     // let query_result = conn.run(move |c|
     //     c.query("SELECT * FROM topics WHERE id = $1 AND user_id = $2", &[&topic_id, &user_id])
     // );
-    // match query_result {
+    // match results {
     //     Ok(rows) => {
-    //         if let Some(row) = rows.get(0) {
-    //             let result = row_to_topic(row);
-    //             ApiResponse {
-    //                 json: json!(result),
-    //                 status: Status::raw(200)
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": format!("Could not get topic with id {}", topic_id) }),
-    //                 status: Status::raw(500)
-    //             }
-    //         }
+    //         println!("{:?}", rows);
+
+    //         // if let Some(row) = rows.get(0) {
+    //         //     let result = row_to_topic(row);
+    //         //     ApiResponse {
+    //         //         json: json!(result),
+    //         //         status: Status::raw(200)
+    //         //     }
+    //         // } else {
+    //         //     ApiResponse {
+    //         //         json: json!({ "error": format!("Could not get topic with id {}", topic_id) }),
+    //         //         status: Status::raw(500)
+    //         //     }
+    //         // }
     //     },
     //     Err(_err) => {
     //         ApiResponse {

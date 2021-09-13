@@ -46,6 +46,8 @@ fn update_mod_date(
     conn: TigumPgConn,
     topic_id: i32
 ) -> ApiResponse {
+    
+
     ApiResponse {
         json: json!("All good"),
         status: Status::raw(200)
@@ -73,7 +75,7 @@ fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User
 
 #[get("/topics/<topic_id>")]
 fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
-    get_topic(&conn, topic_id, auth_user.id)
+    get_topic(conn, topic_id, auth_user.id)
 }
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]

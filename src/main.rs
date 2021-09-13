@@ -7,12 +7,17 @@ extern crate serde;
 #[macro_use]
 extern crate rocket_contrib;
 extern crate crypto;
+#[macro_use] extern crate diesel;
+
+
 
 // Main modules
 mod cors;
 mod db;
 mod routes;
 mod util;
+mod schema;
+mod models;
 
 // DB Connection Fairing
 use db::querys::TigumPgConn;

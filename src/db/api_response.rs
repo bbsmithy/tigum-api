@@ -6,7 +6,6 @@ use rocket::request::Request;
 use rocket::response;
 use rocket::response::{Responder, Response};
 use rocket_contrib::json::{JsonValue};
-use async_trait::async_trait;
 
 #[derive(Debug)]
 pub struct ApiResponse {
@@ -14,7 +13,6 @@ pub struct ApiResponse {
     pub status: Status,
 }
 
-#[async_trait]
 impl<'r> Responder<'r> for ApiResponse {
     fn respond_to(self, req: &Request) -> response::Result<'r> {
         Response::build_from(self.json.respond_to(&req).unwrap())
