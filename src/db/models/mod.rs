@@ -5,6 +5,7 @@ pub mod user;
 pub mod resources;
 pub mod search;
 
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Ids {
     pub ids: Vec<i32>,

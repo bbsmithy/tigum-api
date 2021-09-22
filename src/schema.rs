@@ -1,6 +1,3 @@
-
-use diesel::{allow_tables_to_appear_in_same_query, table};
-
 table! {
     article_snippets (id) {
         id -> Int4,
@@ -89,17 +86,17 @@ table! {
     topics (id) {
         id -> Int4,
         title -> Text,
-        date_created -> Nullable<Timestamp>,
-        notes -> Nullable<Array<Int4>>,
-        videos -> Nullable<Array<Int4>>,
-        code -> Nullable<Array<Int4>>,
-        article_snippets -> Nullable<Array<Int4>>,
-        links -> Nullable<Array<Int4>>,
-        excercises -> Nullable<Array<Int4>>,
+        date_created -> Timestamp,
+        notes -> Array<Int4>,
+        videos -> Array<Int4>,
+        code -> Array<Int4>,
+        article_snippets -> Array<Int4>,
+        links -> Array<Int4>,
+        excercises -> Array<Int4>,
         user_id -> Int4,
-        images -> Nullable<Array<Int4>>,
+        images -> Array<Int4>,
         date_updated -> Nullable<Timestamp>,
-        published -> Nullable<Bool>,
+        published -> Bool,
     }
 }
 

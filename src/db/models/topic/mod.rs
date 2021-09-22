@@ -1,12 +1,9 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use diesel::{Insertable, Queryable};
 
-#[derive(Deserialize, Debug)]
-pub struct NewTopic {
-    pub title: String,
-}
-
-#[derive(Serialize, Deserialize)]
+// ORDER OF STRUCT FIELDS MUCH MATCH ORDER OF FIELDS IN TABLE
+#[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Topic {
     pub id: i32,
     pub title: String,
@@ -17,38 +14,16 @@ pub struct Topic {
     pub article_snippets: Vec<i32>,
     pub links: Vec<i32>,
     pub excercises: Vec<i32>,
+    pub user_id: i32,
     pub images: Vec<i32>,
-    pub date_updated: NaiveDateTime,
+    pub date_updated: Option<NaiveDateTime>,
+    published: bool
 }
 
-impl Topic {
-    pub fn new(
-        id: i32,
-        title: String,
-        date_created: NaiveDateTime,
-        notes: Vec<i32>,
-        videos: Vec<i32>,
-        code: Vec<i32>,
-        article_snippets: Vec<i32>,
-        links: Vec<i32>,
-        excercises: Vec<i32>,
-        images: Vec<i32>,
-        date_updated: NaiveDateTime,
-    ) -> Topic {
-        Topic {
-            id: id,
-            title: title,
-            date_created: date_created,
-            notes: notes,
-            videos: videos,
-            code: code,
-            article_snippets: article_snippets,
-            links: links,
-            excercises: excercises,
-            images: images,
-            date_updated: date_updated
-        }
-    }
+
+#[derive(Deserialize, Debug)]
+pub struct NewTopic {
+    pub title: String,
 }
 
 #[derive(Deserialize)]
