@@ -41,24 +41,69 @@ pub fn delete_topic(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
 // }
 
 pub fn add_to_topic_resource_list(
-    conn: TigumPgConn,
+    conn: &diesel::PgConnection,
     topic_id: i32,
     resource_id: i32,
     resource_type: ResourceType,
 ) -> Result<Topic, Error> {
     use crate::schema::topics::dsl::*;
+
+    let topic_filter = topics.filter(id.eq(topic_id));
+    let current_topic = topic_filter.get_result::<Topic>(conn)?;
+
     match resource_type {
         ResourceType::Snippet => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(article_snippets.eq(vec![resource_id])).get_result::<Topic>(&*conn)
+            let mut new_list = current_topic.article_snippets.clone();
+            new_list.push(resource_id);
+            diesel::update(topic_filter).set(article_snippets.eq(new_list)).get_result::<Topic>(conn)
         },
         ResourceType::Link => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(links.eq(vec![resource_id])).get_result::<Topic>(&*conn)
+            let mut new_list = current_topic.links.clone();
+            new_list.push(resource_id);
+            diesel::update(topic_filter).set(links.eq(new_list)).get_result::<Topic>(conn)
         },
         ResourceType::Image => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(images.eq(vec![resource_id])).get_result::<Topic>(&*conn)
+            let mut new_list = current_topic.images.clone();
+            new_list.push(resource_id);
+            diesel::update(topic_filter).set(images.eq(new_list)).get_result::<Topic>(conn)
         },
         ResourceType::Note => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(notes.eq(vec![resource_id])).get_result::<Topic>(&*conn)
+            let mut new_list = current_topic.notes.clone();
+            new_list.push(resource_id);
+            diesel::update(topic_filter).set(notes.eq(new_list)).get_result::<Topic>(conn)
+        },
+        ResourceType::Video => {
+            let mut new_list = current_topic.videos.clone();
+            new_list.push(resource_id);
+            diesel::update(topic_filter).set(videos.eq(new_list)).get_result::<Topic>(conn)
+        },
+        ResourceType::Code => {
+            let mut new_list = current_topic.code.clone();
+            new_list.push(resource_id);
+            diesel::update(topic_filter).set(code.eq(new_list)).get_result::<Topic>(conn)
+        }
+    }
+}
+
+pub fn remove_from_topic_resource_list(
+    conn: &diesel::PgConnection,
+    topic_id: i32,
+    resource_id: i32,
+    resource_type: ResourceType 
+) -> Result<Topic, diesel::result::Error> {
+    use crate::schema::topics::dsl::*;
+    match resource_type {
+        ResourceType::Snippet => {
+            diesel::update(topics.filter(id.eq(topic_id))).set(article_snippets.eq(vec![resource_id])).get_result::<Topic>(conn)
+        },
+        ResourceType::Link => {
+            diesel::update(topics.filter(id.eq(topic_id))).set(links.eq(vec![resource_id])).get_result::<Topic>(conn)
+        },
+        ResourceType::Image => {
+            diesel::update(topics.filter(id.eq(topic_id))).set(images.eq(vec![resource_id])).get_result::<Topic>(conn)
+        },
+        ResourceType::Note => {
+            diesel::update(topics.filter(id.eq(topic_id))).set(notes.eq(vec![resource_id])).get_result::<Topic>(conn)
         },
         ResourceType::Video => {
             diesel::update(topics.filter(id.eq(topic_id))).set(videos.eq(vec![resource_id])).get_result::<Topic>(&*conn)
@@ -68,45 +113,6 @@ pub fn add_to_topic_resource_list(
         }
     }
 }
-
-// pub fn remove_from_topic_resource_list(
-//     conn: TigumPgConn,
-//     topic_id: i32,
-//     resource_id: i32,
-//     resource_type: ResourceType 
-// ) -> Result<u64, Error> {
-//     let query_result = match resource_type {
-//         ResourceType::Snippet => {
-//             let query = format!("UPDATE topics SET article_snippets = array_remove(article_snippets, {}) WHERE id = {}", resource_id, topic_id);
-//             sql_query(query).load(&*conn)
-//         },
-//         ResourceType::Link => {
-//             let query = format!("UPDATE topics SET article_snippets = array_remove(article_snippets, {}) WHERE id = {}", resource_id, topic_id);
-//             sql_query(query).load(&*conn);
-//         },
-//         ResourceType::Image => {
-//             conn.run(move |c|
-//                 c.execute("UPDATE topics SET images = array_remove(images, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
-//             )
-//         },
-//         ResourceType::Note => {
-//             conn.run(move |c|
-//                 c.execute("UPDATE topics SET notes = array_remove(notes, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
-//             )
-//         },
-//         ResourceType::Video => {
-//             conn.run(move |c|
-//                 c.execute("UPDATE topics SET videos = array_remove(videos, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
-//             )
-//         },
-//         ResourceType::Code => {
-//             conn.run(move |c|
-//                 c.execute("UPDATE topics SET code = array_remove(code, $1) WHERE id = ($2)", &[&resource_id, &topic_id])
-//             )
-//         }
-//     };
-//     query_result
-// }
 
 pub fn update_topic_title(conn: TigumPgConn, topic_id: i32, updated_topic_title: String) -> ApiResponse {
     use crate::schema::topics::dsl::*;
@@ -185,10 +191,10 @@ pub fn create_topic(conn: TigumPgConn, new_topic: Json<NewTopic>, uid: i32) -> A
     }
 }
 
-pub fn update_topic_mod_date(conn: TigumPgConn, topic_id: i32) -> Result<Topic, Error> {
+pub fn update_topic_mod_date(conn: &diesel::PgConnection, topic_id: i32) -> Result<Topic, Error> {
     use crate::schema::topics::dsl::*;
     use crate::db::querys::topic_query::diesel::dsl::now;
     diesel::update(topics.filter(id.eq(topic_id))).set(
         date_updated.eq(now)
-    ).get_result::<Topic>(&*conn)
+    ).get_result::<Topic>(conn)
 }

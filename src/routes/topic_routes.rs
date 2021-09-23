@@ -49,7 +49,7 @@ fn update_mod_date(
     conn: TigumPgConn,
     topic_id: i32
 ) -> ApiResponse {
-    match update_topic_mod_date(conn, topic_id) {
+    match update_topic_mod_date(&conn, topic_id) {
         Ok(_rows) => {
             ApiResponse {
                 json: json!({ "msg": "Success" }),

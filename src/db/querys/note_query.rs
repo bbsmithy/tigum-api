@@ -1,15 +1,19 @@
-//Use Macros
+use diesel::{QueryDsl, RunQueryDsl};
 use rocket_contrib::json::Json;
 use rocket::http::Status;
+use diesel::ExpressionMethods;
+use diesel::Connection;
+use diesel::result::Error;
+
 use crate::db::querys::TigumPgConn;
-// use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
+use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::models::resources::ResourceType;
 use crate::db::models::resources::note::{Note, NewNote, NoteIds};
 use crate::db::api_response::ApiResponse;
-// use crate::db::parsing_util::{row_to_note, parse_note_result};
+use crate::schema::notes::dsl::*;
 
 
-pub fn delete_note(conn: &TigumPgConn, note_id: i32, user_id: i32) -> ApiResponse {
+pub fn delete_note(conn: &TigumPgConn, note_id: i32, uid: i32) -> ApiResponse {
 
     ApiResponse {
         json: json!("All good"),
@@ -54,7 +58,7 @@ pub fn delete_note(conn: &TigumPgConn, note_id: i32, user_id: i32) -> ApiRespons
     // }
 }
 
-pub fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, user_id: i32) -> ApiResponse {
+pub fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, uid: i32) -> ApiResponse {
     ApiResponse {
         json: json!("All good"),
         status: Status::raw(200)
@@ -100,117 +104,78 @@ pub fn update_note(conn: &TigumPgConn, note_id: i32, note: Json<Note>, user_id: 
     // }
 }
 
-pub fn get_notes(conn: &TigumPgConn, note_ids: Json<NoteIds>, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn get_notes(conn: TigumPgConn, note_ids: Json<NoteIds>, uid: i32) -> ApiResponse {
+    use crate::schema::notes::dsl::*;
+    let query_result = notes.filter(user_id.eq(uid)).get_results::<Note>(&*conn);
+    match query_result {
+        Ok(rows) => {
+            ApiResponse {
+                json: json!(rows),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Could not get notes") }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let query_result = conn.run(move |c|
-    //     c.query("SELECT * FROM notes WHERE id = ANY($1) AND user_id = $2 ORDER BY date_updated ASC", &[&note_ids.ids, &user_id])
-    // );
-    // match query_result {
-    //     Ok(rows) => {
-    //         let results = parse_note_result(rows);
-    //         ApiResponse {
-    //             json: json!(results),
-    //             status: Status::raw(200)
-    //         }
-    //     },
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({"error": format!("Could not get notes")}),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }
 
-pub fn get_note(conn: &TigumPgConn, note_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn get_note(conn: TigumPgConn, note_id: i32) -> ApiResponse {
+    use crate::schema::notes::dsl::*;
+    let query_result = notes.filter(id.eq(note_id)).get_result::<Note>(&*conn);
+    match query_result {
+        Ok(row) => {
+            ApiResponse {
+                json: json!(row),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Could not get note with id {}", note_id) }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let query_result = conn.run(move |c|
-    //     c.query("SELECT * FROM notes WHERE id = $1", &[&note_id])
-    // );
-    // match query_result {
-    //     Ok(rows) => {
-    //         if let Some(row) = rows.get(0) {
-    //             let note = row_to_note(row);
-    //             ApiResponse {
-    //                 json: json!(note),
-    //                 status: Status::raw(200)
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": format!("Could not get note with id {}", note_id) }),
-    //                 status: Status::raw(200)
-    //             }
-    //         }
-    //     },
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({ "error": format!("Could not get note with id {}", note_id) }),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }
 
-pub fn create_note(conn: &TigumPgConn, note: Json<NewNote>, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn create_note(conn: &diesel::PgConnection, note: Json<NewNote>, uid: i32) -> ApiResponse {
+
+    let note_title = note.title.clone();
+
+    // TODO use transactions when 2 queries should both happend for success
+    let transaction_result = conn.transaction::<Note, Error, _>(|| {
+        let new_note = diesel::insert_into(notes).values((
+            title.eq(note_title), 
+            topic_id.eq(note.topic_id), 
+            user_id.eq(uid)
+        )).get_result::<Note>(conn)?;
+        add_to_topic_resource_list(
+            conn, 
+            note.topic_id, 
+            new_note.id, 
+            ResourceType::Note
+        )?;
+        Ok(new_note)
+    });
+
+    match transaction_result {
+        Ok(new_note) => {
+            ApiResponse {
+                json: json!(new_note),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Could not create note") }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let topic_id = note.topic_id;
-    // let query_result = conn.run(move |c|
-    //     c.query(
-    //         "INSERT INTO notes (title, topic_id, user_id) VALUES ($1, $2, $3) RETURNING *",
-    //         &[&note.title, &note.topic_id, &user_id]
-    //     )
-    // );
-    // match query_result {
-    //     Ok(result_rows) => {
-    //         let result = result_rows.get(0);
-    //         if let Some(row) = result {
-    //             let new_note = Note::new(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5));
-    //             let add_to_topic_result = add_to_topic_resource_list(&conn, topic_id, new_note.id, ResourceType::Note);
-    //             match add_to_topic_result {
-    //                 Ok(_rows_updated) => match update_topic_mod_date(conn, new_note.topic_id) {
-    //                     Ok(_rows) => {
-    //                         ApiResponse {
-    //                             json: json!(new_note),
-    //                             status: Status::raw(200)
-    //                         }
-    //                     },
-    //                     Err(err) => {
-    //                         ApiResponse {
-    //                             json: json!({"error": format!("Could not update note")}),
-    //                             status: Status::raw(500)
-    //                         }
-    //                     }
-    //                 },
-    //                 Err(_error) => ApiResponse {
-    //                     json: json!({ "error": format!("Could not add note to topic resource list")}),
-    //                     status: Status::raw(500)
-    //                 }
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({
-    //                     "error": format!("Could not create snippet")
-    //                 }),
-    //                 status: Status::raw(500)
-    //             }
-    //         }
-    //     },
-    //     Err(_error) => ApiResponse {
-    //         json: json!({
-    //             "error": format!("Could not create note")
-    //         }),
-    //         status: Status::raw(500)
-    //     }
-    // }
 }
 
 pub fn update_note_mod_date(conn: &TigumPgConn, note_id: i32) -> ApiResponse {

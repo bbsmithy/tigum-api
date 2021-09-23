@@ -15,5 +15,18 @@ pub enum ResourceType {
     Code,
 }
 
+impl ResourceType {
+    pub fn to_table_name(&self) -> &str {
+        match self {
+            Self::Video => "videos",
+            Self::Snippet => "article_snippets",
+            Self::Note => "notes",
+            Self::Link => "links",
+            Self::Code => "code",
+            Self::Image => "images"
+        }
+    }
+}
+
 
 pub struct Resource<T>(T);

@@ -1,8 +1,9 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use diesel::{Insertable, Queryable};
+use diesel::{Queryable, deserialize::QueryableByName};
 
 // ORDER OF STRUCT FIELDS MUCH MATCH ORDER OF FIELDS IN TABLE
+
 #[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Topic {
     pub id: i32,
