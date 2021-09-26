@@ -7,27 +7,29 @@ use diesel::result::Error;
 
 use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::models::resources::ResourceType;
-use crate::db::models::resources::note::{Note, NewNote, NoteIds};
+use crate::db::models::resources::note::{Note, NewNote};
 use crate::db::api_response::ApiResponse;
 use crate::schema::notes::dsl::*;
 
 
 pub fn delete_note(conn: &diesel::PgConnection, note_id: i32, uid: i32) -> ApiResponse {
     let note_to_delete_query = notes.filter(id.eq(note_id)).filter(user_id.eq(uid));
-    let res = diesel::delete(note_to_delete_query).get_result::<Note>(conn);
-    match res {
-        Ok(_row) => {
-            ApiResponse {
-                json: json!({ "msg": format!("Successfully deleted note with id {}", note_id) }),
-                status: Status::raw(200)
-            }
-        },
-        Err(_err) => {
-            ApiResponse {
-                json: json!({ "error": format!("Failed to delete note with id: {}", note_id) }),
-                status: Status::raw(500)
-            } 
+    // TODO use transactions when 2 queries should both happend for success
+    let transaction_result = conn.transaction::<_, Error, _>(|| {
+        let res = diesel::delete(note_to_delete_query).get_result::<Note>(conn)?;
+        remove_from_topic_resource_list(conn, res.topic_id, res.id, ResourceType::Note)?;
+        Ok(())
+    });
+    if transaction_result.is_ok() {
+        ApiResponse {
+            json: json!({ "msg": format!("Successfully deleted note with id {}", note_id) }),
+            status: Status::raw(200)
         }
+    } else {
+        ApiResponse {
+            json: json!({ "error": format!("Failed to delete note with id: {}", note_id) }),
+            status: Status::raw(500)
+        } 
     }
 }
 
@@ -39,6 +41,7 @@ pub fn update_note(conn: &diesel::PgConnection, note_id: i32, note: Json<Note>, 
     .get_result::<Note>(conn);
     match res {
         Ok(row) => {
+            update_topic_mod_date(conn, row.topic_id);
             ApiResponse {
                 json: json!(row),
                 status: Status::raw(200)
@@ -113,6 +116,7 @@ pub fn create_note(conn: &diesel::PgConnection, note: Json<NewNote>, uid: i32) -
 
     match transaction_result {
         Ok(new_note) => {
+            update_topic_mod_date(conn,  new_note.topic_id);
             ApiResponse {
                 json: json!(new_note),
                 status: Status::raw(200)

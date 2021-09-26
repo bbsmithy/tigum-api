@@ -92,24 +92,40 @@ pub fn remove_from_topic_resource_list(
     resource_type: ResourceType 
 ) -> Result<Topic, diesel::result::Error> {
     use crate::schema::topics::dsl::*;
+
+    let topic_filter = topics.filter(id.eq(topic_id));
+    let current_topic = topic_filter.get_result::<Topic>(conn)?;    
+
     match resource_type {
         ResourceType::Snippet => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(article_snippets.eq(vec![resource_id])).get_result::<Topic>(conn)
+            let mut list_without_resource = current_topic.article_snippets.clone();
+            list_without_resource.retain(|&x| x != resource_id);
+            diesel::update(topic_filter).set(article_snippets.eq(list_without_resource)).get_result::<Topic>(conn)
         },
         ResourceType::Link => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(links.eq(vec![resource_id])).get_result::<Topic>(conn)
+            let mut list_without_resource = current_topic.links.clone();
+            list_without_resource.retain(|&x| x != resource_id);
+            diesel::update(topic_filter).set(links.eq(list_without_resource)).get_result::<Topic>(conn)
         },
         ResourceType::Image => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(images.eq(vec![resource_id])).get_result::<Topic>(conn)
+            let mut list_without_resource = current_topic.images.clone();
+            list_without_resource.retain(|&x| x != resource_id);
+            diesel::update(topic_filter).set(images.eq(list_without_resource)).get_result::<Topic>(conn)
         },
         ResourceType::Note => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(notes.eq(vec![resource_id])).get_result::<Topic>(conn)
+            let mut list_without_resource = current_topic.notes.clone();
+            list_without_resource.retain(|&x| x != resource_id);
+            diesel::update(topic_filter).set(notes.eq(list_without_resource)).get_result::<Topic>(conn)
         },
         ResourceType::Video => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(videos.eq(vec![resource_id])).get_result::<Topic>(&*conn)
+            let mut list_without_resource = current_topic.videos.clone();
+            list_without_resource.retain(|&x| x != resource_id);
+            diesel::update(topic_filter).set(videos.eq(list_without_resource)).get_result::<Topic>(conn)
         },
         ResourceType::Code => {
-            diesel::update(topics.filter(id.eq(topic_id))).set(code.eq(vec![resource_id])).get_result::<Topic>(&*conn)
+            let mut list_without_resource = current_topic.code.clone();
+            list_without_resource.retain(|&x| x != resource_id);
+            diesel::update(topic_filter).set(code.eq(list_without_resource)).get_result::<Topic>(conn)
         }
     }
 }

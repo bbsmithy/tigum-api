@@ -5,11 +5,11 @@ use rocket::http::Status;
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
 use crate::db::api_response::ApiResponse;
-// use crate::db::querys::topic_query::{
-//     add_to_topic_resource_list,
-//     remove_from_topic_resource_list, 
-//     update_topic_mod_date
-// };
+use crate::db::querys::topic_query::{
+    add_to_topic_resource_list,
+    remove_from_topic_resource_list, 
+    update_topic_mod_date
+};
 use models::resources::video::{NewVideo, Video};
 use models::resources::ResourceType;
 use models::Ids;
