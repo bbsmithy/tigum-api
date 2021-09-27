@@ -122,8 +122,8 @@ table! {
         thumbnail_img -> Text,
         topic_id -> Int4,
         user_id -> Int4,
-        date_updated -> Nullable<Timestamp>,
-        published -> Nullable<Bool>,
+        date_updated -> Timestamp,
+        published -> Bool,
     }
 }
 
