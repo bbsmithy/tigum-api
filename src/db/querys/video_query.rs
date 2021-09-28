@@ -1,27 +1,24 @@
-//Use Macros
+// Use Macros
 use rocket_contrib::json::Json;
 use rocket::http::Status;
-
-use crate::db::models;
-use crate::db::querys::TigumPgConn;
-use crate::db::api_response::ApiResponse;
-use crate::db::querys::topic_query::{
-    add_to_topic_resource_list,
-    remove_from_topic_resource_list, 
-    update_topic_mod_date
-};
-use crate::routes::video_routes::videos;
-use models::resources::video::{NewVideo, Video};
-use models::resources::ResourceType;
-use models::Ids;
-
-// DB Schema
 use diesel::{QueryDsl, RunQueryDsl};
 use diesel::result::Error;
 use diesel::Connection;
 use diesel::PgConnection;
 use diesel::ExpressionMethods;
 use diesel::dsl::any;
+
+// DB Schema
+use crate::db::models;
+use crate::db::api_response::ApiResponse;
+use crate::db::querys::topic_query::{
+    add_to_topic_resource_list,
+    remove_from_topic_resource_list, 
+    update_topic_mod_date
+};
+use models::resources::video::{NewVideo, Video};
+use models::resources::ResourceType;
+use models::Ids;
 
 
 
@@ -58,11 +55,12 @@ pub fn update_video(conn: &PgConnection, video_id: i32, video: Json<NewVideo>, u
         origin.eq(video.origin.clone()),
         thumbnail_img.eq(video.thumbnail_img.clone())
     );
-    let query_result = diesel::update(video_to_update).set(values).get_results::<Video>(conn);
+    let query_result = diesel::update(video_to_update).set(values).get_result::<Video>(conn);
     match query_result {
-        Ok(updated_rows) => {
+        Ok(updated_row) => {
+            update_topic_mod_date(conn, updated_row.topic_id);
             ApiResponse {
-                json: json!(updated_rows),
+                json: json!(updated_row),
                 status: Status::raw(200)
             }
        },
@@ -162,24 +160,26 @@ pub fn create_video(conn: &diesel::PgConnection, video: Json<NewVideo>, uid: i32
 }
 
 
-fn update_topic_from_video(conn: &PgConnection, video: Video) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn update_note_mod_date(conn: &diesel::PgConnection, video_id: i32) -> ApiResponse {
+    use crate::schema::videos::dsl::*;
+    use diesel::dsl::now;
+
+    let update = diesel::update(videos.filter(id.eq(video_id))).set(
+        date_updated.eq(now)
+    ).get_result::<Video>(conn);
+
+    match update {
+        Ok(row) => {
+            ApiResponse {
+                json: json!(row),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Could not create note") }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // match update_topic_mod_date(conn, video.topic_id) {
-    //     Ok(_rows) => {
-    //         ApiResponse {
-    //             json: json!(video),
-    //             status: Status::raw(200)
-    //         }
-    //     },
-    //     Err(err) => {
-    //         println!("{:?}", err);
-    //         ApiResponse {
-    //             json: json!({"error": format!("Could not update note")}),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }

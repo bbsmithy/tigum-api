@@ -1,6 +1,6 @@
 use crate::db::models;
 use crate::db::querys::TigumPgConn;
-use diesel::{QueryDsl, insert_into, sql_query};
+use diesel::{QueryDsl, insert_into};
 use diesel::ExpressionMethods;
 use rocket_contrib::json::Json;
 use rocket::http::{Status};

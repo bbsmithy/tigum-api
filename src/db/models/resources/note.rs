@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use diesel::{Queryable, deserialize::QueryableByName};
+use diesel::{Queryable};
 
 // ORDER OF STRUCT FIELDS MUCH MATCH ORDER OF FIELDS IN TABLE
 

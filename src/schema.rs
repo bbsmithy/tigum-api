@@ -44,7 +44,7 @@ table! {
         date_created -> Timestamp,
         source -> Text,
         date_updated -> Nullable<Timestamp>,
-        published -> Nullable<Bool>,
+        published -> Bool,
     }
 }
 

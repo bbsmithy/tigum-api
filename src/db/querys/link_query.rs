@@ -1,233 +1,140 @@
-//Use Macros
+// Use Macros
 use rocket_contrib::json::Json;
 use rocket::http::Status;
+use diesel::result::Error;
+use crate::diesel::ExpressionMethods;
+use crate::diesel::Connection;
+use crate::diesel::RunQueryDsl;
+use crate::diesel::QueryDsl;
+use diesel::dsl::any;
+
+// Schema
 use crate::db::models::resources::ResourceType;
-use crate::db::querys::TigumPgConn;
-// use crate::db::querys::topic_query::remove_from_topic_resource_list;
-// use crate::db::querys::topic_query::{add_to_topic_resource_list, update_topic_mod_date};
+use crate::db::querys::topic_query::remove_from_topic_resource_list;
+use crate::db::querys::topic_query::{add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::api_response::ApiResponse;
 use crate::db::models::resources::link::{Link, NewLink};
 use crate::db::models::Ids;
 
-// fn row_to_link(row: &rocket_contrib::databases::postgres::Row) -> Link {
-//     Link {
-//         id: row.get(0),
-//         title: row.get(1),
-//         user_id: row.get(2),
-//         topic_id: row.get(3),
-//         date_created: row.get(4),
-//         source: row.get(5),
-//     }
-// }
 
-pub fn delete_link(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn delete_link(conn: &diesel::PgConnection, link_id: i32, uid: i32) -> ApiResponse {
+    use crate::schema::links::dsl::*;
+    let link_to_delete_query = links.filter(id.eq(link_id)).filter(user_id.eq(uid));
+    // TODO use transactions when 2 queries should both happend for success
+    let transaction_result = conn.transaction::<_, Error, _>(|| {
+        let res = diesel::delete(link_to_delete_query).get_result::<Link>(conn)?;
+        remove_from_topic_resource_list(conn, res.topic_id, res.id, ResourceType::Link)?;
+        Ok(())
+    });
+    if transaction_result.is_ok() {
+        ApiResponse {
+            json: json!({ "msg": format!("Successfully deleted note with id {}", link_id) }),
+            status: Status::raw(200)
+        }
+    } else {
+        ApiResponse {
+            json: json!({ "error": format!("Failed to delete note with id: {}", link_id) }),
+            status: Status::raw(500)
+        } 
     }
-    // let update = conn.run(move |c|
-    //     c.query("DELETE FROM links WHERE id = $1 AND user_id = $2 RETURNING topic_id", &[&id, &user_id])
-    // );
-    // match update {
-    //     Ok(row) => {
-    //         let deleted_row = row.get(0);
-    //         if let Some(row) = deleted_row {
-    //             let deleted_row_topic_id: i32 = row.get(0);
-    //             let remove_topic_result = remove_from_topic_resource_list(conn, deleted_row_topic_id, id, ResourceType::Link);
-    //             match remove_topic_result {
-    //                 Ok(_rows_removed) => {
-    //                     ApiResponse {
-    //                         json: json!({ "msg": format!("Successfully deleted link with id {}", id) }),
-    //                         status: Status::raw(200)
-    //                     }
-    //                 },
-    //                 Err(_err) => {
-    //                     ApiResponse {
-    //                         json: json!({ "error": format!("Failed to deleted row with id: {}", id) }),
-    //                         status: Status::raw(500)
-    //                     }
-    //                 }
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": format!("Failed to deleted row with id: {}", id) }),
-    //                 status: Status::raw(500)
-    //             }
-    //         }
-    //     },  
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({ "error": format!("Failed to deleted row with id: {}", id) }),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }
 
-pub fn update_link(conn: &TigumPgConn, id: i32, link: Json<NewLink>, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn update_link(conn: &diesel::PgConnection, link_id: i32, link: Json<NewLink>, uid: i32) -> ApiResponse {
+    use crate::schema::links::dsl::*;
+    let link_to_update = links.filter(id.eq(link_id)).filter(user_id.eq(uid));
+    let values = (topic_id.eq(link.topic_id), user_id.eq(uid), title.eq(link.title.clone()));
+    let res = diesel::update(link_to_update).set(values).get_result::<Link>(conn);
+    match res {
+        Ok(row) => {
+            update_topic_mod_date(conn, row.topic_id);
+            ApiResponse {
+                json: json!(row),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Failed to update link with id: {}", link_id) }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let update = conn.run(move |c|
-    //     c.query(
-    //         "UPDATE links SET topic_id = $2, user_id = $3, title = $4 WHERE id = $1 AND user_id = $5 RETURNING *",
-    //         &[&id, &link.topic_id, &user_id, &link.title, &user_id],
-    //     )
-    // );
-    // match update {
-    //     Ok(rows) => {
-    //         let updated_row = rows.get(0);
-    //         if let Some(row) = updated_row {
-    //             let updated_link = row_to_link(row);
-    //             update_topic_from_link(&conn, updated_link)
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": format!("Failed to update link") }),
-    //                 status: Status::raw(200)
-    //             }
-    //         }
-    //     },
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({ "error": format!("Failed to update link with id: {}", id) }),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
+
 }
 
-pub fn get_links(conn: &TigumPgConn, ids: Json<Ids>, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn get_links(conn: &diesel::PgConnection, link_ids: Json<Ids>, uid: i32) -> ApiResponse {
+    use crate::schema::links::dsl::*;
+    let ids = link_ids.ids.clone();
+    let query_result = links.filter(id.eq(any(ids))).filter(user_id.eq(uid)).get_results::<Link>(conn);
+    match query_result {
+        Ok(rows) => {
+            ApiResponse {
+                json: json!(rows),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Could not fetch links") }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let query_result = conn.run(move |c|
-    //     c.query(
-    //         "SELECT * FROM links WHERE id = ANY($1) AND user_id = $2 ORDER BY date_created DESC",
-    //         &[&ids.ids, &user_id],
-    //     )
-    // );
-    // match query_result {
-    //     Ok(rows) => {
-    //         let mut results: Vec<Link> = vec![];
-    //         for row in rows.iter() {
-    //             let link_response = row_to_link(row);
-    //             results.push(link_response);
-    //         }
-    //         ApiResponse {
-    //             json: json!(results),
-    //             status: Status::raw(200)
-    //         }
-    //     },
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({ "error": format!("Could not fetch links") }),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }
 
-pub fn get_link(conn: &TigumPgConn, id: i32, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn get_link(conn: &diesel::PgConnection, link_id: i32, uid: i32) -> ApiResponse {
+    use crate::schema::links::dsl::*;
+    let query_result = links.filter(id.eq(link_id)).filter(user_id.eq(uid)).first::<Link>(conn);
+    match query_result {
+        Ok(row) => {
+            ApiResponse {
+                json: json!(row),
+                status: Status::raw(200)
+            }
+        },
+        Err(err) => {
+            println!("{:?}", err);
+            ApiResponse {
+                json: json!({ "error": "Could not create video" }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let query_result = conn.run(move |c|
-    //     c.query(
-    //         "SELECT * FROM links WHERE id = $1 AND user_id = $2",
-    //         &[&id, &user_id],
-    //     )
-    // );
-    // match query_result {
-    //     Ok(rows) => {
-    //         if let Some(row) = rows.get(0) {
-    //             let link_response = row_to_link(row);
-    //             ApiResponse {
-    //                 json: json!(link_response),
-    //                 status: Status::raw(200)
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": format!("Could not fetch links") }),
-    //                 status: Status::raw(200)
-    //             }
-    //         }
-    //     },
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({ "error": format!("Failed to get link with id: {}", id) }),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }
 
-pub fn create_link(conn: &TigumPgConn, link: Json<NewLink>, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn create_link(conn: &diesel::PgConnection, link: Json<NewLink>, uid: i32) -> ApiResponse {
+    use crate::schema::links::dsl::*;
+    let link_title = link.title.clone();
+    let transaction_result = conn.transaction::<Link, Error, _>(|| {
+        let values = (
+            title.eq(link_title), 
+            topic_id.eq(link.topic_id), 
+            user_id.eq(uid),
+            source.eq(link.source.clone())
+        );
+        let new_link = diesel::insert_into(links).values(values).get_result::<Link>(conn)?;
+        add_to_topic_resource_list(
+            conn, 
+            link.topic_id, 
+            new_link.id, 
+            ResourceType::Link
+        )?;
+        Ok(new_link)
+    });
+    match transaction_result {
+        Ok(updated_row) => {
+            update_topic_mod_date(conn, updated_row.topic_id);
+            ApiResponse {
+                json: json!(updated_row),
+                status: Status::raw(200)
+            }
+       },
+        Err(err) => {
+            println!("{:?}", err);
+            ApiResponse {
+                json: json!({"error": format!("Could not create link" )}),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let topic_id = link.topic_id;
-    // let query_result = conn.run(move |c|
-    //     c.query(
-    //         "INSERT INTO links (title, topic_id, user_id, source) VALUES ($1, $2, $3, $4) RETURNING *",
-    //         &[
-    //             &link.title,
-    //             &link.topic_id,
-    //             &user_id,
-    //             &link.source
-    //         ],
-    //     )
-    // );
-    // match query_result {
-    //     Ok(new_link_rows) => {
-    //         let new_row = new_link_rows.get(0);
-    //         if let Some(row) = new_row {
-    //             let new_link = row_to_link(row);
-    //             let query_result = add_to_topic_resource_list(
-    //                 &conn,
-    //                 topic_id,
-    //                 new_link.id,
-    //                 ResourceType::Link,
-    //             );
-    //             match query_result {
-    //                 Ok(_rows_updated) => update_topic_from_link(&conn, new_link),
-    //                 Err(_error) => ApiResponse {
-    //                     json: json!({ "error": format!("Could not create snippet {}", new_link.topic_id )}),
-    //                     status: Status::raw(500)
-    //                 }
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": format!("Could not create snippet")}),
-    //                 status: Status::raw(500)
-    //             }
-    //         }
-    //     }
-    //     Err(_err) => ApiResponse {
-    //         json: json!({
-    //             "error": format!("Could not create link")
-    //         }),
-    //         status: Status::raw(500)
-    //     }
-    // }
 }
-
-// fn update_topic_from_link(conn: &TigumPgConn, link: Link) -> ApiResponse {
-//     match update_topic_mod_date(conn, link.topic_id) {
-//         Ok(_rows) => {
-//             ApiResponse {
-//                 json: json!(link),
-//                 status: Status::raw(200)
-//             }
-//         },
-//         Err(_err) => {
-//             ApiResponse {
-//                 json: json!({"error": format!("Could not update note")}),
-//                 status: Status::raw(500)
-//             }
-//         }
-//     }
-// }
