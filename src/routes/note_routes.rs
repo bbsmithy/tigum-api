@@ -44,9 +44,9 @@ fn single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> ApiResponse
     get_note(&*conn, note_id)
 }
 
-#[post("/notes", format = "application/json")]
-fn notes(conn: TigumPgConn, auth_user: User) -> ApiResponse {
-    get_notes(&*conn, auth_user.id)
+#[post("/notes", format = "application/json", data = "<ids>")]
+fn notes(conn: TigumPgConn, ids: Json<NoteIds>, auth_user: User) -> ApiResponse {
+    get_notes(&*conn, ids, auth_user.id)
 }
 
 pub fn get_note_routes() -> Vec<Route> {

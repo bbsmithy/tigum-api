@@ -10,143 +10,110 @@ use crate::db::querys::topic_query::{
     remove_from_topic_resource_list, 
     update_topic_mod_date
 };
+use crate::routes::video_routes::videos;
 use models::resources::video::{NewVideo, Video};
 use models::resources::ResourceType;
 use models::Ids;
 
 // DB Schema
-use diesel::RunQueryDsl;
+use diesel::{QueryDsl, RunQueryDsl};
 use diesel::result::Error;
 use diesel::Connection;
 use diesel::PgConnection;
 use diesel::ExpressionMethods;
+use diesel::dsl::any;
 
 
 
-pub fn delete_video(conn: &PgConnection, id: i32, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn delete_video(conn: &PgConnection, video_id: i32, uid: i32) -> ApiResponse {
+    use crate::schema::videos::dsl::*;
+    let video_to_delete = videos.filter(id.eq(video_id)).filter(user_id.eq(uid));
+    // TODO use transactions when 2 queries should both happend for success
+    let transaction_result = conn.transaction::<_, Error, _>(|| {
+        let res = diesel::delete(video_to_delete).get_result::<Video>(conn)?;
+        remove_from_topic_resource_list(conn, res.topic_id, res.id, ResourceType::Note)?;
+        Ok(())
+    });
+    if transaction_result.is_ok() {
+        ApiResponse {
+            json: json!({ "msg": format!("Successfully deleted note with id {}", video_id) }),
+            status: Status::raw(200)
+        }
+    } else {
+        ApiResponse {
+            json: json!({ "error": format!("Failed to delete note with id: {}", video_id) }),
+            status: Status::raw(500)
+        } 
     }
-    // let query_result = conn.run(move |c|
-    //     c.query("DELETE FROM videos WHERE id = $1 AND user_id = $2 RETURNING topic_id", &[&id, &user_id])
-    // );
-    // match query_result {
-    //     Ok(rows_removed) => {
-    //         if let Some(topic_row) = rows_removed.get(0) {
-    //             let topic_id = topic_row.get(0);
-    //             match remove_from_topic_resource_list(conn, topic_id, id, ResourceType::Video) {
-    //                 Ok(_removed_row_count)=> ApiResponse {
-    //                     json: json!({ "msg": format!("Successfully deleted video with id: {}", id) }),
-    //                     status: Status::raw(200)
-    //                 },
-    //                 Err(_error) => ApiResponse {
-    //                     json: json!({ "error": format!("Successfully deleted video with id: {}", id) }),
-    //                     status: Status::raw(200)
-    //                 }
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": format!("Failed to delete video with id: {}", id) }),
-    //                 status: Status::raw(500)
-    //             }
-    //         }
-    //     },
-    //     Err(_err) => ApiResponse {
-    //         json: json!({ "error": format!("Failed to delete video with id: {}", id) }),
-    //         status: Status::raw(500)
-    //     }
-    // }
 }
 
-pub fn update_video(conn: &PgConnection, id: i32, video: Json<NewVideo>, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn update_video(conn: &PgConnection, video_id: i32, video: Json<NewVideo>, uid: i32) -> ApiResponse {
+    use crate::schema::videos::dsl::*;
+    let video_to_update = videos.filter(id.eq(video_id))
+    .filter(user_id.eq(uid));
+    let values = (
+        topic_id.eq(video.topic_id),
+        title.eq(video.title.clone()),
+        iframe.eq(video.iframe.clone()),
+        origin.eq(video.origin.clone()),
+        thumbnail_img.eq(video.thumbnail_img.clone())
+    );
+    let query_result = diesel::update(video_to_update).set(values).get_results::<Video>(conn);
+    match query_result {
+        Ok(updated_rows) => {
+            ApiResponse {
+                json: json!(updated_rows),
+                status: Status::raw(200)
+            }
+       },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({"error": format!("Could not update video with id {}", video_id)}),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let query_result = conn.run(move |c|
-    //     c.query("UPDATE videos SET topic_id = $2, user_id = $3, title = $4, iframe = $5, origin = $6, thumbnail_img = $7 WHERE id = $1 RETURNING *",
-    //     &[&id, &video.topic_id, &user_id, &video.title, &video.iframe, &video.origin, &video.thumbnail_img],
-    // ));
-    // match query_result {
-    //     Ok(updated_rows) => {
-    //         if let Some(video_row) = updated_rows.get(0) {
-    //             let updated_video = row_to_video(video_row);
-    //             update_topic_from_video(&conn, updated_video)
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({"error": format!("Could not update video with id {}", id)}),
-    //                 status: Status::raw(500)
-    //             }
-    //         }
-    //    },
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({"error": format!("Could not update video with id {}", id)}),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }
 
-pub fn get_videos(conn: &PgConnection, ids: Json<Ids>, user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn get_videos(conn: &PgConnection, video_ids: Json<Ids>, uid: i32) -> ApiResponse {
+    use crate::schema::videos::dsl::*;
+    let ids = video_ids.ids.clone();
+    let query_result = videos.filter(id.eq(any(ids)))
+    .filter(user_id.eq(uid))
+    .get_results::<Video>(conn);
+    match query_result {
+        Ok(rows) => {
+            ApiResponse {
+                json: json!(rows),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": format!("Could not get videos") }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let query_result = conn.run(move |c|
-    //     c.query("SELECT * FROM videos WHERE id = ANY($1) AND user_id = $2 ORDER BY date_updated DESC", &[&ids.ids, &user_id])
-    // );
-    // match query_result {
-    //     Ok(rows) => {
-    //         let mut results: Vec<Video> = vec![];
-    //         for row in rows.iter() {
-    //             println!("{:?}", row);
-    //             let video_response = row_to_video(row);
-    //             results.push(video_response);
-    //         }
-    //         ApiResponse {
-    //             json: json!(results),
-    //             status: Status::raw(200)
-    //         }
-    //     },
-    //     Err(_err) => ApiResponse {
-    //         json: json!({ "error": format!("Could not get videos") }),
-    //         status: Status::raw(200)
-    //     }
-    // }   
 }
 
-pub fn get_video(conn: &PgConnection, id: i32, _user_id: i32) -> ApiResponse {
-    ApiResponse {
-        json: json!("All good"),
-        status: Status::raw(200)
+pub fn get_video(conn: &PgConnection, video_id: i32, _user_id: i32) -> ApiResponse {
+    use crate::schema::videos::dsl::*;
+    let query_result = videos.filter(id.eq(video_id)).first::<Video>(conn);
+    match query_result {
+        Ok(row) => {
+            ApiResponse {
+                json: json!(row),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": "Could not create video" }),
+                status: Status::raw(500)
+            }
+        }
     }
-    // let query_result = conn.run(move |c|
-    //     c.query("SELECT * FROM videos WHERE id = $1", &[&id])
-    // );
-    // match query_result {
-    //     Ok(rows) => {
-    //         if let Some(row) = rows.get(0) {
-    //             let video_response = row_to_video(row);
-    //             ApiResponse {
-    //                 json: json!(video_response),
-    //                 status: Status::raw(200)
-    //             }
-    //         } else {
-    //             ApiResponse {
-    //                 json: json!({ "error": "Could not find video response" }),
-    //                 status: Status::raw(500)
-    //             }
-    //         }
-    //     },
-    //     Err(_err) => {
-    //         ApiResponse {
-    //             json: json!({ "error": "Could not create video" }),
-    //             status: Status::raw(500)
-    //         }
-    //     }
-    // }
 }
 
 pub fn create_video(conn: &diesel::PgConnection, video: Json<NewVideo>, uid: i32) -> ApiResponse {
@@ -191,7 +158,7 @@ pub fn create_video(conn: &diesel::PgConnection, video: Json<NewVideo>, uid: i32
                 status: Status::raw(500)
             }
         }
-    }c
+    }
 }
 
 

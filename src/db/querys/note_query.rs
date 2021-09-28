@@ -4,12 +4,15 @@ use rocket::http::Status;
 use diesel::ExpressionMethods;
 use diesel::Connection;
 use diesel::result::Error;
+use diesel::dsl::any;
 
+use crate::db::models::resources::note::NoteIds;
 use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::models::resources::ResourceType;
 use crate::db::models::resources::note::{Note, NewNote};
 use crate::db::api_response::ApiResponse;
 use crate::schema::notes::dsl::*;
+
 
 
 pub fn delete_note(conn: &diesel::PgConnection, note_id: i32, uid: i32) -> ApiResponse {
@@ -56,9 +59,10 @@ pub fn update_note(conn: &diesel::PgConnection, note_id: i32, note: Json<Note>, 
     }
 }
 
-pub fn get_notes(conn: &diesel::PgConnection, uid: i32) -> ApiResponse {
+pub fn get_notes(conn: &diesel::PgConnection, note_ids: Json<NoteIds>, uid: i32) -> ApiResponse {
     use crate::schema::notes::dsl::*;
-    let query_result = notes.filter(user_id.eq(uid)).get_results::<Note>(conn);
+    let ids = note_ids.ids.clone();
+    let query_result = notes.filter(id.eq(any(ids))).filter(user_id.eq(uid)).get_results::<Note>(conn);
     match query_result {
         Ok(rows) => {
             ApiResponse {
