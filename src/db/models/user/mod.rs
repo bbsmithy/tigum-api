@@ -42,29 +42,29 @@ pub struct VerifyUser {
 }
 
 
-#[derive(Serialize, Deserialize, RustcEncodable, Debug)]
+#[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
 pub struct AuthUser {
     pub id: i32,
     pub name: String,
     pub email: String,
-    pub email_hash: i64,
     pub password_hash: String,
+    pub email_hash: i64,
+    pub verify_hash: String,
     pub verified: bool
 }
 
 impl AuthUser {
     pub fn to_public_user(auth_user: Self) -> User {
-        let user = User {
+        User {
             id: auth_user.id,
             name: auth_user.name,
             email: auth_user.email,
             email_hash: auth_user.email_hash
-        };
-        user
+        }
     }
 }
 
-#[derive(Serialize, Deserialize, RustcEncodable, Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: i32,
     pub name: String,

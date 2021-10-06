@@ -105,10 +105,10 @@ table! {
         id -> Int4,
         name -> Text,
         email -> Text,
-        password_hash -> Nullable<Text>,
-        email_hash -> Nullable<Int8>,
-        verify_hash -> Nullable<Varchar>,
-        verified -> Nullable<Bool>,
+        password_hash -> Text,
+        email_hash -> Int8,
+        verify_hash -> Text,
+        verified -> Bool,
     }
 }
 
