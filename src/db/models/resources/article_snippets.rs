@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use diesel::{Queryable};
 
 // Used when creating a new ArticleSnippet
 #[derive(Serialize, Deserialize, Debug)]
@@ -11,13 +12,15 @@ pub struct NewArticleSnippet {
 }
 
 // Used when reading or updating a ArtcileSnippet
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct ArticleSnippet {
     pub id: i32,
     pub content: String,
     pub origin: String,
     pub date_created: NaiveDateTime,
-    pub title: String,
     pub topic_id: i32,
     pub user_id: i32,
+    pub title: Option<String>,
+    date_updated: Option<NaiveDateTime>,
+    published: Option<bool>
 }
