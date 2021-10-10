@@ -77,6 +77,7 @@ pub fn get_videos(conn: &PgConnection, video_ids: Json<Ids>, uid: i32) -> ApiRes
     use crate::schema::videos::dsl::*;
     let ids = video_ids.ids.clone();
     let query_result = videos.filter(id.eq(any(ids)))
+    .order_by(date_updated.desc())
     .filter(user_id.eq(uid))
     .get_results::<Video>(conn);
     match query_result {

@@ -151,7 +151,7 @@ pub fn update_topic_title(conn: TigumPgConn, topic_id: i32, updated_topic_title:
 
 pub fn get_topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, uid: i32) -> ApiResponse {
     use crate::schema::topics::dsl::*;
-    let req = topics.filter(user_id.eq(uid)).get_results::<Topic>(&*conn);
+    let req = topics.filter(user_id.eq(uid)).order_by(date_updated.desc()).get_results::<Topic>(&*conn);
     match req {
         Ok(result) => {
             ApiResponse {

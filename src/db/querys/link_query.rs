@@ -65,7 +65,7 @@ pub fn update_link(conn: &diesel::PgConnection, link_id: i32, link: Json<NewLink
 pub fn get_links(conn: &diesel::PgConnection, link_ids: Json<Ids>, uid: i32) -> ApiResponse {
     use crate::schema::links::dsl::*;
     let ids = link_ids.ids.clone();
-    let query_result = links.filter(id.eq(any(ids))).filter(user_id.eq(uid)).get_results::<Link>(conn);
+    let query_result = links.filter(id.eq(any(ids))).filter(user_id.eq(uid)).order(date_created.desc()).get_results::<Link>(conn);
     match query_result {
         Ok(rows) => {
             ApiResponse {

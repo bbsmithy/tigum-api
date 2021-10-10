@@ -80,7 +80,7 @@ pub fn update_article_snippet(
 pub fn get_article_snippets(conn: &diesel::PgConnection, article_snippet_ids: Json<Ids>, uid: i32) -> ApiResponse {
     use crate::schema::article_snippets::dsl::*;
     let ids = article_snippet_ids.ids.clone();
-    let res = article_snippets.filter(id.eq(any(ids))).filter(user_id.eq(uid)).get_results::<ArticleSnippet>(conn);
+    let res = article_snippets.filter(id.eq(any(ids))).filter(user_id.eq(uid)).order_by(date_updated.desc()).get_results::<ArticleSnippet>(conn);
     match res {
         Ok(rows) => {
             ApiResponse {
