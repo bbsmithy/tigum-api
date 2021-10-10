@@ -47,7 +47,7 @@ impl Fairing for CorsFairing {
             },
             None => println!("{}", "No Set-Cookie header in res")
         }
-        let allowed_origin_header = Header::new("Access-Control-Allow-Origin", "https://tigum.io");
+        let allowed_origin_header = Header::new("Access-Control-Allow-Origin", "https://tigum.io http://localhost:3000");
         // Add CORS headers to allow all origins to all outgoing requests
         res.set_header(allowed_origin_header);
         res.set_header(Header::new(
@@ -58,6 +58,9 @@ impl Fairing for CorsFairing {
             "Access-Control-Allow-Headers",
             "Content-Type,X-User-ID",
         ));
+
+        println!("HOWYA");
+
         res.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
 
