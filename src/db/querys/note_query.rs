@@ -62,7 +62,7 @@ pub fn update_note(conn: &diesel::PgConnection, note_id: i32, note: Json<Note>, 
 pub fn get_notes(conn: &diesel::PgConnection, note_ids: Json<NoteIds>, uid: i32) -> ApiResponse {
     use crate::schema::notes::dsl::*;
     let ids = note_ids.ids.clone();
-    let query_result = notes.filter(id.eq(any(ids))).filter(user_id.eq(uid)).order_by(date_updated.desc()).get_results::<Note>(conn);
+    let query_result = notes.filter(id.eq(any(ids))).filter(user_id.eq(uid)).order_by(date_updated.asc()).get_results::<Note>(conn);
     match query_result {
         Ok(rows) => {
             ApiResponse {

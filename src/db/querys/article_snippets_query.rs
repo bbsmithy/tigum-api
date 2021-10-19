@@ -2,7 +2,6 @@
 use rocket_contrib::json::{Json};
 use rocket::http::Status;
 use crate::db::models;
-use crate::db::querys::TigumPgConn;
 use crate::db::querys::topic_query::{
     remove_from_topic_resource_list,
     add_to_topic_resource_list,

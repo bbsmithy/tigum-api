@@ -1,6 +1,8 @@
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{http::uri::Origin, http::Header, http::Method, Data, Request, Response};
 
+use std::env;
+
 pub struct CorsFairing {
     allow_origins: Vec<String>,
 }
@@ -47,7 +49,16 @@ impl Fairing for CorsFairing {
             },
             None => println!("{}", "No Set-Cookie header in res")
         }
-        let allowed_origin_header = Header::new("Access-Control-Allow-Origin", "https://tigum.io");
+
+        let mut allowed_origin = "https://tigum.io";
+        if let Some(e) = env::args().nth(1) {
+            if e == "DEV" {
+                allowed_origin = "http://localhost:3000"
+            }
+        };
+        
+
+        let allowed_origin_header = Header::new("Access-Control-Allow-Origin", allowed_origin);
         // Add CORS headers to allow all origins to all outgoing requests
         res.set_header(allowed_origin_header);
         res.set_header(Header::new(
