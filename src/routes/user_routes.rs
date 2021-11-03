@@ -10,7 +10,7 @@ use db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
 
 // Models
-use db::models::user::{AuthUser, CreateUser, LoginUser, User, UpdatePassword, VerifyUser};
+use db::models::user::{AuthUser, CreateUser, LoginUser, User, UpdatePassword, VerifyUser, BetaSignUp};
 use db::api_response::ApiResponse;
 
 // Util
@@ -28,7 +28,8 @@ use db::querys::user_query::{
     create_user,
     get_user,
     update_password,
-    verify_user_with_hash
+    verify_user_with_hash,
+    create_betauser
 };
 
 /////////////////////////
@@ -213,6 +214,24 @@ pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>) -
     }
 }
 
+#[post("/user/beta-signup", format = "application/json", data = "<beta_signup>")]
+pub fn beta_user_signup(conn: TigumPgConn, beta_signup: Json<BetaSignUp>) -> ApiResponse {
+    
+
+    
+    if create_betauser(&conn, beta_signup) {
+        ApiResponse {
+            json: json!({ "msg": "beta user signed up" }),
+            status: Status::raw(200)
+        }
+    } else {
+        ApiResponse {
+            json: json!({ "msg": "YUP" }),
+            status: Status::raw(200)
+        }
+    }
+}
+
 #[post("/user/verify", format = "application/json", data = "<verify>")]
 pub fn verify_user(conn: TigumPgConn, verify: Json<VerifyUser>) -> ApiResponse {
     let hash = verify.verify_hash.clone();
@@ -239,6 +258,7 @@ pub fn get_user_routes() -> Vec<Route> {
         check_login,
         logout,
         update_user_password,
-        verify_user
+        verify_user,
+        beta_user_signup
     ]
 }

@@ -13,6 +13,14 @@ table! {
 }
 
 table! {
+    betausers (id) {
+        id -> Int4,
+        email -> Text,
+        username -> Text,
+    }
+}
+
+table! {
     code (id) {
         id -> Int4,
         topic_id -> Int4,
@@ -129,6 +137,7 @@ table! {
 
 allow_tables_to_appear_in_same_query!(
     article_snippets,
+    betausers,
     code,
     images,
     links,

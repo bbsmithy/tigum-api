@@ -36,6 +36,19 @@ pub struct UpdatePassword {
     pub email_hash: i64
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct BetaSignUp {
+    pub email: String,
+    pub username: String
+}
+
+#[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
+pub struct BetaUser {
+    pub id: i32,
+    pub email: String,
+    pub username: String
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct VerifyUser {
     pub verify_hash: String

@@ -1,5 +1,5 @@
 use rocket_contrib::json::Json;
-use crate::db::models::user::{CreateUser, User, AuthUser};
+use crate::db::models::user::{CreateUser, User, AuthUser, BetaSignUp, BetaUser};
 use crate::db::querys::TigumPgConn;
 use crate::db::api_response::ApiResponse;
 use rocket::http::Status;
@@ -52,6 +52,17 @@ pub fn create_user(
         verify_hash.eq(verify_hash_str), 
         verified.eq(false)
     )).get_result::<AuthUser>(conn)
+}
+
+pub fn create_betauser(conn: &diesel::PgConnection, beta_user: Json<BetaSignUp>) -> bool {
+    use crate::schema::betausers::dsl::*;
+    let beta_email = beta_user.email.clone();
+    let beta_username = beta_user.username.clone();
+    let result = diesel::insert_into(betausers).values((
+        email.eq(beta_email),
+        username.eq(beta_username)
+    )).get_result::<BetaUser>(conn);
+    result.is_ok()
 }
 
 pub fn verify_user_with_hash(conn: &diesel::PgConnection, hash: String) -> bool {
