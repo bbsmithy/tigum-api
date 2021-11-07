@@ -15,8 +15,10 @@ table! {
 table! {
     betausers (id) {
         id -> Int4,
-        email -> Text,
-        username -> Text,
+        email -> Nullable<Text>,
+        username -> Nullable<Text>,
+        setup -> Nullable<Bool>,
+        created_at -> Nullable<Timestamp>,
     }
 }
 

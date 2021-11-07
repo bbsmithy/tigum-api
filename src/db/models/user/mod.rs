@@ -2,6 +2,7 @@ use crate::util::auth::decode_jwt;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
 use rocket::outcome::Outcome;
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
@@ -45,8 +46,10 @@ pub struct BetaSignUp {
 #[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
 pub struct BetaUser {
     pub id: i32,
-    pub email: String,
-    pub username: String
+    pub email: Option<String>,
+    pub username: Option<String>,
+    pub setup: Option<bool>,
+    pub created_at: Option<NaiveDateTime>
 }
 
 #[derive(Serialize, Deserialize, Debug)]
