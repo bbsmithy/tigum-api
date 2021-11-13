@@ -22,6 +22,7 @@ use util::auth::{
     create_known_hash_string
 };
 use util::evervault::send_evervault_verify_email;
+use util::sendgrid::send_beta_signup_email_notify;
 
 // Querys
 use db::querys::user_query::{
@@ -216,10 +217,12 @@ pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>) -
 
 #[post("/user/beta-signup", format = "application/json", data = "<beta_signup>")]
 pub fn beta_user_signup(conn: TigumPgConn, beta_signup: Json<BetaSignUp>) -> ApiResponse {
-    
 
-    
+    let beta_email = beta_signup.email.clone();
+    let beta_username = beta_signup.username.clone();
+
     if create_betauser(&conn, beta_signup) {
+        send_beta_signup_email_notify(beta_email, beta_username);
         ApiResponse {
             json: json!({ "msg": "beta user signed up" }),
             status: Status::raw(200)
