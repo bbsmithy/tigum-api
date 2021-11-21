@@ -133,74 +133,89 @@ fn create_user_with_ps_email(
     }
 }
 
+fn attempt_login(conn: &TigumPgConn, auth_user: AuthUser, mut cookies: Cookies) -> ApiResponse {
+    let public_user = AuthUser::to_public_user(auth_user);
+    // Encode JWT token with user
+    let jwt_value = encode_jwt(&public_user);
+    let jwt_cookie_result = create_cookie(jwt_value);
+    match jwt_cookie_result {
+        Ok(jwt_cookie) => {
+            cookies.add(jwt_cookie);
+            ApiResponse {
+                json: json!(public_user),
+                status: Status::raw(200)
+            }
+        },
+        Err(_err) => {
+            ApiResponse {
+                json: json!({ "error": "Internal server error" }),
+                status: Status::raw(500)
+            }
+        }
+    } 
+}
+
+pub fn verify_user_password(conn: &TigumPgConn, email_hash: i64, password: String) -> Result<AuthUser, String> {
+    let hashed_email = email_hash;
+    match get_user(conn, hashed_email) {
+        Ok(auth_user) => {
+            println!("Found user: {:?}", auth_user);
+            if auth_user.verified {
+
+                println!("old ps {}, {:?}", &password, &auth_user.password_hash);
+
+                if verify_hash(&password, &auth_user.password_hash).is_ok() {
+                    Ok(auth_user)
+                } else {
+                    Err("Incorrect user password".to_string())
+                }
+            } else {
+                Err("User not verified".to_string())
+            }
+        },
+        Err(_err) => Err("Couldn't find user".to_string()) 
+    }
+}
+
+
 #[post("/user/login", format = "application/json", data = "<login>")]
 pub fn user_login(
     mut cookies: Cookies,
     conn: TigumPgConn,
     login: Json<LoginUser>,
 ) -> ApiResponse {
-    let hashed_email = create_known_hash_email(login.email.clone()) as i64;
-    match get_user(&conn, hashed_email) {
+    let email_hash = create_known_hash_email(login.email.clone()) as i64;
+    match verify_user_password(&conn, email_hash, login.password.clone()) {
         Ok(auth_user) => {
-            if auth_user.verified {
-                match verify_hash(&login.password, &auth_user.password_hash) {
-                    Ok(is_correct) => {
-                        if is_correct {
-                            let public_user = AuthUser::to_public_user(auth_user);
-                            // Encode JWT token with user
-                            let jwt_value = encode_jwt(&public_user);
-                            let jwt_cookie_result = create_cookie(jwt_value);
-                            match jwt_cookie_result {
-                                Ok(jwt_cookie) => {
-                                    cookies.add(jwt_cookie);
-                                    ApiResponse {
-                                        json: json!(public_user),
-                                        status: Status::raw(200)
-                                    }
-                                },
-                                Err(_err) => {
-                                    ApiResponse {
-                                        json: json!({ "error": "Internal server error" }),
-                                        status: Status::raw(200)
-                                    }
-                                }
-                            }
-                        } else {
-                            ApiResponse {
-                                json: json!({"error": "Incorrect email or password"}),
-                                status: Status::raw(403)
-                            }
-                        }
-                    }
-                    Err(_checking_err) => ApiResponse {
-                        json: json!({"error": "Incorrect email or password"}),
-                        status: Status::raw(403)
-                    },
-                }
-            } else {
-                ApiResponse {
-                    json: json!({"error": "User not verified yet"}),
-                    status: Status::raw(403)
-                }
-            }
+            attempt_login(&conn, auth_user, cookies)
         },
-        Err(_err) => {
-            println!("No luck");
+        Err(err) => {
             ApiResponse {
-                json: json!({"error": "Incorrect email or password"}),
-                status: Status::raw(403)
+                json: json!({ "error": "Failed to login incorrect email or password" }),
+                status: Status::raw(500)
             }
         }
-    } 
+    }
 }
 
 
 #[post("/user/update-password", format = "application/json", data = "<password>")]
-pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>) -> ApiResponse {
-    let email_hash = password.email_hash;
-    if let Ok(_user) = get_user(&conn, email_hash) {
-        if let Ok(password_hash) = hash_string(&password.new_password) {
-            update_password(&conn, password.email_hash, password_hash)
+pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>, auth_user: User) -> ApiResponse {
+    
+    let login_result = verify_user_password(&conn, auth_user.email_hash, password.old_password.clone());
+    println!("{:?}", login_result);
+
+    if login_result.is_ok() {
+        let email_hash = auth_user.email_hash;
+        if let Ok(_user) = get_user(&conn, email_hash) {
+            if let Ok(password_hash) = hash_string(&password.new_password) {
+                update_password(&conn, email_hash, password_hash)
+            } else {
+                ApiResponse {
+                    json: json!({ "error": "Failed to update password" }),
+                    status: Status::raw(500)
+                }
+            }
         } else {
             ApiResponse {
                 json: json!({ "error": "Failed to update password" }),
@@ -209,8 +224,8 @@ pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>) -
         }
     } else {
         ApiResponse {
-            json: json!({ "error": "Failed to update password" }),
-            status: Status::raw(500)
+            json: json!({ "error": "Old password incorrect" }),
+            status: Status::raw(403)
         }
     }
 }

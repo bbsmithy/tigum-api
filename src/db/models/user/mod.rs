@@ -33,8 +33,8 @@ pub struct LoginUser {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdatePassword {
-    pub new_password: String,
-    pub email_hash: i64
+    pub old_password: String,
+    pub new_password: String
 }
 
 #[derive(Serialize, Deserialize)]

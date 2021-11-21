@@ -50,7 +50,7 @@ pub fn hash_string(plain: &String) -> Result<String, bcrypt::BcryptError> {
 }
 
 pub fn verify_hash(plain: &String, hash_string: &str) -> Result<bool, bcrypt::BcryptError> {
-    Ok(verify(plain, hash_string)?)
+    verify(plain, hash_string)
 }
 
 pub fn verify_token(parsed_token: Token<Header, Claims>) -> Option<String> {
