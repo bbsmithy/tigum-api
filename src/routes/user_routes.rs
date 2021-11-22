@@ -161,13 +161,15 @@ pub fn verify_user_password(conn: &TigumPgConn, email_hash: i64, password: Strin
         Ok(auth_user) => {
             println!("Found user: {:?}", auth_user);
             if auth_user.verified {
-
-                println!("old ps {}, {:?}", &password, &auth_user.password_hash);
-
-                if verify_hash(&password, &auth_user.password_hash).is_ok() {
-                    Ok(auth_user)
-                } else {
-                    Err("Incorrect user password".to_string())
+                match verify_hash(&password, &auth_user.password_hash) {
+                    Ok(is_correct) => {
+                        if is_correct {
+                            Ok(auth_user)
+                        } else {
+                            Err("Incorrect password".to_string())
+                        }
+                    }
+                    Err(_checking_err) => Err("Incorrect password".to_string())
                 }
             } else {
                 Err("User not verified".to_string())
@@ -201,10 +203,7 @@ pub fn user_login(
 
 #[post("/user/update-password", format = "application/json", data = "<password>")]
 pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>, auth_user: User) -> ApiResponse {
-    
     let login_result = verify_user_password(&conn, auth_user.email_hash, password.old_password.clone());
-    println!("{:?}", login_result);
-
     if login_result.is_ok() {
         let email_hash = auth_user.email_hash;
         if let Ok(_user) = get_user(&conn, email_hash) {
@@ -224,7 +223,7 @@ pub fn update_user_password(conn: TigumPgConn, password: Json<UpdatePassword>, a
         }
     } else {
         ApiResponse {
-            json: json!({ "error": "Old password incorrect" }),
+            json: json!({ "error": "The old password used is incorrect" }),
             status: Status::raw(403)
         }
     }
