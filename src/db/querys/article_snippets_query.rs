@@ -150,7 +150,6 @@ pub fn create_article_snippet(
             }
         },
         Err(err) => {
-            println!("{:?}", err);
             ApiResponse {
                 json: json!({ "error": "Could not create snippet" }),
                 status: Status::raw(500)

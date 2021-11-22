@@ -69,9 +69,6 @@ impl Fairing for CorsFairing {
             "Access-Control-Allow-Headers",
             "Content-Type,X-User-ID",
         ));
-
-        println!("HOWYA");
-
         res.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
 

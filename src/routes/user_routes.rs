@@ -95,7 +95,6 @@ pub fn user_signup(
             )
         }
         Err(err) => {
-            println!("Error {}", err);
             ApiResponse {
                 json: json!({ "error": "Internal server error" }),
                 status: Status::raw(500)
@@ -124,7 +123,6 @@ fn create_user_with_ps_email(
             }
         },
         Err(err) => {
-            println!("Error creating user: {:?}", err);
             ApiResponse {
                 json: json!({ "error": "Internal server error" }),
                 status: Status::raw(500)
@@ -159,7 +157,6 @@ pub fn verify_user_password(conn: &TigumPgConn, email_hash: i64, password: Strin
     let hashed_email = email_hash;
     match get_user(conn, hashed_email) {
         Ok(auth_user) => {
-            println!("Found user: {:?}", auth_user);
             if auth_user.verified {
                 match verify_hash(&password, &auth_user.password_hash) {
                     Ok(is_correct) => {

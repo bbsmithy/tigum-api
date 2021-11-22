@@ -108,7 +108,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for User {
                 match user {
                     Some(user) => {
                         let public_user: User = from_str(&user).unwrap();
-                        println!("Request from: {}", public_user.id);
                         Outcome::Success(public_user)
                     }
                     None => {

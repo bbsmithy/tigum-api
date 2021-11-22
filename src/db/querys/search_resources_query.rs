@@ -32,7 +32,6 @@ pub fn find_by_title(conn: &diesel::PgConnection, search_title: String, user_id:
             }
         },
         Err(err) => {
-            println!("{}", err);
             ApiResponse {
                 json: json!("nope"),
                 status: Status::raw(500)
@@ -64,7 +63,6 @@ pub fn find_by_topic_id(conn: &diesel::PgConnection, topic_id: i32, user_id: i32
             }
         },
         Err(err) => {
-            println!("{}", err);
             ApiResponse {
                 json: json!("nope"),
                 status: Status::raw(500)

@@ -79,7 +79,6 @@ pub fn decode_jwt(jwt_token: &str) -> Option<String> {
     match parsed_token {
         Ok(parsed_token) => verify_token(parsed_token),
         Err(parsed_token_err) => {
-            println!("{:?}", parsed_token_err);
             None
         }
     }

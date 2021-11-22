@@ -93,7 +93,6 @@ pub fn get_link(conn: &diesel::PgConnection, link_id: i32, uid: i32) -> ApiRespo
             }
         },
         Err(err) => {
-            println!("{:?}", err);
             ApiResponse {
                 json: json!({ "error": "Could not create video" }),
                 status: Status::raw(500)
@@ -130,7 +129,6 @@ pub fn create_link(conn: &diesel::PgConnection, link: Json<NewLink>, uid: i32) -
             }
        },
         Err(err) => {
-            println!("{:?}", err);
             ApiResponse {
                 json: json!({"error": format!("Could not create link" )}),
                 status: Status::raw(500)
