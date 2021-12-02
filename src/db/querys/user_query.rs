@@ -46,8 +46,8 @@ pub fn create_user(
     let hashed_email_i = hashed_email as i64;
     diesel::insert_into(users).values((
         name.eq(&new_user.name), 
-        email.eq(&new_user.email),
-        password_hash.eq(&new_user.password), 
+        email.eq(&new_user.email_encrypted),
+        password_hash.eq(hashed_password), 
         email_hash.eq(hashed_email_i), 
         verify_hash.eq(verify_hash_str), 
         verified.eq(false)
@@ -77,6 +77,6 @@ pub fn verify_user_with_hash(conn: &diesel::PgConnection, hash: String) -> bool 
 
 pub fn set_user_as_verified(conn: &diesel::PgConnection, hash: String) -> bool {
     use crate::schema::users::dsl::*;
-    let verified_result = diesel::update(    users.filter(verify_hash.eq(hash))).set(verified.eq(true)).get_result::<AuthUser>(conn);
+    let verified_result = diesel::update(users.filter(verify_hash.eq(hash))).set(verified.eq(true)).get_result::<AuthUser>(conn);
     verified_result.is_ok()
 }
