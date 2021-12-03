@@ -10,7 +10,15 @@ use db::querys::TigumPgConn;
 use rocket_contrib::json::Json;
 
 // Models
-use db::models::user::{AuthUser, CreateUser, LoginUser, User, UpdatePassword, VerifyUser, BetaSignUp};
+use db::models::user::{
+    AuthUser, 
+    CreateUser, 
+    LoginUser, 
+    User, 
+    UpdatePassword, 
+    VerifyUser, 
+    BetaSignUp
+};
 use db::api_response::ApiResponse;
 
 // Util
@@ -102,6 +110,12 @@ pub fn user_signup(
         }
     }
 }
+
+// fn create_demo_tutorial_topic() {
+//     // Create topic
+//     // Use topic id to create, notes, vidoes, links,
+//     // call add_to_topic_resource_list for each resource
+// }
 
 fn create_user_with_ps_email(
     conn: TigumPgConn,

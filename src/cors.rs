@@ -11,8 +11,7 @@ impl CorsFairing {
     pub fn new() -> CorsFairing {
         CorsFairing {
             allow_origins: vec![
-                "http://localhost:3000".to_string(),
-                "https://devkeep.io".to_string(),
+                "https://signup.tigum.io".to_string(),
                 "https://tigum.io".to_string(),
             ],
         }
@@ -29,7 +28,7 @@ impl Fairing for CorsFairing {
 
     fn on_response(&self, req: &Request, res: &mut Response) {
         let found_origin = req.headers().get_one("Origin");
-        let allowed_origin = match found_origin {
+        let mut allowed_origin = match found_origin {
             Some(origin) => {
                 let string_origin = String::from(origin);
                 if self.allow_origins.contains(&string_origin) {
@@ -50,10 +49,9 @@ impl Fairing for CorsFairing {
             None => println!("{}", "No Set-Cookie header in res")
         }
 
-        let mut allowed_origin = "https://tigum.io";
         if let Some(e) = env::args().nth(1) {
             if e == "DEV" {
-                allowed_origin = "http://localhost:3000"
+                allowed_origin = "http://localhost:3000".to_string();
             }
         };
         

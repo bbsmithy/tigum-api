@@ -10,8 +10,6 @@ use db::models::topic::{NewTopic, TopicIds};
 use db::models::user::User;
 use db::querys::TigumPgConn;
 
-use crate::db::models::topic::Topic;
-
 // Api Response Struct
 use db::api_response::ApiResponse;
 
