@@ -17,7 +17,8 @@ use db::models::user::{
     User, 
     UpdatePassword, 
     VerifyUser, 
-    BetaSignUp
+    BetaSignUp,
+    UserFeedback
 };
 use db::api_response::ApiResponse;
 
@@ -30,7 +31,7 @@ use util::auth::{
     create_known_hash_string
 };
 use util::evervault::send_evervault_verify_email;
-use util::sendgrid::send_beta_signup_email_notify;
+use util::sendgrid::{send_beta_signup_email_notify, send_user_feedback};
 
 // Querys
 use db::querys::user_query::{
@@ -260,6 +261,16 @@ pub fn beta_user_signup(conn: TigumPgConn, beta_signup: Json<BetaSignUp>) -> Api
     }
 }
 
+#[post("/user/feedback", format = "application/json", data = "<feedback>")]
+pub fn user_feedback(feedback: Json<UserFeedback>, auth_user: User) -> ApiResponse {
+    send_user_feedback(auth_user.id, auth_user.name, &feedback.feedback);
+    ApiResponse {
+        json: json!({ "msg": "User verified" }),
+        status: Status::raw(200)
+    }
+}
+
+
 #[post("/user/verify", format = "application/json", data = "<verify>")]
 pub fn verify_user(conn: TigumPgConn, verify: Json<VerifyUser>) -> ApiResponse {
     let hash = verify.verify_hash.clone();
@@ -283,6 +294,7 @@ pub fn get_user_routes() -> Vec<Route> {
     routes![
         user_signup,
         user_login,
+        user_feedback,
         check_login,
         logout,
         update_user_password,

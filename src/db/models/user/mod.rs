@@ -58,6 +58,13 @@ pub struct VerifyUser {
 }
 
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserFeedback {
+    pub feedback: String
+}
+
+
+
 #[derive(Queryable, PartialEq, Debug, Serialize, Deserialize)]
 pub struct AuthUser {
     pub id: i32,
