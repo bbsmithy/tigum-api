@@ -32,6 +32,7 @@ use routes::user_routes::get_user_routes;
 use routes::video_routes::video_routes;
 use routes::public_routes::get_public_routes;
 
+
 // CORS Prelight Request Handler
 #[route(OPTIONS, path = "/")]
 fn preflight_handler() -> String {

@@ -13,6 +13,7 @@ impl CorsFairing {
             allow_origins: vec![
                 "https://signup.tigum.io".to_string(),
                 "https://tigum.io".to_string(),
+                "https://app.tigum.io".to_string(),
             ],
         }
     }
@@ -51,7 +52,11 @@ impl Fairing for CorsFairing {
 
         if let Some(e) = env::args().nth(1) {
             if e == "DEV" {
-                allowed_origin = "http://localhost:3000".to_string();
+                if let Some(origin) = env::args().nth(2) {
+                    allowed_origin = origin;
+                } else {
+                    allowed_origin = "http://localhost:3000".to_string();
+                }
             }
         };
         
