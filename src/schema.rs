@@ -55,6 +55,7 @@ table! {
         source -> Text,
         date_updated -> Nullable<Timestamp>,
         published -> Bool,
+        favicon_source -> Text,
     }
 }
 

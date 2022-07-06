@@ -8,7 +8,8 @@ use diesel::{Queryable};
 pub struct NewLink {
     pub title: String,
     pub topic_id: i32,
-    pub source: String
+    pub source: String,
+    pub favicon_source: String
 }
 
 // Used when reading or updating a Link
@@ -22,4 +23,5 @@ pub struct Link {
     pub source: String,
     date_updated: Option<NaiveDateTime>,
     published: bool,
+    pub favicon_source: String,
 }

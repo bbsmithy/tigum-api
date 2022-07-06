@@ -43,6 +43,11 @@ fn get_public_resources(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
     public_query::get_public_resources_for_topic(&conn, topic_id)
 }
 
+#[get("/profile/resources/all/<topic_id>", format = "application/json")]
+fn get_all_resources(conn: TigumPgConn, topic_id: i32) -> ApiResponse {
+    public_query::get_all_resources_for_topic(&conn, topic_id)
+}
+
 pub fn get_public_routes() -> Vec<Route> {
-    routes![get_profile, get_notes, get_videos, get_snippets, get_links, get_public_resources]
+    routes![get_profile, get_notes, get_videos, get_snippets, get_links, get_public_resources, get_all_resources]
 }
