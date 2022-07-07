@@ -2,6 +2,7 @@ use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{http::uri::Origin, http::Header, http::Method, Data, Request, Response};
 
 use std::env;
+use std::fmt::Error;
 
 pub struct CorsFairing {
     allow_origins: Vec<String>,
@@ -22,12 +23,7 @@ impl CorsFairing {
     }
 
     pub fn check_for_allowed_subdomain(&self, origin: &String) -> bool {
-        let origin_parts: Vec<&str> = origin.split(".").collect();
-        let last_index = origin_parts.len() - 1;
-        let domain = *origin_parts.get(last_index - 1).unwrap();
-        let domain_ext =  *origin_parts.get(last_index).unwrap();
-        let full_domain = format!("{}.{}", domain, domain_ext);
-        self.tigum_domain.eq(&full_domain)
+        origin.contains(".tigum.io")
     }
 
 }

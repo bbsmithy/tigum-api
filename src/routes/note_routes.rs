@@ -11,7 +11,7 @@ use db::models::user::User;
 use db::api_response::ApiResponse;
 
 // Querys
-use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note, update_note_mod_date};
+use db::querys::note_query::{create_note, delete_note, get_note, get_notes, update_note, publish_note, update_note_mod_date};
 use db::querys::TigumPgConn;
 
 /////////////////////
@@ -39,6 +39,11 @@ fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, auth_user: User) -
     create_note(&*conn, note, auth_user.id)
 }
 
+#[put("/notes/publish/<note_id>", format = "application/json")]
+fn publish_single_note(conn: TigumPgConn, note_id: i32, auth_user: User) -> ApiResponse {
+    publish_note(&*conn, note_id, auth_user.id)
+}
+
 #[get("/notes/<note_id>")]
 fn single_note(conn: TigumPgConn, note_id: i32, _auth_user: User) -> ApiResponse {
     get_note(&*conn, note_id)
@@ -56,6 +61,7 @@ pub fn get_note_routes() -> Vec<Route> {
         create_single_note,
         update_single_note,
         delete_single_note,
+        publish_single_note,
         update_note_mod
     ]
 }

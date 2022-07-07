@@ -135,6 +135,11 @@ pub fn create_note(conn: &diesel::PgConnection, note: Json<NewNote>, uid: i32) -
     }
 }
 
+
+pub fn publish_note(conn: &diesel::PgConnection, note_id: i32, uid:i32) -> ApiResponse {
+    ApiResponse { json: json!("TEST"), status: Status::raw(200) }
+}
+
 pub fn update_note_mod_date(conn: &diesel::PgConnection, note_id: i32) -> ApiResponse {
     use crate::schema::notes::dsl::*;
     use diesel::dsl::now;
