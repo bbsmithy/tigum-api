@@ -5,9 +5,11 @@ use std::env;
 
 pub struct CorsFairing {
     allow_origins: Vec<String>,
+    tigum_domain: String
 }
 
 impl CorsFairing {
+
     pub fn new() -> CorsFairing {
         CorsFairing {
             allow_origins: vec![
@@ -15,9 +17,21 @@ impl CorsFairing {
                 "https://tigum.io".to_string(),
                 "https://app.tigum.io".to_string(),
             ],
+            tigum_domain: "tigum.io".to_string()
         }
     }
+
+    pub fn check_for_allowed_subdomain(&self, origin: &String) -> bool {
+        let origin_parts: Vec<&str> = origin.split(".").collect();
+        let last_index = origin_parts.len() - 1;
+        let domain = *origin_parts.get(last_index - 1).unwrap();
+        let domain_ext =  *origin_parts.get(last_index).unwrap();
+        let full_domain = format!("{}.{}", domain, domain_ext);
+        self.tigum_domain.eq(&full_domain)
+    }
+
 }
+
 impl Fairing for CorsFairing {
 
     fn on_request(&self, req: &mut Request, data: &Data) {
@@ -33,6 +47,8 @@ impl Fairing for CorsFairing {
             Some(origin) => {
                 let string_origin = String::from(origin);
                 if self.allow_origins.contains(&string_origin) {
+                    string_origin
+                } else if CorsFairing::check_for_allowed_subdomain(&self, &string_origin) {
                     string_origin
                 } else {
                     "none".to_string()
