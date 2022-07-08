@@ -39,9 +39,9 @@ fn create_single_note(conn: TigumPgConn, note: Json<NewNote>, auth_user: User) -
     create_note(&*conn, note, auth_user.id)
 }
 
-#[put("/notes/publish/<note_id>", format = "application/json")]
-fn publish_single_note(conn: TigumPgConn, note_id: i32, auth_user: User) -> ApiResponse {
-    publish_note(&*conn, note_id, auth_user.id)
+#[put("/notes/publish/<note_id>/<publish_flag>", format = "application/json")]
+fn publish_single_note(conn: TigumPgConn, note_id: i32, publish_flag: bool, auth_user: User) -> ApiResponse {
+    publish_note(&*conn, note_id, publish_flag, auth_user.id)
 }
 
 #[get("/notes/<note_id>")]

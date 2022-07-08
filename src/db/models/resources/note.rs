@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use diesel::{Queryable};
+use diesel::sql_types::{Integer, BigInt};
 
 // ORDER OF STRUCT FIELDS MUCH MATCH ORDER OF FIELDS IN TABLE
 
@@ -21,6 +22,12 @@ pub struct Note {
     pub user_id: i32,
     pub date_updated: NaiveDateTime,
     pub published: bool
+}
+
+#[derive(Queryable, QueryableByName, PartialEq, Debug, Serialize, Deserialize)]
+pub struct PublicResourcesCount {
+    #[sql_type="BigInt"]
+    pub public_resources_count: i64
 }
 
 #[derive(Serialize, Deserialize)]

@@ -150,9 +150,8 @@ pub fn get_all_resources_for_topic(conn: &diesel::PgConnection, topic_id: i32) -
     }
 }
 
-
-pub fn get_public_resources_for_topic(conn: &diesel::PgConnection, topic_id: i32) -> ApiResponse {
-    let find_public_resources_query = format!("
+pub fn build_public_resources_query(topic_id: i32) -> String {
+    format!("
         SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, 'none' as misc2, date_updated FROM notes WHERE topic_id = {tid} AND published = TRUE
         UNION ALL
         SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, date_updated FROM videos
@@ -164,7 +163,31 @@ pub fn get_public_resources_for_topic(conn: &diesel::PgConnection, topic_id: i32
         SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, date_updated FROM article_snippets
         WHERE topic_id = {tid} AND published = true
         ORDER BY date_updated DESC
-    ", tid=topic_id);
+    ", tid=topic_id)
+}
+
+pub fn build_public_resources_count_query(topic_id: i32) -> String {
+    format!("
+        SELECT COUNT(*) as public_resources_count
+        FROM
+        (
+            SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, 'none' as misc2, date_updated FROM notes WHERE topic_id = {tid} AND published = TRUE
+            UNION ALL
+            SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, date_updated FROM videos
+            WHERE topic_id = {tid} AND published = TRUE
+            UNION ALL
+            SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, favicon_source as misc2, date_updated FROM links
+            WHERE topic_id = {tid} AND published = TRUE
+            UNION ALL
+            SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, date_updated FROM article_snippets
+            WHERE topic_id = {tid} AND published = true
+            ORDER BY date_updated DESC
+        ) AS x", tid=topic_id)
+    }
+
+
+pub fn get_public_resources_for_topic(conn: &diesel::PgConnection, topic_id: i32) -> ApiResponse {
+    let find_public_resources_query = build_public_resources_query(topic_id);
     let result = sql_query(find_public_resources_query).get_results::<ResourceResult>(conn);
     match result {
         Ok(rows) => {
