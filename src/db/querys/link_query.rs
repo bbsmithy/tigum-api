@@ -109,7 +109,8 @@ pub fn create_link(conn: &diesel::PgConnection, link: Json<NewLink>, uid: i32) -
             title.eq(link_title), 
             topic_id.eq(link.topic_id), 
             user_id.eq(uid),
-            source.eq(link.source.clone())
+            source.eq(link.source.clone()),
+            favicon_source.eq(link.favicon_source.clone())
         );
         let new_link = diesel::insert_into(links).values(values).get_result::<Link>(conn)?;
         add_to_topic_resource_list(
