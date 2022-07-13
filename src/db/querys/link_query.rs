@@ -9,12 +9,18 @@ use crate::diesel::QueryDsl;
 use diesel::dsl::any;
 
 // Schema
-use crate::db::models::resources::ResourceType;
+use crate::db::models;
+use models::resources::ResourceType;
+use models::dto::PublicResourcesCount;
+use models::topic::Topic;
 use crate::db::querys::topic_query::remove_from_topic_resource_list;
 use crate::db::querys::topic_query::{add_to_topic_resource_list, update_topic_mod_date};
 use crate::db::api_response::ApiResponse;
 use crate::db::models::resources::link::{Link, NewLink};
 use crate::db::models::Ids;
+
+
+use super::public_query::build_public_resources_count_query;
 
 
 pub fn delete_link(conn: &diesel::PgConnection, link_id: i32, uid: i32) -> ApiResponse {
@@ -32,6 +38,9 @@ pub fn delete_link(conn: &diesel::PgConnection, link_id: i32, uid: i32) -> ApiRe
             status: Status::raw(200)
         }
     } else {
+
+        println!("{:?}", transaction_result);
+
         ApiResponse {
             json: json!({ "error": format!("Failed to delete note with id: {}", link_id) }),
             status: Status::raw(500)
@@ -60,6 +69,60 @@ pub fn update_link(conn: &diesel::PgConnection, link_id: i32, link: Json<NewLink
         }
     }
 
+}
+
+pub fn publish_link(conn: &diesel::PgConnection, link_id: i32, publish: bool, uid:i32) -> ApiResponse {
+    use crate::schema::links::dsl::*;
+    
+    let transaction_result = conn.transaction::<Link, Error, _>(|| {
+        let link_to_update = links.filter(id.eq(link_id)).filter(user_id.eq(uid));
+        let updated_link = diesel::update(link_to_update).set(published.eq(publish)).get_result::<Link>(conn)?;
+        
+        if publish {
+            // Publishing a note
+            use crate::schema::topics::dsl::*;
+            let topic_to_update = topics.filter(id.eq(updated_link.topic_id));
+            diesel::update(topic_to_update).set(published.eq(true)).get_result::<Topic>(conn)?;
+        } else {
+
+            // Unpublishing a note
+            let public_resources_query_for_topic_query = build_public_resources_count_query(updated_link.topic_id);
+            let count_query_result = diesel::sql_query(public_resources_query_for_topic_query).load::<PublicResourcesCount>(conn)?;
+
+            if let Some(count) = count_query_result.get(0) {
+                println!("{:?}", count.public_resources_count);
+                // If there are no longer any published resources
+                if count.public_resources_count == 0 {
+                    use crate::schema::topics::dsl::*;
+                    println!("Unpublish the topic aswell");
+                    // Unpublish the topic
+                    let topic_to_update = topics.filter(id.eq(updated_link.topic_id));
+                    diesel::update(topic_to_update).set(published.eq(false)).get_result::<Topic>(conn)?;
+                }
+            }
+
+            
+        }
+
+        Ok(updated_link)
+    });
+
+
+    match transaction_result {
+        Ok(note) => {
+            ApiResponse {
+                json: json!(note),
+                status: Status::raw(200)
+            }
+        },
+        Err(err) => {
+            println!("{}", err);
+            ApiResponse {
+                json: json!({ "error": format!("Nope") }),
+                status: Status::raw(500)
+            }
+        }
+    }
 }
 
 pub fn get_links(conn: &diesel::PgConnection, link_ids: Json<Ids>, uid: i32) -> ApiResponse {
@@ -129,7 +192,7 @@ pub fn create_link(conn: &diesel::PgConnection, link: Json<NewLink>, uid: i32) -
                 status: Status::raw(200)
             }
        },
-        Err(err) => {
+        Err(_err) => {
             ApiResponse {
                 json: json!({"error": format!("Could not create link" )}),
                 status: Status::raw(500)

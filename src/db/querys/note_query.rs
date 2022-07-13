@@ -1,19 +1,21 @@
-use diesel::OptionalExtension;
 use diesel::{QueryDsl, RunQueryDsl};
 use rocket_contrib::json::Json;
 use rocket::http::Status;
 use diesel::ExpressionMethods;
 use diesel::Connection;
 use diesel::result::Error;
-use diesel::dsl::{any, count};
+use diesel::dsl::{any};
+use crate::db;
+use crate::schema;
 
-use crate::db::models::resources::note::{NoteIds, PublicResourcesCount};
-use crate::db::models::topic::Topic;
-use crate::db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
-use crate::db::models::resources::ResourceType;
-use crate::db::models::resources::note::{Note, NewNote};
-use crate::db::api_response::ApiResponse;
-use crate::schema::notes::dsl::*;
+use db::models::resources::note::{NoteIds};
+use db::models::dto::PublicResourcesCount;
+use db::models::topic::Topic;
+use db::querys::topic_query::{remove_from_topic_resource_list, add_to_topic_resource_list, update_topic_mod_date};
+use db::models::resources::ResourceType;
+use db::models::resources::note::{Note, NewNote};
+use db::api_response::ApiResponse;
+use schema::notes::dsl::*;
 
 use super::public_query::build_public_resources_count_query;
 
@@ -103,9 +105,7 @@ pub fn get_note(conn: &diesel::PgConnection, note_id: i32) -> ApiResponse {
 }
 
 pub fn create_note(conn: &diesel::PgConnection, note: Json<NewNote>, uid: i32) -> ApiResponse {
-
     let note_title = note.title.clone();
-
     // TODO use transactions when 2 queries should both happend for success
     let transaction_result = conn.transaction::<Note, Error, _>(|| {
         let new_note = diesel::insert_into(notes).values((
@@ -141,12 +141,9 @@ pub fn create_note(conn: &diesel::PgConnection, note: Json<NewNote>, uid: i32) -
 
 
 pub fn publish_note(conn: &diesel::PgConnection, note_id: i32, publish: bool, uid:i32) -> ApiResponse {
-    
-    
     let transaction_result = conn.transaction::<Note, Error, _>(|| {
         let note_to_update = notes.filter(id.eq(note_id)).filter(user_id.eq(uid));
         let updated_note = diesel::update(note_to_update).set(published.eq(publish)).get_result::<Note>(conn)?;
-        
         if publish {
             // Publishing a note
             use crate::schema::topics::dsl::*;
@@ -158,7 +155,7 @@ pub fn publish_note(conn: &diesel::PgConnection, note_id: i32, publish: bool, ui
             // Unpublishing a note
             let public_resources_query_for_topic_query = build_public_resources_count_query(updated_note.topic_id);
             let count_query_result = diesel::sql_query(public_resources_query_for_topic_query).load::<PublicResourcesCount>(conn)?;
-            
+
             if let Some(count) = count_query_result.get(0) {
                 println!("{:?}", count.public_resources_count);
                 // If there are no longer any published resources
@@ -169,15 +166,11 @@ pub fn publish_note(conn: &diesel::PgConnection, note_id: i32, publish: bool, ui
                     let topic_to_update = topics.filter(id.eq(updated_note.topic_id));
                     diesel::update(topic_to_update).set(published.eq(false)).get_result::<Topic>(conn)?;
                 }
-            }
-
-            
+            }            
         }
-  
+
         Ok(updated_note)
     });
-
-
     match transaction_result {
         Ok(note) => {
             ApiResponse {

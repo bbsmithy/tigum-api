@@ -9,7 +9,7 @@ use db::models::Ids;
 use db::api_response::ApiResponse;
 
 use db::models::user::User;
-use db::querys::video_query::{create_video, delete_video, get_video, get_videos, update_video};
+use db::querys::video_query::{create_video, delete_video, get_video, get_videos, update_video, publish_video};
 use db::querys::TigumPgConn;
 
 /////////////////////////
@@ -29,6 +29,11 @@ pub fn update_single_video(
     auth_user: User,
 ) -> ApiResponse {
     update_video(&*conn, id, video, auth_user.id)
+}
+
+#[put("/videos/publish/<video_id>/<publish_flag>", format = "application/json")]
+fn publish_single_video(conn: TigumPgConn, video_id: i32, publish_flag: bool, auth_user: User) -> ApiResponse {
+    publish_video(&*conn, video_id, publish_flag, auth_user.id)
 }
 
 #[post("/videos/create", format = "application/json", data = "<video>")]
@@ -57,5 +62,6 @@ pub fn video_routes() -> Vec<Route> {
         single_video,
         videos,
         update_single_video,
+        publish_single_video
     ]
 }

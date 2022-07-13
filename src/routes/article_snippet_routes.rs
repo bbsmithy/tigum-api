@@ -10,8 +10,12 @@ use db::models::user::User;
 use db::models::Ids;
 
 use db::querys::article_snippets_query::{
-    create_article_snippet, delete_article_snippet, get_article_snippet, get_article_snippets,
+    create_article_snippet, 
+    delete_article_snippet, 
+    get_article_snippet, 
+    get_article_snippets,
     update_article_snippet,
+    publish_snippet
 };
 use db::querys::TigumPgConn;
 
@@ -36,6 +40,11 @@ fn update_single_article_snippet(
     auth_user: User,
 ) -> ApiResponse {
     update_article_snippet(&conn, id, article_snippet, auth_user.id)
+}
+
+#[put("/article_snippets/publish/<video_id>/<publish_flag>", format = "application/json")]
+fn publish_single_article_snippet(conn: TigumPgConn, video_id: i32, publish_flag: bool, auth_user: User) -> ApiResponse {
+    publish_snippet(&*conn, video_id, publish_flag, auth_user.id)
 }
 
 #[post(
@@ -71,6 +80,7 @@ pub fn get_article_snippet_routes() -> Vec<Route> {
         article_snippets,
         single_article_snippet,
         update_single_article_snippet,
-        delete_single_article_snippet
+        delete_single_article_snippet,
+        publish_single_article_snippet
     ]
 }

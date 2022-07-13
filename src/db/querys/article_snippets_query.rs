@@ -2,6 +2,8 @@
 use rocket_contrib::json::{Json};
 use rocket::http::Status;
 use crate::db::models;
+use models::dto::PublicResourcesCount;
+use models::topic::Topic;
 use crate::db::querys::topic_query::{
     remove_from_topic_resource_list,
     add_to_topic_resource_list,
@@ -17,6 +19,9 @@ use diesel::{QueryDsl, RunQueryDsl};
 use diesel::ExpressionMethods;
 use diesel::Connection;
 use diesel::dsl::any;
+
+
+use super::public_query::build_public_resources_count_query;
 
 
 
@@ -40,6 +45,61 @@ pub fn delete_article_snippet(conn: &diesel::PgConnection, a_id: i32, uid: i32) 
             json: json!({ "error": format!("Failed to delete article snippet with id: {}", a_id) }),
             status: Status::raw(500)
         } 
+    }
+}
+
+
+pub fn publish_snippet(conn: &diesel::PgConnection, snippet_id: i32, publish: bool, uid:i32) -> ApiResponse {
+    use crate::schema::article_snippets::dsl::*;
+    
+    let transaction_result = conn.transaction::<ArticleSnippet, Error, _>(|| {
+        let snippet_to_update = article_snippets.filter(id.eq(snippet_id)).filter(user_id.eq(uid));
+        let updated_snippet = diesel::update(snippet_to_update).set(published.eq(publish)).get_result::<ArticleSnippet>(conn)?;
+        
+        if publish {
+            // Publishing a note
+            use crate::schema::topics::dsl::*;
+            let topic_to_update = topics.filter(id.eq(updated_snippet.topic_id));
+            diesel::update(topic_to_update).set(published.eq(true)).get_result::<Topic>(conn)?;
+        } else {
+
+            // Unpublishing a note
+            let public_resources_query_for_topic_query = build_public_resources_count_query(updated_snippet.topic_id);
+            let count_query_result = diesel::sql_query(public_resources_query_for_topic_query).load::<PublicResourcesCount>(conn)?;
+
+            if let Some(count) = count_query_result.get(0) {
+                println!("{:?}", count.public_resources_count);
+                // If there are no longer any published resources
+                if count.public_resources_count == 0 {
+                    use crate::schema::topics::dsl::*;
+                    println!("Unpublish the topic aswell");
+                    // Unpublish the topic
+                    let topic_to_update = topics.filter(id.eq(updated_snippet.topic_id));
+                    diesel::update(topic_to_update).set(published.eq(false)).get_result::<Topic>(conn)?;
+                }
+            }
+
+            
+        }
+
+        Ok(updated_snippet)
+    });
+
+
+    match transaction_result {
+        Ok(note) => {
+            ApiResponse {
+                json: json!(note),
+                status: Status::raw(200)
+            }
+        },
+        Err(err) => {
+            println!("{}", err);
+            ApiResponse {
+                json: json!({ "error": format!("Nope") }),
+                status: Status::raw(500)
+            }
+        }
     }
 }
 

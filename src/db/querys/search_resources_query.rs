@@ -16,7 +16,7 @@ pub fn find_by_title(conn: &diesel::PgConnection, search_title: String, user_id:
         SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, date_updated FROM videos
         WHERE lower(title) LIKE '%{q_title}%' AND user_id = {uid}
         UNION ALL
-        SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, 'none' as misc2, date_updated FROM links
+        SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, favicon_source as misc2, date_updated FROM links
         WHERE lower(title) LIKE '%{q_title}%' AND user_id = {uid}
         UNION ALL
         SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, date_updated FROM article_snippets
@@ -31,7 +31,7 @@ pub fn find_by_title(conn: &diesel::PgConnection, search_title: String, user_id:
                 status: Status::raw(200)
             }
         },
-        Err(err) => {
+        Err(_err) => {
             ApiResponse {
                 json: json!("nope"),
                 status: Status::raw(500)
@@ -45,7 +45,7 @@ pub fn find_by_topic_id(conn: &diesel::PgConnection, topic_id: i32, user_id: i32
         SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, date_updated FROM videos
         WHERE topic_id = {tid} AND user_id = {uid}
         UNION ALL
-        SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, 'none' as misc2, date_updated FROM links
+        SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, favicon_source as misc2, date_updated FROM links
         WHERE topic_id = {tid} AND user_id = {uid}
         UNION ALL
         SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, date_updated FROM article_snippets

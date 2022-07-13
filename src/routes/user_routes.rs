@@ -112,12 +112,6 @@ pub fn user_signup(
     }
 }
 
-// fn create_demo_tutorial_topic() {
-//     // Create topic
-//     // Use topic id to create, notes, vidoes, links,
-//     // call add_to_topic_resource_list for each resource
-// }
-
 fn create_user_with_ps_email(
     conn: TigumPgConn,
     new_user: Json<CreateUser>,

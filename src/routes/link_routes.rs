@@ -11,7 +11,7 @@ use db::models::user::User;
 use db::api_response::ApiResponse;
 
 use db::querys::link_query::{
-    create_link, delete_link, get_link, get_links, update_link,
+    create_link, delete_link, get_link, get_links, update_link, publish_link
 };
 use db::querys::TigumPgConn;
 
@@ -22,6 +22,11 @@ use db::querys::TigumPgConn;
 #[delete("/links/<id>")]
 pub fn delete_single_link(conn: TigumPgConn, id: i32, auth_user: User) -> ApiResponse {
     delete_link(&conn, id, auth_user.id)
+}
+
+#[put("/links/publish/<link_id>/<publish_flag>", format = "application/json")]
+fn publish_single_link(conn: TigumPgConn, link_id: i32, publish_flag: bool, auth_user: User) -> ApiResponse {
+    publish_link(&*conn, link_id, publish_flag, auth_user.id)
 }
 
 #[put("/links/<id>", format = "application/json", data = "<link>")]
@@ -56,5 +61,6 @@ pub fn link_routes() -> Vec<Route> {
         single_link,
         links,
         update_single_link,
+        publish_single_link
     ]
 }

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use crate::db::models::search::resources::ResourceResult;
+use diesel::sql_types::{Integer, BigInt};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PublicResources {
@@ -7,6 +8,12 @@ pub struct PublicResources {
     pub links: Vec<ResourceResult>,
     pub videos: Vec<ResourceResult>,
     pub snippets: Vec<ResourceResult>
+}
+
+#[derive(Queryable, QueryableByName, PartialEq, Debug, Serialize, Deserialize)]
+pub struct PublicResourcesCount {
+    #[sql_type="BigInt"]
+    pub public_resources_count: i64
 }
 
 
