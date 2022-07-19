@@ -120,6 +120,8 @@ table! {
         email_hash -> Int8,
         verify_hash -> Text,
         verified -> Bool,
+        profile_pic_url -> Text,
+        subdomain -> Text,
     }
 }
 
