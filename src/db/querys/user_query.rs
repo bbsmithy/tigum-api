@@ -50,6 +50,20 @@ pub fn update_subdomain(
     }
 }
 
+pub fn update_profile_pic(
+    conn: &diesel::PgConnection,
+    pp: &String,
+    uid: i32
+) -> ApiResponse {
+    use crate::schema::users::dsl::*;
+    let user_to_update = users.filter(id.eq(uid));
+    let res  = diesel::update(user_to_update).set(profile_pic_url.eq(pp)).get_result::<AuthUser>(conn);
+    match res {
+        Ok(auth_user) => ApiResponse { json: json!(auth_user), status: Status::raw(200) },
+        Err(_err) => ApiResponse { json: json!({}), status: Status::raw(500) },
+    }
+}
+
 pub fn create_user(
     conn: &diesel::PgConnection,
     new_user: Json<CreateUser>,

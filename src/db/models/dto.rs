@@ -57,3 +57,8 @@ pub struct MasonaryView {
     pub lhs: Vec<ResourceResult>,
     pub rhs: Vec<ResourceResult>
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ProfilePictureUrl {
+    pub url: String
+}

@@ -1,4 +1,5 @@
 use crate::db;
+use crate::db::models::dto::ProfilePictureUrl;
 use crate::util;
 use rocket::http::Status;
 use rocket::http::{Cookie, Cookies};
@@ -40,7 +41,8 @@ use db::querys::user_query::{
     update_password,
     verify_user_with_hash,
     create_betauser,
-    update_subdomain
+    update_subdomain,
+    update_profile_pic
 };
 
 /////////////////////////
@@ -71,6 +73,11 @@ fn expire_cookie<'a>() -> Cookie<'a> {
 #[put("/user/subdomain/<domain>")]
 pub fn set_subdomain(conn: TigumPgConn, domain: String, auth_user: User) -> ApiResponse {
     update_subdomain(&conn, domain, auth_user.id)
+}
+
+#[post("/user/profile-picture", format = "application/json", data = "<pp>")]
+pub fn set_pp(conn: TigumPgConn, pp: Json<ProfilePictureUrl>, auth_user: User) -> ApiResponse {
+    update_profile_pic(&conn, &pp.url, auth_user.id)
 }
 
 #[post("/user/checklogin", format = "application/json")]
@@ -300,6 +307,7 @@ pub fn get_user_routes() -> Vec<Route> {
         update_user_password,
         verify_user,
         beta_user_signup,
-        set_subdomain
+        set_subdomain,
+        set_pp
     ]
 }
