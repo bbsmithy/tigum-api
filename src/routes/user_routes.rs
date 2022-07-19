@@ -28,7 +28,7 @@ use util::auth::{
     hash_string,
     verify_hash,
     create_known_hash_email,
-    create_known_hash_string
+    create_known_hash_string,
 };
 use util::evervault::send_evervault_verify_email;
 use util::sendgrid::{send_beta_signup_email_notify, send_user_feedback};
@@ -39,7 +39,8 @@ use db::querys::user_query::{
     get_user,
     update_password,
     verify_user_with_hash,
-    create_betauser
+    create_betauser,
+    update_subdomain
 };
 
 /////////////////////////
@@ -65,6 +66,11 @@ fn expire_cookie<'a>() -> Cookie<'a> {
     let mut jwt_cookie = Cookie::parse("__silly_devkeep=; Path=/").unwrap();
     jwt_cookie.make_permanent();
     jwt_cookie
+}
+
+#[put("/user/subdomain/<domain>")]
+pub fn set_subdomain(conn: TigumPgConn, domain: String, auth_user: User) -> ApiResponse {
+    update_subdomain(&conn, domain, auth_user.id)
 }
 
 #[post("/user/checklogin", format = "application/json")]
@@ -293,6 +299,7 @@ pub fn get_user_routes() -> Vec<Route> {
         logout,
         update_user_password,
         verify_user,
-        beta_user_signup
+        beta_user_signup,
+        set_subdomain
     ]
 }

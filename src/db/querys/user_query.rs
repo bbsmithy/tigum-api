@@ -2,6 +2,7 @@ use rocket_contrib::json::Json;
 use crate::db::models::user::{CreateUser, User, AuthUser, BetaSignUp, BetaUser};
 use crate::db::querys::TigumPgConn;
 use crate::db::api_response::ApiResponse;
+use crate::util::auth;
 use rocket::http::Status;
 use rocket::response::status;
 use diesel::result::Error;
@@ -32,6 +33,20 @@ pub fn update_password(
             json: json!({ "error": "Failed to update password" }),
             status: Status::raw(500)
         }
+    }
+}
+
+pub fn update_subdomain(
+    conn: &diesel::PgConnection,
+    domain: String,
+    uid: i32
+) -> ApiResponse {
+    use crate::schema::users::dsl::*;
+    let user_to_update = users.filter(id.eq(uid));
+    let res  = diesel::update(user_to_update).set(subdomain.eq(domain)).get_result::<AuthUser>(conn);
+    match res {
+        Ok(auth_user) => ApiResponse { json: json!(auth_user), status: Status::raw(200) },
+        Err(_err) => ApiResponse { json: json!({}), status: Status::raw(500) },
     }
 }
 

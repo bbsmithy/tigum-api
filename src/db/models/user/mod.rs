@@ -73,7 +73,9 @@ pub struct AuthUser {
     pub password_hash: String,
     pub email_hash: i64,
     pub verify_hash: String,
-    pub verified: bool
+    pub verified: bool,
+    pub profile_pic_url: String,
+    pub subdomain: String,
 }
 
 impl AuthUser {
