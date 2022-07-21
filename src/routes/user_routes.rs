@@ -94,7 +94,7 @@ pub fn logout(mut cookies: Cookies, _conn: TigumPgConn) -> String {
 
 #[post("/user/signup", format = "application/json", data = "<new_user>")]
 pub fn user_signup(
-    cookies: Cookies,
+    mut cookies: Cookies,
     conn: TigumPgConn,
     new_user: Json<CreateUser>,
 ) -> ApiResponse {
@@ -113,7 +113,8 @@ pub fn user_signup(
                 new_user,
                 hashed_password,
                 hashed_email,
-                verify_hash
+                verify_hash,
+                &mut cookies
             )
         }
         Err(err) => {
@@ -130,19 +131,34 @@ fn create_user_with_ps_email(
     new_user: Json<CreateUser>,
     hashed_password: String,
     hashed_email: u64,
-    verify_hash: String
+    verify_hash: String,
+    cookies: &mut Cookies
 ) -> ApiResponse {
     let new_user_email = new_user.email.clone();
     let new_user_verify_hash = verify_hash.clone();
     let new_user_name = new_user.name.clone();
     match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash) {
-        Ok(user) => {
+        Ok(auth_user) => {
+            let public_user = AuthUser::to_public_user(auth_user);
             // Encode JWT token with user
-            send_evervault_verify_email(new_user_email, new_user_verify_hash, new_user_name);
-            ApiResponse {
-                json: json!(user),
-                status: Status::raw(200)
+            let jwt_value = encode_jwt(&public_user);
+            let jwt_cookie_result = create_cookie(jwt_value);
+            match jwt_cookie_result {
+                Ok(jwt_cookie) => {
+                    cookies.add(jwt_cookie);
+                    ApiResponse {
+                        json: json!(public_user),
+                        status: Status::raw(200)
+                    }
+                },
+                Err(_err) => {
+                    ApiResponse {
+                        json: json!({ "error": "Internal server error" }),
+                        status: Status::raw(500)
+                    }
+                }
             }
+            
         },
         Err(err) => {
             ApiResponse {

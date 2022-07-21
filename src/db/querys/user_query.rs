@@ -7,7 +7,7 @@ use rocket::http::Status;
 use rocket::response::status;
 use diesel::result::Error;
 use rocket_contrib::databases::diesel;
-use diesel::{QueryDsl, RunQueryDsl, insert_into};
+use diesel::{QueryDsl, RunQueryDsl};
 use diesel::ExpressionMethods;
 
 
