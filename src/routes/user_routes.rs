@@ -107,19 +107,27 @@ pub fn user_signup(
     match hash_string(&new_user.password) {
         Ok(hashed_password) => {
             let hashed_email = create_known_hash_email(new_user.email.clone());
-            let verify_hash = create_known_hash_string(hashed_email);
-            create_user_with_ps_email(
-                conn,
-                new_user,
-                hashed_password,
-                hashed_email,
-                verify_hash,
-                &mut cookies
-            )
+            let user = get_user(&conn, hashed_email as i64);
+            if let Ok(_auth_user) = user {
+                ApiResponse {
+                    json: json!({ "error": "An account with that email already exists", "errorCode": "USER_EXISTS" }),
+                    status: Status::raw(500)
+                }
+            } else {
+                let verify_hash = create_known_hash_string(hashed_email);
+                create_user_with_ps_email(
+                    conn,
+                    new_user,
+                    hashed_password,
+                    hashed_email,
+                    verify_hash,
+                    &mut cookies
+                )
+            }
         }
-        Err(err) => {
+        Err(_err) => {
             ApiResponse {
-                json: json!({ "error": "Internal server error" }),
+                json: json!({ "error": "Whoops! Something went wrong, please contact brian@tigum.io for support" }),
                 status: Status::raw(500)
             }
         }
@@ -134,9 +142,7 @@ fn create_user_with_ps_email(
     verify_hash: String,
     cookies: &mut Cookies
 ) -> ApiResponse {
-    let new_user_email = new_user.email.clone();
-    let new_user_verify_hash = verify_hash.clone();
-    let new_user_name = new_user.name.clone();
+
     match create_user(&conn, new_user, hashed_password, hashed_email, verify_hash) {
         Ok(auth_user) => {
             let public_user = AuthUser::to_public_user(auth_user);

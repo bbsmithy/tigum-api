@@ -42,12 +42,24 @@ pub fn update_subdomain(
     uid: i32
 ) -> ApiResponse {
     use crate::schema::users::dsl::*;
-    let user_to_update = users.filter(id.eq(uid));
-    let res  = diesel::update(user_to_update).set(subdomain.eq(domain)).get_result::<AuthUser>(conn);
-    match res {
-        Ok(auth_user) => ApiResponse { json: json!(auth_user), status: Status::raw(200) },
-        Err(_err) => ApiResponse { json: json!({}), status: Status::raw(500) },
+    if let Ok(_auth_user) = users.filter(subdomain.eq(&domain)).get_result::<AuthUser>(conn) {
+        ApiResponse { 
+            json: json!({ 
+                "error": "An account with that subdomain already exists, please try another one", 
+                "errorCode": "SUBDOMAIN_EXISTS"
+            }), 
+            status: Status::raw(500) 
+        }
+    } else {
+        let user_to_update = users.filter(id.eq(uid));
+        let res  = diesel::update(user_to_update).set(subdomain.eq(&domain)).get_result::<AuthUser>(conn);
+        match res {
+            Ok(auth_user) => ApiResponse { json: json!(auth_user), status: Status::raw(200) },
+            Err(_err) => ApiResponse { json: json!({}), status: Status::raw(500) },
+        }
     }
+
+    
 }
 
 pub fn update_profile_pic(
