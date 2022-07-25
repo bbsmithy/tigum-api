@@ -1,4 +1,5 @@
 use crate::db;
+use crate::db::querys::topic_query::get_all_resources_for_topic;
 use rocket::Route;
 use rocket::http::{RawStr, Status};
 
@@ -70,13 +71,15 @@ fn create_single_topic(conn: TigumPgConn, topic: Json<NewTopic>, auth_user: User
 
 #[get("/topics/<topic_id>")]
 fn single_topic(conn: TigumPgConn, topic_id: i32, auth_user: User) -> ApiResponse {
-    get_topic(conn, topic_id, auth_user.id)
+    get_all_resources_for_topic(&conn, topic_id)
 }
 
 #[post("/topics", format = "application/json", data = "<topic_ids>")]
 fn topics(conn: TigumPgConn, topic_ids: Json<TopicIds>, auth_user: User) -> ApiResponse {
     get_topics(conn, topic_ids, auth_user.id)
 }
+
+
 
 pub fn get_topic_routes() -> Vec<Route> {
     routes![

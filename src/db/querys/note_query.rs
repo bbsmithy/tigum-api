@@ -150,14 +150,11 @@ pub fn publish_note(conn: &diesel::PgConnection, note_id: i32, publish: bool, ui
             let topic_to_update = topics.filter(id.eq(updated_note.topic_id));
             diesel::update(topic_to_update).set(published.eq(true)).get_result::<Topic>(conn)?;
         } else {
-
-
             // Unpublishing a note
             let public_resources_query_for_topic_query = build_public_resources_count_query(updated_note.topic_id);
             let count_query_result = diesel::sql_query(public_resources_query_for_topic_query).load::<PublicResourcesCount>(conn)?;
 
             if let Some(count) = count_query_result.get(0) {
-                println!("{:?}", count.public_resources_count);
                 // If there are no longer any published resources
                 if count.public_resources_count == 0 {
                     use crate::schema::topics::dsl::*;
