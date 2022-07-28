@@ -8,7 +8,7 @@ use rocket::http::{Status};
 // DB Models
 use models::topic::{NewTopic, TopicIds};
 use models::resources::ResourceType;
-use models::search::resources::ResourceResult;
+use models::search::resources::TopicResult;
 use rocket_contrib::databases::diesel;
 
 // DB Schema
@@ -219,19 +219,20 @@ pub fn update_topic_mod_date(conn: &diesel::PgConnection, topic_id: i32) -> Resu
 
 pub fn get_all_resources_for_topic(conn: &diesel::PgConnection, topic_id: i32) -> ApiResponse {
     let find_all_resources_query = format!("
-        SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, 'none' as misc2, date_updated FROM notes WHERE topic_id = {tid}
+        SELECT 'note' result_type, topic_id, title, id as resource_id, 'none' as misc, 'none' as misc2, to_char(date_updated, 'DD Mon YYYY') as updated, published, date_updated FROM notes WHERE topic_id = {tid}
         UNION ALL
-        SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, date_updated FROM videos
+        SELECT 'video' result_type, topic_id, title, id as resource_id, iframe as misc, thumbnail_img as misc2, to_char(date_updated, 'DD Mon YYYY') as updated, published, date_updated FROM videos
         WHERE topic_id = {tid}
         UNION ALL
-        SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, 'none' as misc2, date_updated FROM links
+        SELECT 'link' result_type, topic_id, title, id as resource_id, source as misc, favicon_source as misc2, 'none' as updated, published, date_updated FROM links
         WHERE topic_id = {tid}
         UNION ALL
-        SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, date_updated FROM article_snippets
+        SELECT 'snippet' result_type, topic_id, content as title, id as resource_id, origin as misc, title as misc2, to_char(date_updated, 'DD Mon YYYY') as updated, published, date_updated FROM article_snippets
         WHERE topic_id = {tid}
         ORDER BY date_updated DESC
     ", tid=topic_id);
-    let result = diesel::sql_query(find_all_resources_query).get_results::<ResourceResult>(conn);
+
+    let result = diesel::sql_query(find_all_resources_query).get_results::<TopicResult>(conn);
     match result {
         Ok(rows) => {
             ApiResponse {
@@ -239,7 +240,10 @@ pub fn get_all_resources_for_topic(conn: &diesel::PgConnection, topic_id: i32) -
                 status: Status::raw(200)
             }
         },
-        Err(_err) => {
+        Err(err) => {
+
+            println!("{:?}", err);
+
             ApiResponse {
                 json: json!("nope"),
                 status: Status::raw(500)
